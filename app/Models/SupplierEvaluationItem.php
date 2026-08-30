@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -25,6 +26,15 @@ class SupplierEvaluationItem extends Model
             'weight' => 'float',
             'score' => 'float',
         ];
+    }
+
+    /**
+     * @param  Builder<static>  $query
+     * @return Builder<static>
+     */
+    public function scopeForEvaluation(Builder $query, int $evaluationId): Builder
+    {
+        return $query->where('supplier_evaluation_id', $evaluationId);
     }
 
     public function evaluation(): BelongsTo

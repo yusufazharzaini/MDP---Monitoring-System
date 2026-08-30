@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\DataTransferObjects\DashboardFilter;
 use App\Enums\DeliveryStatus;
+use App\Models\Concerns\HasDashboardScopes;
 use App\Models\Concerns\HasSearch;
 use App\Models\Concerns\HasUlid;
 use Illuminate\Database\Eloquent\Builder;
@@ -19,16 +21,32 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class Delivery extends Model
 {
+    use HasDashboardScopes;
     use HasFactory;
     use HasSearch;
     use HasUlid;
 
     protected $table = 'deliveries';
 
+    /**
+     * Only what the receiving clerk fills in.
+     *
+     * Deliberately absent: `ulid`, `delivery_number` (allocated by
+     * NumberGeneratorService), `status` (derived from the lines by
+     * DeliveryStatusService) and `received_by` (taken from the authenticated
+     * user, never from the payload).
+     *
+     * @var array<int, string>
+     */
     protected $fillable = [
-        'ulid', 'delivery_number', 'purchase_order_id', 'supplier_id', 'plant_id',
-        'delivery_date', 'do_number', 'vehicle_number', 'driver_name',
-        'received_by', 'status', 'remarks',
+        'purchase_order_id',
+        'supplier_id',
+        'plant_id',
+        'delivery_date',
+        'do_number',
+        'vehicle_number',
+        'driver_name',
+        'remarks',
     ];
 
     /**
@@ -47,6 +65,11 @@ class Delivery extends Model
         ];
     }
 
+    public function dashboardDateColumn(): string
+    {
+        return 'deliveries.delivery_date';
+    }
+
     /**
      * The population every KPI aggregate runs over (assumption A5).
      *
@@ -55,16 +78,72 @@ class Delivery extends Model
      */
     public function scopeCountable(Builder $query): Builder
     {
-        return $query->where('status', '!=', DeliveryStatus::CANCELLED);
+        return $query->where('deliveries.status', '!=', DeliveryStatus::CANCELLED);
+    }
+
+    /**
+     * The full dashboard filter. `status` is read as a delivery status.
+     *
+     * @param  Builder<static>  $query
+     * @return Builder<static>
+     */
+    public function scopeForDashboard(Builder $query, DashboardFilter $filter): Builder
+    {
+        $query->countable()->forPeriod($filter);
+
+        $this->whereOptional($query, 'deliveries.plant_id', $filter->plantId);
+        $this->whereOptional($query, 'deliveries.supplier_id', $filter->supplierId);
+        $this->whereOptional($query, 'deliveries.status', $filter->status);
+
+        if ($filter->materialId !== null || $filter->materialCategoryId !== null) {
+            $query->whereHas('items', function (Builder $items) use ($filter): void {
+                $this->whereOptional($items, 'delivery_items.material_id', $filter->materialId);
+
+                if ($filter->materialCategoryId !== null) {
+                    $items->whereHas(
+                        'material',
+                        fn (Builder $m) => $m->where('category_id', $filter->materialCategoryId),
+                    );
+                }
+            });
+        }
+
+        return $query;
+    }
+
+    /**
+     * Everything an index row renders, eager loaded in one pass.
+     *
+     * @param  Builder<static>  $query
+     * @return Builder<static>
+     */
+    public function scopeWithListRelations(Builder $query): Builder
+    {
+        return $query
+            ->with([
+                'supplier:id,ulid,code,name,short_name',
+                'plant:id,ulid,code,name',
+                'purchaseOrder:id,ulid,po_number,po_date',
+            ])
+            ->withCount(['items', 'problems']);
     }
 
     /**
      * @param  Builder<static>  $query
      * @return Builder<static>
      */
-    public function scopeBetweenDates(Builder $query, string $from, string $to): Builder
+    public function scopeWithDetailRelations(Builder $query): Builder
     {
-        return $query->whereBetween('delivery_date', [$from, $to]);
+        return $query->with([
+            'supplier',
+            'plant',
+            'purchaseOrder:id,ulid,po_number,po_date,status',
+            'receiver:id,name',
+            'items.material:id,ulid,code,name',
+            'items.uom:id,code,name',
+            'items.purchaseOrderItem:id,line_no,schedule_delivery_date,qty_ordered,qty_received',
+            'problems:id,ulid,delivery_id,problem_number,severity,status,problem_date',
+        ]);
     }
 
     public function purchaseOrder(): BelongsTo

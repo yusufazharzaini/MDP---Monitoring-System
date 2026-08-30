@@ -7,6 +7,7 @@ namespace App\Models;
 use App\Enums\RecordStatus;
 use App\Models\Concerns\HasRecordStatus;
 use App\Models\Concerns\HasSearch;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -35,6 +36,24 @@ class SupplierContact extends Model
             'is_primary' => 'boolean',
             'status' => RecordStatus::class,
         ];
+    }
+
+    /**
+     * @param  Builder<static>  $query
+     * @return Builder<static>
+     */
+    public function scopePrimary(Builder $query): Builder
+    {
+        return $query->where('is_primary', true);
+    }
+
+    /**
+     * @param  Builder<static>  $query
+     * @return Builder<static>
+     */
+    public function scopeForSupplier(Builder $query, int $supplierId): Builder
+    {
+        return $query->where('supplier_id', $supplierId);
     }
 
     public function supplier(): BelongsTo

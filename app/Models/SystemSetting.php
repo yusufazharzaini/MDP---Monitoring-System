@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Enums\SettingType;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -24,6 +25,15 @@ class SystemSetting extends Model
     protected function casts(): array
     {
         return ['type' => SettingType::class];
+    }
+
+    /**
+     * @param  Builder<static>  $query
+     * @return Builder<static>
+     */
+    public function scopeInGroup(Builder $query, string $group): Builder
+    {
+        return $query->where('group', $group);
     }
 
     /**

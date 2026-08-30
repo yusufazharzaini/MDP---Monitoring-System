@@ -1023,7 +1023,28 @@ index instead. The indexes are now dropped before their columns.
 
 # E. Laravel Model Relationship List
 
-All 22 models live in `app/Models`.
+All 23 models live in `app/Models`. Three cross-cutting policies apply to every
+one of them and are stated once here rather than repeated per model.
+
+## E.0 The three policies
+
+**Mass assignment (requirement 1).** A column is fillable only if a user may
+legitimately type it on a form. Identifiers (`ulid`, `po_number`,
+`delivery_number`, `problem_number`), lifecycle status, approval metadata and
+every derived column are absent from `$fillable`; services write them with
+`forceFill()`. `MassAssignmentSafetyTest` asserts this column by column, and
+`Model::shouldBeStrict()` turns an attempt into an exception rather than a
+silent discard.
+
+**Casts.** Every status column casts to its backed enum, every money and
+quantity column to `decimal:4`, every date to `date`/`datetime`. No status is
+ever compared as a string, and no monetary value is ever a float.
+
+**Eager loading (requirement 33).** Heavy models expose
+`withListRelations()` and `withDetailRelations()` scopes, so a screen declares
+its eager loads once instead of every caller remembering.
+`EagerLoadingTest` runs each list query against 1 row and then 20 and asserts
+the query count did not change.
 
 ## E.1 Master data
 
@@ -1146,21 +1167,98 @@ public function notifications(): MorphMany       // → DatabaseNotification (No
 
 // AuditLog
 public function user(): BelongsTo                // → User
+
+// Notification  (extends Illuminate\Notifications\DatabaseNotification)
+public function notifiable(): MorphTo            // → User
+// title / message / severity / url are accessors over the `data` payload
 ```
 
+`User::appNotifications()` returns this model rather than the framework base
+class, so a notification list can read `$notification->title` directly.
+
 ## E.5 Query scopes that carry business meaning
+
+### Population and lifecycle
 
 | Scope | Model | Meaning |
 |---|---|---|
 | `active()` | Supplier, Material, Plant, Warehouse, Uom, … | `status = ACTIVE` (Supplier also excludes BLACKLISTED) |
-| `countable()` | Delivery | **the KPI population** — excludes CANCELLED |
+| `orderable()` | Supplier | may be selected on a new purchase order |
+| `countable()` | Delivery, DeliveryItem | **the KPI population** — excludes CANCELLED |
 | `notCancelled()` | PurchaseOrder | |
-| `betweenDates($from, $to)` | Delivery, PurchaseOrder | period filter |
+| `outstanding()` | PurchaseOrder, PurchaseOrderItem, CorrectiveAction | still awaiting completion |
 | `open()` | DeliveryProblem | OPEN or IN_PROGRESS |
-| `overdue()` | DeliveryProblem | open and past `due_date` |
-| `outstanding()` | CorrectiveAction | not DONE |
-| `critical()` | Material | `is_critical = true` |
+| `overdue()` | DeliveryProblem, PurchaseOrderItem, CorrectiveAction | past its date and still open |
+| `critical()` | Material, DeliveryProblem | flagged critical / CRITICAL severity |
+| `short()` | PurchaseOrderItem, DeliveryItem | quantity shortfall |
+| `late()` / `onTime()` | DeliveryItem | punctuality |
+| `withoutCompletedAction()` | DeliveryProblem | nobody has actually resolved it |
+| `activeInPeriod($from, $to)` | Supplier, Material | had receipts inside the period |
 | `search($term)` | most master models | LIKE over declared columns |
+
+### Dashboard filtering (requirement 7)
+
+Requirement 21 of the master specification says the KPI cards, trend, ranking,
+Pareto chart, PO monitoring table and critical-material list must never
+disagree. They agree because they are all narrowed by **one**
+`App\DataTransferObjects\DashboardFilter`, applied through one scope name:
+
+| Scope | Model | `status` is read as |
+|---|---|---|
+| `forDashboard(DashboardFilter)` | PurchaseOrder | purchase order status |
+| `forDashboard(DashboardFilter)` | PurchaseOrderItem | overall delivery status |
+| `forDashboard(DashboardFilter)` | Delivery | delivery status |
+| `forDashboard(DashboardFilter)` | DeliveryItem | overall delivery status |
+| `forDashboard(DashboardFilter)` | DeliveryProblem | problem status |
+| `forPeriod(DashboardFilter)` | all of the above | period only |
+| `betweenDates($from, $to)` | all of the above | period only |
+
+Each model declares the date column it is *reported* on, which is not always the
+obvious one:
+
+```
+Delivery            deliveries.delivery_date              when the goods arrived
+PurchaseOrder       purchase_orders.po_date               when the order was raised
+PurchaseOrderItem   purchase_order_items.schedule_delivery_date   when it was promised
+DeliveryProblem     delivery_problems.problem_date        when it was reported
+```
+
+`DeliveryItem` has no date column of its own — it is reported through its
+delivery, which is exactly why the KPI grain is the delivery line but the
+period filter lives on the header.
+
+Models reach filters they do not hold directly: `DeliveryProblem` has no
+`plant_id`, so `forDashboard` reaches it through the delivery; `DeliveryItem`
+reaches the material category through the material. `DashboardScopeTest` asserts
+all of this produces consistent counts across models.
+
+**One caveat, stated rather than hidden:** `forDashboard` composes with
+`whereHas`, which becomes an `EXISTS` subquery. That is the right shape for list
+screens. The dashboard's own aggregates in `DashboardRepository` join
+`deliveries` explicitly instead, because `EXISTS` is the wrong shape for a
+`GROUP BY` over a whole month.
+
+### Eager-load scopes
+
+| Scope | Models |
+|---|---|
+| `withListRelations()` | PurchaseOrder, PurchaseOrderItem, Delivery, DeliveryItem, DeliveryProblem, CorrectiveAction, Supplier, Material, Warehouse, Plant, SupplierEvaluation, AuditLog, User |
+| `withDetailRelations()` | PurchaseOrder, Delivery, DeliveryProblem |
+
+### Accessors — used sparingly (requirement 6)
+
+Only two computed values are real accessors, because only these two are read on
+every render and would otherwise put formatting logic in a template:
+
+| Accessor | Model |
+|---|---|
+| `human_file_size` | ProblemAttachment |
+| `title` / `message` / `severity` / `url` | Notification (over the `data` payload) |
+
+Everything else stays a plain method — `Supplier::displayName()`,
+`PurchaseOrderItem::outstandingQuantity()`, `SupplierEvaluation::periodLabel()`
+— so it is called explicitly by an API Resource rather than being appended to
+every query result whether or not the caller wanted it.
 
 ---
 

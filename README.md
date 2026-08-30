@@ -109,7 +109,8 @@ Two tests are worth knowing about:
 ```
 app/
 ├── Enums/          16 backed enums - no status is ever a magic string
-├── Models/         22 Eloquent models with their relationships
+├── DataTransferObjects/  DashboardFilter - one filter object for every panel
+├── Models/         23 Eloquent models with their relationships
 ├── Services/       business logic, one namespace per concern
 │   ├── Delivery/   DeliveryStatusCalculator (pure) + DeliveryStatusService
 │   ├── Setting/    cached KPI and system settings access

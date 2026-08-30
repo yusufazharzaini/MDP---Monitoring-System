@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\DataTransferObjects\DashboardFilter;
+use App\Enums\CorrectiveActionStatus;
 use App\Enums\ProblemSeverity;
 use App\Enums\ProblemStatus;
+use App\Models\Concerns\HasDashboardScopes;
 use App\Models\Concerns\HasSearch;
 use App\Models\Concerns\HasUlid;
 use Illuminate\Database\Eloquent\Builder;
@@ -16,14 +19,32 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class DeliveryProblem extends Model
 {
+    use HasDashboardScopes;
     use HasFactory;
     use HasSearch;
     use HasUlid;
 
+    /**
+     * Only what the reporter fills in.
+     *
+     * Deliberately absent: `ulid`, `problem_number` (allocated by
+     * NumberGeneratorService), `status` and `closed_at` (lifecycle, owned by
+     * ProblemService, which enforces "a problem may only close once a
+     * corrective action is done"), and `created_by`.
+     *
+     * @var array<int, string>
+     */
     protected $fillable = [
-        'ulid', 'problem_number', 'delivery_id', 'supplier_id', 'material_id',
-        'problem_category_id', 'problem_date', 'description', 'severity',
-        'root_cause', 'status', 'pic', 'due_date', 'closed_at', 'created_by',
+        'delivery_id',
+        'supplier_id',
+        'material_id',
+        'problem_category_id',
+        'problem_date',
+        'description',
+        'severity',
+        'root_cause',
+        'pic',
+        'due_date',
     ];
 
     /**
@@ -45,6 +66,11 @@ class DeliveryProblem extends Model
         ];
     }
 
+    public function dashboardDateColumn(): string
+    {
+        return 'delivery_problems.problem_date';
+    }
+
     /**
      * @param  Builder<static>  $query
      * @return Builder<static>
@@ -63,6 +89,96 @@ class DeliveryProblem extends Model
         return $query->open()
             ->whereNotNull('due_date')
             ->whereDate('due_date', '<', now()->toDateString());
+    }
+
+    /**
+     * @param  Builder<static>  $query
+     * @return Builder<static>
+     */
+    public function scopeCritical(Builder $query): Builder
+    {
+        return $query->where('severity', ProblemSeverity::CRITICAL);
+    }
+
+    /**
+     * Open problems whose corrective actions are all still outstanding - the
+     * ones nobody has actually started resolving.
+     *
+     * @param  Builder<static>  $query
+     * @return Builder<static>
+     */
+    public function scopeWithoutCompletedAction(Builder $query): Builder
+    {
+        return $query->whereDoesntHave(
+            'correctiveActions',
+            fn (Builder $action) => $action->where('status', CorrectiveActionStatus::DONE),
+        );
+    }
+
+    /**
+     * The full dashboard filter. `status` is read as a problem status.
+     *
+     * This is the population the Pareto chart groups by category.
+     *
+     * @param  Builder<static>  $query
+     * @return Builder<static>
+     */
+    public function scopeForDashboard(Builder $query, DashboardFilter $filter): Builder
+    {
+        $query->forPeriod($filter);
+
+        $this->whereOptional($query, 'delivery_problems.supplier_id', $filter->supplierId);
+        $this->whereOptional($query, 'delivery_problems.material_id', $filter->materialId);
+        $this->whereOptional($query, 'delivery_problems.status', $filter->status);
+
+        if ($filter->plantId !== null) {
+            $query->whereHas(
+                'delivery',
+                fn (Builder $d) => $d->where('deliveries.plant_id', $filter->plantId),
+            );
+        }
+
+        if ($filter->materialCategoryId !== null) {
+            $query->whereHas(
+                'material',
+                fn (Builder $m) => $m->where('category_id', $filter->materialCategoryId),
+            );
+        }
+
+        return $query;
+    }
+
+    /**
+     * @param  Builder<static>  $query
+     * @return Builder<static>
+     */
+    public function scopeWithListRelations(Builder $query): Builder
+    {
+        return $query
+            ->with([
+                'supplier:id,ulid,code,name,short_name',
+                'material:id,ulid,code,name',
+                'category:id,code,name',
+                'delivery:id,ulid,delivery_number,delivery_date',
+            ])
+            ->withCount(['attachments', 'correctiveActions']);
+    }
+
+    /**
+     * @param  Builder<static>  $query
+     * @return Builder<static>
+     */
+    public function scopeWithDetailRelations(Builder $query): Builder
+    {
+        return $query->with([
+            'supplier',
+            'material',
+            'category',
+            'delivery.purchaseOrder:id,ulid,po_number',
+            'creator:id,name',
+            'attachments.uploader:id,name',
+            'correctiveActions.actionBy:id,name',
+        ]);
     }
 
     public function delivery(): BelongsTo
@@ -105,5 +221,15 @@ class DeliveryProblem extends Model
         return $this->status->isOpen()
             && $this->due_date !== null
             && $this->due_date->isBefore(now()->startOfDay());
+    }
+
+    /**
+     * Days remaining until the due date; negative once overdue.
+     */
+    public function daysUntilDue(): ?int
+    {
+        return $this->due_date === null
+            ? null
+            : (int) now()->startOfDay()->diffInDays($this->due_date->copy()->startOfDay(), false);
     }
 }

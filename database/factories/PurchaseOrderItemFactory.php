@@ -18,6 +18,13 @@ class PurchaseOrderItemFactory extends Factory
 {
     protected $model = PurchaseOrderItem::class;
 
+    /**
+     * Line numbers are unique within one order, so a factory instance numbers
+     * the lines it produces sequentially. Creating several lines for the same
+     * order therefore means one instance: ->count(3)->create([...]).
+     */
+    private int $lineNumber = 0;
+
     public function definition(): array
     {
         $qty = $this->faker->numberBetween(100, 2000);
@@ -28,12 +35,20 @@ class PurchaseOrderItemFactory extends Factory
             'material_id' => Material::factory(),
             'warehouse_id' => Warehouse::factory(),
             'uom_id' => Uom::factory(),
-            'line_no' => 1,
+            'line_no' => ++$this->lineNumber,
             'schedule_delivery_date' => now()->addDays($this->faker->numberBetween(3, 30))->toDateString(),
             'qty_ordered' => $qty,
             'unit_price' => $price,
             'amount' => $qty * $price,
         ];
+    }
+
+    /**
+     * Attach the line to an existing order.
+     */
+    public function forOrder(PurchaseOrder $order): static
+    {
+        return $this->state(fn (): array => ['purchase_order_id' => $order->getKey()]);
     }
 
     public function scheduledOn(string $date): static

@@ -23,8 +23,11 @@ class Material extends Model
     use HasUlid;
     use SoftDeletes;
 
+    /**
+     * @var array<int, string>
+     */
     protected $fillable = [
-        'ulid', 'code', 'name', 'category_id', 'uom_id', 'specification',
+        'code', 'name', 'category_id', 'uom_id', 'specification',
         'minimum_stock', 'critical_stock', 'lead_time_days', 'is_critical', 'status',
     ];
 
@@ -48,12 +51,54 @@ class Material extends Model
     }
 
     /**
+     * Materials the business has flagged critical. This is only the first of
+     * the four critical-material rules; the rest are activity based and live in
+     * CriticalMaterialService.
+     *
      * @param  Builder<static>  $query
      * @return Builder<static>
      */
     public function scopeCritical(Builder $query): Builder
     {
         return $query->where('is_critical', true);
+    }
+
+    /**
+     * @param  Builder<static>  $query
+     * @return Builder<static>
+     */
+    public function scopeInCategory(Builder $query, int $categoryId): Builder
+    {
+        return $query->where('category_id', $categoryId);
+    }
+
+    /**
+     * Materials with receipts inside the period.
+     *
+     * @param  Builder<static>  $query
+     * @return Builder<static>
+     */
+    public function scopeActiveInPeriod(Builder $query, string $from, string $to): Builder
+    {
+        return $query->whereHas(
+            'deliveryItems',
+            fn (Builder $items) => $items->countable()->whereHas(
+                'delivery',
+                fn (Builder $d) => $d->betweenDates($from, $to),
+            ),
+        );
+    }
+
+    /**
+     * @param  Builder<static>  $query
+     * @return Builder<static>
+     */
+    public function scopeWithListRelations(Builder $query): Builder
+    {
+        return $query->with([
+            'category:id,code,name',
+            'uom:id,code,name',
+        ]);
     }
 
     public function category(): BelongsTo

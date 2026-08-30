@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Enums\AuditAction;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -34,6 +35,44 @@ class AuditLog extends Model
             'new_values' => 'array',
             'created_at' => 'datetime',
         ];
+    }
+
+    /**
+     * The history of one record.
+     *
+     * @param  Builder<static>  $query
+     * @return Builder<static>
+     */
+    public function scopeForRecord(Builder $query, string $module, int $recordId): Builder
+    {
+        return $query->where('module', $module)->where('record_id', $recordId);
+    }
+
+    /**
+     * @param  Builder<static>  $query
+     * @return Builder<static>
+     */
+    public function scopeForModule(Builder $query, string $module): Builder
+    {
+        return $query->where('module', $module);
+    }
+
+    /**
+     * @param  Builder<static>  $query
+     * @return Builder<static>
+     */
+    public function scopeBetweenDates(Builder $query, string $from, string $to): Builder
+    {
+        return $query->whereBetween('created_at', [$from.' 00:00:00', $to.' 23:59:59']);
+    }
+
+    /**
+     * @param  Builder<static>  $query
+     * @return Builder<static>
+     */
+    public function scopeWithListRelations(Builder $query): Builder
+    {
+        return $query->with('user:id,name,email');
     }
 
     public function user(): BelongsTo

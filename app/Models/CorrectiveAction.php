@@ -14,9 +14,19 @@ class CorrectiveAction extends Model
 {
     use HasFactory;
 
+    /**
+     * Deliberately absent: `status` and `completed_at`. They move together -
+     * marking an action DONE stamps its completion and may close the parent
+     * problem - so CorrectiveActionService owns the transition.
+     *
+     * @var array<int, string>
+     */
     protected $fillable = [
-        'delivery_problem_id', 'action_date', 'action_by', 'description',
-        'status', 'due_date', 'completed_at',
+        'delivery_problem_id',
+        'action_date',
+        'action_by',
+        'description',
+        'due_date',
     ];
 
     /**
@@ -39,6 +49,39 @@ class CorrectiveAction extends Model
     public function scopeOutstanding(Builder $query): Builder
     {
         return $query->where('status', '!=', CorrectiveActionStatus::DONE);
+    }
+
+    /**
+     * @param  Builder<static>  $query
+     * @return Builder<static>
+     */
+    public function scopeCompleted(Builder $query): Builder
+    {
+        return $query->where('status', CorrectiveActionStatus::DONE);
+    }
+
+    /**
+     * @param  Builder<static>  $query
+     * @return Builder<static>
+     */
+    public function scopeOverdue(Builder $query): Builder
+    {
+        return $query->outstanding()
+            ->whereNotNull('due_date')
+            ->whereDate('due_date', '<', now()->toDateString());
+    }
+
+    /**
+     * @param  Builder<static>  $query
+     * @return Builder<static>
+     */
+    public function scopeWithListRelations(Builder $query): Builder
+    {
+        return $query->with([
+            'problem:id,ulid,problem_number,severity,status,supplier_id',
+            'problem.supplier:id,ulid,code,name,short_name',
+            'actionBy:id,name',
+        ]);
     }
 
     public function problem(): BelongsTo
