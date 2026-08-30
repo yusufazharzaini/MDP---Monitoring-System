@@ -1,0 +1,91 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Models;
+
+use App\Enums\SupplierStatus;
+use App\Enums\SupplierType;
+use App\Models\Concerns\HasSearch;
+use App\Models\Concerns\HasUlid;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+class Supplier extends Model
+{
+    use HasFactory;
+    use HasSearch;
+    use HasUlid;
+    use SoftDeletes;
+
+    protected $fillable = [
+        'ulid', 'code', 'name', 'short_name', 'address', 'city', 'country',
+        'pic_name', 'pic_email', 'pic_phone', 'lead_time_days', 'payment_term',
+        'supplier_type', 'status',
+    ];
+
+    /**
+     * @var array<int, string>
+     */
+    protected array $searchable = ['code', 'name', 'short_name', 'city', 'pic_name'];
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'lead_time_days' => 'integer',
+            'supplier_type' => SupplierType::class,
+            'status' => SupplierStatus::class,
+        ];
+    }
+
+    /**
+     * @param  Builder<static>  $query
+     * @return Builder<static>
+     */
+    public function scopeActive(Builder $query): Builder
+    {
+        return $query->where('status', SupplierStatus::ACTIVE);
+    }
+
+    public function contacts(): HasMany
+    {
+        return $this->hasMany(SupplierContact::class);
+    }
+
+    public function primaryContact(): HasOne
+    {
+        return $this->hasOne(SupplierContact::class)->where('is_primary', true);
+    }
+
+    public function purchaseOrders(): HasMany
+    {
+        return $this->hasMany(PurchaseOrder::class);
+    }
+
+    public function deliveries(): HasMany
+    {
+        return $this->hasMany(Delivery::class);
+    }
+
+    public function problems(): HasMany
+    {
+        return $this->hasMany(DeliveryProblem::class);
+    }
+
+    public function evaluations(): HasMany
+    {
+        return $this->hasMany(SupplierEvaluation::class);
+    }
+
+    public function displayName(): string
+    {
+        return $this->short_name ?: $this->name;
+    }
+}
