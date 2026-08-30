@@ -19,7 +19,7 @@ Laravel Excel · DomPDF · PHPUnit 12
 | Document | Contents |
 |---|---|
 | [docs/01-ARCHITECTURE.md](docs/01-ARCHITECTURE.md) | Layering, directory map, modules, documented assumptions |
-| [docs/02-ERD.md](docs/02-ERD.md) | ERD diagram, full table catalogue, index summary |
+| [docs/02-ERD.md](docs/02-ERD.md) | **Production ERD**: Mermaid diagrams, full data dictionary, relationships and cascade rules, migration order, model relationships, index recommendations, business constraints, and a validation of every supported scenario |
 | [docs/03-BUSINESS-RULES.md](docs/03-BUSINESS-RULES.md) | Status enums, delivery calculation, KPI formulas, lifecycles |
 | [docs/04-ROUTE-MAP.md](docs/04-ROUTE-MAP.md) | Route map, dashboard JSON contract, service/component inventory, roadmap |
 | [docs/05-DEMO-DATA.md](docs/05-DEMO-DATA.md) | What the seed reproduces and how |

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Database;
 
 use App\Enums\DeliveryStatus;
+use App\Enums\OverallDeliveryStatus;
 use App\Enums\QuantityStatus;
 use App\Enums\TimelinessStatus;
 use Database\Seeders\DatabaseSeeder;
@@ -174,6 +175,88 @@ final class DemoDataIntegrityTest extends TestCase
         }
 
         $this->assertSame([46.0, 75.0, 89.0, 96.0, 100.0], $percentages);
+    }
+
+    #[Test]
+    public function the_period_contains_genuine_split_shipments(): void
+    {
+        $split = DB::table('purchase_order_items as poi')
+            ->join('delivery_items as di', 'di.purchase_order_item_id', '=', 'poi.id')
+            ->join('deliveries as d', 'd.id', '=', 'di.delivery_id')
+            ->whereBetween('d.delivery_date', [$this->from, $this->to])
+            ->groupBy('poi.id')
+            ->havingRaw('COUNT(DISTINCT di.delivery_id) > 1')
+            ->select('poi.id')
+            ->get();
+
+        $this->assertCount(
+            DemoBlueprint::CURRENT_MONTH_SPLIT_LINES,
+            $split,
+            'The demo period must contain split shipments, otherwise partial and '
+                .'multiple delivery are supported but never demonstrated.',
+        );
+    }
+
+    #[Test]
+    public function a_split_shipment_settles_its_order_line_in_full(): void
+    {
+        $item = DB::table('purchase_order_items as poi')
+            ->join('delivery_items as di', 'di.purchase_order_item_id', '=', 'poi.id')
+            ->join('deliveries as d', 'd.id', '=', 'di.delivery_id')
+            ->whereBetween('d.delivery_date', [$this->from, $this->to])
+            ->groupBy('poi.id', 'poi.qty_ordered', 'poi.qty_received', 'poi.fulfillment_status')
+            ->havingRaw('COUNT(DISTINCT di.delivery_id) > 1')
+            ->select('poi.id', 'poi.qty_ordered', 'poi.qty_received', 'poi.fulfillment_status')
+            ->first();
+
+        $this->assertNotNull($item);
+        $this->assertSame(QuantityStatus::FULL->value, $item->fulfillment_status);
+        $this->assertEqualsWithDelta((float) $item->qty_ordered, (float) $item->qty_received, 0.0001);
+
+        // The first receipt is cumulatively short; the second settles the line.
+        $statuses = DB::table('delivery_items as di')
+            ->join('deliveries as d', 'd.id', '=', 'di.delivery_id')
+            ->where('di.purchase_order_item_id', $item->id)
+            ->orderBy('d.delivery_date')
+            ->orderBy('di.id')
+            ->pluck('di.quantity_status')
+            ->all();
+
+        $this->assertSame(
+            [QuantityStatus::SHORT->value, QuantityStatus::FULL->value],
+            $statuses,
+        );
+    }
+
+    #[Test]
+    public function every_overall_status_is_represented_in_the_demo_data(): void
+    {
+        $present = $this->lines()
+            ->distinct()
+            ->pluck('delivery_items.overall_status')
+            ->all();
+
+        foreach ([
+            OverallDeliveryStatus::ON_TIME_FULL,
+            OverallDeliveryStatus::LATE_FULL,
+            OverallDeliveryStatus::ON_TIME_SHORT,
+            OverallDeliveryStatus::LATE_SHORT,
+            OverallDeliveryStatus::OVER_DELIVERY,
+        ] as $status) {
+            $this->assertContains(
+                $status->value,
+                $present,
+                "The demo period has no {$status->value} row, so that state is undemonstrated.",
+            );
+        }
+
+        // PENDING lives on order lines that have not been received at all.
+        $this->assertGreaterThan(
+            0,
+            DB::table('purchase_order_items')
+                ->where('overall_status', OverallDeliveryStatus::PENDING->value)
+                ->count(),
+        );
     }
 
     #[Test]

@@ -34,6 +34,25 @@ Verified by `tests/Feature/Database/DemoDataIntegrityTest.php`.
 
 `97.2 → 96.5 → 98.1 → 95.8 → 97.0 → 96.8`, matching the reference line chart.
 
+### Delivery status coverage — current month
+
+All six `overall_status` values occur, so no branch of the status matrix is
+undemonstrated:
+
+| Status | Rows |
+|---|---|
+| ON_TIME_FULL | 1,194 |
+| LATE_FULL | 34 |
+| ON_TIME_SHORT | 12 |
+| LATE_SHORT | 6 |
+| OVER_DELIVERY | 4 |
+| PENDING | 25 order lines awaiting receipt |
+
+Plus **6 split shipments** in the period (16 across all six months): one order
+line filled by two deliveries, the first cumulatively `SHORT` and the second
+settling it as `FULL`. Partial and multiple delivery are therefore visible in the
+data, not merely supported by the schema.
+
 ### Pareto — current month
 
 | Category | Count | % | Cumulative |
@@ -71,6 +90,15 @@ mathematically requires once A–E have taken 40 late lines between them.
 This is documented rather than silently reconciled, and the allocation lives in
 one place: `Database\Seeders\Support\DemoBlueprint::CURRENT_MONTH_ALLOCATION`.
 
+## 2b. One invariant worth knowing
+
+`CRITICAL` problem severity is a critical-material trigger, so the seeder only
+assigns it to problems whose material already belongs to the problem set. Split
+shipments are legitimately `SHORT` on ordinary materials, and without that guard
+a `SHORT_DELIVERY` problem raised against one would quietly push the critical
+material count from seven to eight. The guard is explicit in
+`DemoProblemSeeder`, and `DemoDataIntegrityTest` fails if it is removed.
+
 ## 3. How the seven critical materials are produced
 
 The critical-material rules (docs/03 §8) are configurable, so the count is an
@@ -95,9 +123,9 @@ making the rules configurable.
 | suppliers | 8 |
 | plants / warehouses | 3 / 6 |
 | materials | 20 |
-| purchase_orders | 1,125 |
-| purchase_order_items | 2,585 |
-| deliveries | 1,100 |
+| purchase_orders | 1,127 |
+| purchase_order_items | 2,569 |
+| deliveries | 1,118 |
 | delivery_items | 2,560 |
 | delivery_problems | 83 |
 | corrective_actions | 83 |
@@ -106,6 +134,22 @@ making the rules configurable.
 The current month holds 1,250 delivery lines; the five preceding months hold
 250 / 200 / 320 / 240 / 300. Twenty-five orders are scheduled but not yet
 received, so the PO monitoring table has genuine PENDING rows.
+
+**How the month's budget is spent.** Each month is planned against three
+budgets — total delivery lines, late lines and short lines — and every kind of
+line is accounted for against them:
+
+| Line kind | Delivery lines | Late | Short |
+|---|---|---|---|
+| Split shipment (2 receipts) | 2 | 0 | 1 (the first receipt) |
+| Late receipt | 1 | 1 | 0, or 1 when it is also short |
+| Short-only receipt | 1 | 0 | 1 |
+| Over-delivery | 1 | 0 | 0 |
+| Clean receipt | 1 | 0 | 0 |
+
+Because split shipments are punctual and over-deliveries satisfy their line,
+neither disturbs a supplier's service rate — which is what lets the demo carry
+realistic delivery patterns *and* reproduce the published figures exactly.
 
 ## 5. Why the seeder precomputes derived statuses
 

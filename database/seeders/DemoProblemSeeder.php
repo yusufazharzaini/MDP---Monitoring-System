@@ -9,6 +9,7 @@ use App\Enums\ProblemSeverity;
 use App\Enums\ProblemStatus;
 use App\Enums\QuantityStatus;
 use App\Enums\TimelinessStatus;
+use App\Models\Material;
 use App\Models\ProblemCategory;
 use App\Models\User;
 use Database\Seeders\Support\DemoBlueprint;
@@ -34,6 +35,11 @@ class DemoProblemSeeder extends Seeder
         $month = Carbon::now()->startOfMonth();
         $categories = ProblemCategory::query()->pluck('id', 'code');
         $reporter = User::query()->orderBy('id')->value('id');
+
+        $problemMaterialIds = Material::query()
+            ->whereIn('code', DemoBlueprint::PROBLEM_MATERIALS)
+            ->pluck('id')
+            ->all();
 
         $late = $this->pool($month, timeliness: TimelinessStatus::LATE);
         $short = $this->pool($month, quantity: QuantityStatus::SHORT);
@@ -61,6 +67,15 @@ class DemoProblemSeeder extends Seeder
                 $severity = in_array($code, $severityAllowed, true)
                     ? $this->severityFor($i)
                     : $this->nonCriticalSeverityFor($i);
+
+                // CRITICAL severity is a critical-material trigger, so it may only
+                // land on a material already inside the problem set. Split-shipment
+                // receipts are legitimately SHORT on ordinary materials, and must
+                // not widen the critical-material count through the back door.
+                if ($severity === ProblemSeverity::CRITICAL
+                    && ! in_array($source->material_id, $problemMaterialIds, true)) {
+                    $severity = ProblemSeverity::HIGH;
+                }
 
                 $problemDate = $month->copy()->addDays($sequence % 26);
                 $status = $this->statusFor($sequence);

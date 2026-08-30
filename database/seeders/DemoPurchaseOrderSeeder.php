@@ -25,8 +25,8 @@ use Illuminate\Support\Str;
  * receipts.
  *
  * Rollup values are computed here with the same DeliveryStatusCalculator the
- * runtime uses, and DeliverySeedConsistencyTest asserts that re-running
- * DeliveryStatusService over the seeded data changes nothing.
+ * runtime uses, replaying a line's receipts in date order exactly as
+ * DeliveryStatusService would. SeedConsistencyTest asserts the two agree.
  */
 class DemoPurchaseOrderSeeder extends Seeder
 {
@@ -34,13 +34,11 @@ class DemoPurchaseOrderSeeder extends Seeder
 
     public function run(): void
     {
-        $planner = new DemoOrderPlanner(
+        $orders = (new DemoOrderPlanner(
             Carbon::now()->startOfMonth(),
             DemoMaterialSeeder::normalMaterialCodes(),
             Plant::query()->orderBy('id')->pluck('code')->all(),
-        );
-
-        $orders = $planner->build();
+        ))->build();
 
         $suppliers = Supplier::query()->pluck('id', 'code');
         $plants = Plant::query()->pluck('id', 'code');
@@ -52,6 +50,7 @@ class DemoPurchaseOrderSeeder extends Seeder
             ->map(static fn ($group) => $group->first()->id);
         $createdBy = User::query()->orderBy('id')->value('id');
 
+        $calculator = app(DeliveryStatusCalculator::class);
         $now = Carbon::now();
         $orderRows = [];
 
@@ -64,7 +63,7 @@ class DemoPurchaseOrderSeeder extends Seeder
                 'plant_id' => $plants[$order->plantCode],
                 'currency' => 'IDR',
                 'payment_term' => 'NET 30',
-                'status' => $this->orderStatus($order)->value,
+                'status' => $this->orderStatus($order, $calculator)->value,
                 'total_amount' => $order->totalAmount(),
                 'remarks' => null,
                 'created_by' => $createdBy,
@@ -80,25 +79,26 @@ class DemoPurchaseOrderSeeder extends Seeder
         }
 
         $orderIds = DB::table('purchase_orders')->pluck('id', 'po_number');
-        $calculator = app(DeliveryStatusCalculator::class);
         $itemRows = [];
 
         foreach ($orders as $order) {
-            $orderId = $orderIds[$order->poNumber];
             $schedule = Carbon::parse($order->scheduleDate);
-            $actual = $order->deliveryDate === null ? null : Carbon::parse($order->deliveryDate);
+            $receiptDates = $this->receiptDates($order);
 
             foreach ($order->lines as $line) {
                 $material = $materials[$line->materialCode];
+                $received = $order->receivedFor($line->lineNo);
+                $settled = $received > 0 ? end($receiptDates) : null;
+
                 $verdict = $calculator->evaluate(
                     $line->qtyOrdered,
-                    $line->qtyReceived,
-                    $line->delivered ? $actual : null,
+                    $received,
+                    $settled === null ? null : Carbon::parse($settled),
                     $schedule,
                 );
 
                 $itemRows[] = [
-                    'purchase_order_id' => $orderId,
+                    'purchase_order_id' => $orderIds[$order->poNumber],
                     'material_id' => $material->id,
                     'warehouse_id' => $warehouses[$plants[$order->plantCode]],
                     'uom_id' => $material->uom_id,
@@ -107,9 +107,9 @@ class DemoPurchaseOrderSeeder extends Seeder
                     'qty_ordered' => $line->qtyOrdered,
                     'unit_price' => $line->unitPrice,
                     'amount' => $line->amount(),
-                    'qty_received' => $line->qtyReceived,
-                    'first_receipt_date' => $line->delivered ? $order->deliveryDate : null,
-                    'last_receipt_date' => $line->delivered ? $order->deliveryDate : null,
+                    'qty_received' => $received,
+                    'first_receipt_date' => $received > 0 ? reset($receiptDates) : null,
+                    'last_receipt_date' => $settled,
                     'fulfillment_status' => $verdict['quantity']->value,
                     'timeliness_status' => $verdict['timeliness']->value,
                     'overall_status' => $verdict['overall']->value,
@@ -126,19 +126,35 @@ class DemoPurchaseOrderSeeder extends Seeder
     }
 
     /**
-     * A demo order is COMPLETED when every line is satisfied, PARTIAL when some
-     * quantity arrived short, and APPROVED while nothing has been received.
+     * Receipt dates in chronological order - the order DeliveryStatusService
+     * replays them in.
+     *
+     * @return array<int, string>
      */
-    private function orderStatus(DemoOrderSpec $order): PurchaseOrderStatus
+    private function receiptDates(DemoOrderSpec $order): array
+    {
+        $dates = array_map(
+            static fn ($receipt): string => $receipt->deliveryDate,
+            $order->receipts,
+        );
+
+        sort($dates);
+
+        return $dates;
+    }
+
+    /**
+     * A demo order is COMPLETED when every line is satisfied, PARTIAL when some
+     * quantity is still outstanding, and APPROVED while nothing has arrived.
+     */
+    private function orderStatus(DemoOrderSpec $order, DeliveryStatusCalculator $calculator): PurchaseOrderStatus
     {
         if (! $order->isDelivered()) {
             return PurchaseOrderStatus::APPROVED;
         }
 
-        $calculator = app(DeliveryStatusCalculator::class);
-
         foreach ($order->lines as $line) {
-            $status = $calculator->quantityStatus($line->qtyOrdered, $line->qtyReceived);
+            $status = $calculator->quantityStatus($line->qtyOrdered, $order->receivedFor($line->lineNo));
 
             if (! in_array($status, [QuantityStatus::FULL, QuantityStatus::OVER], true)) {
                 return PurchaseOrderStatus::PARTIAL;

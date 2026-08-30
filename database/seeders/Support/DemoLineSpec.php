@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Database\Seeders\Support;
 
 /**
- * One purchase order line in the demo plan, together with the receipt that
- * fulfils it (if any).
+ * One purchase order line in the demo plan. Receipts against it are described
+ * separately by DemoReceiptSpec, because a line may be filled by several.
  */
 final readonly class DemoLineSpec
 {
@@ -14,11 +14,10 @@ final readonly class DemoLineSpec
         public int $lineNo,
         public string $materialCode,
         public float $qtyOrdered,
-        public float $qtyReceived,
         public float $unitPrice,
         public bool $late,
         public bool $short,
-        public bool $delivered,
+        public bool $over = false,
     ) {}
 
     public function amount(): float

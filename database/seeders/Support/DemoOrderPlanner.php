@@ -12,6 +12,10 @@ use Illuminate\Support\Carbon;
  * The plan is a pure function of the anchor month: no randomness, no database.
  * Both DemoPurchaseOrderSeeder and DemoDeliverySeeder rebuild the identical
  * plan, so they can run independently and still agree line for line.
+ *
+ * Every month is planned against three budgets that the dashboard asserts:
+ * total delivery lines, late lines and short lines. Split shipments consume
+ * two delivery lines and one short line each, and are accounted for first.
  */
 final class DemoOrderPlanner
 {
@@ -19,6 +23,9 @@ final class DemoOrderPlanner
     private const CURRENT_MONTH_LATE_AND_SHORT = 6;
 
     private const PENDING_ORDERS = 25;
+
+    /** Days before the scheduled date that the first half of a split arrives. */
+    private const SPLIT_FIRST_RECEIPT_LEAD_DAYS = 3;
 
     /** Materials safe for undelivered orders - none of them is flagged critical. */
     private const PENDING_MATERIALS = ['MAT-0008', 'MAT-0009', 'MAT-0010', 'MAT-0011', 'MAT-0012'];
@@ -55,25 +62,31 @@ final class DemoOrderPlanner
         $orders = [];
 
         foreach (DemoBlueprint::PRIOR_MONTHS as $month) {
-            $allocation = $this->allocatePriorMonth($month['total'], $month['late']);
             $orders = [
                 ...$orders,
-                ...$this->buildMonth($month['offset'], $allocation, $month['short'], 0),
+                ...$this->buildMonth(
+                    $month['offset'],
+                    $this->allocatePriorMonth($month['total'], $month['late']),
+                    $month['short'],
+                    lateAndShort: 0,
+                    splitLines: $month['split'],
+                    overLines: $month['over'],
+                ),
             ];
         }
 
-        $orders = [
+        return [
             ...$orders,
             ...$this->buildMonth(
                 0,
                 DemoBlueprint::CURRENT_MONTH_ALLOCATION,
                 DemoBlueprint::CURRENT_MONTH_SHORT_LINES,
-                self::CURRENT_MONTH_LATE_AND_SHORT,
+                lateAndShort: self::CURRENT_MONTH_LATE_AND_SHORT,
+                splitLines: DemoBlueprint::CURRENT_MONTH_SPLIT_LINES,
+                overLines: DemoBlueprint::CURRENT_MONTH_OVER_LINES,
             ),
             ...$this->buildPendingOrders(),
         ];
-
-        return $orders;
     }
 
     /**
@@ -105,11 +118,17 @@ final class DemoOrderPlanner
     }
 
     /**
-     * @param  array<string, array{int, int}>  $allocation
+     * @param  array<string, array{int, int}>  $allocation  supplier => [delivery lines, late lines]
      * @return array<int, DemoOrderSpec>
      */
-    private function buildMonth(int $offset, array $allocation, int $shortLines, int $lateAndShort): array
-    {
+    private function buildMonth(
+        int $offset,
+        array $allocation,
+        int $shortLines,
+        int $lateAndShort,
+        int $splitLines,
+        int $overLines,
+    ): array {
         $month = $this->anchorMonth->copy()->subMonths($offset);
 
         $lateCapacity = [];
@@ -119,16 +138,40 @@ final class DemoOrderPlanner
             $volumeWeights[$code] = (float) $lines;
         }
 
-        $overlapPerSupplier = $this->spread(min($lateAndShort, array_sum($lateCapacity)), $lateCapacity, $this->byDescendingValue($lateCapacity));
-        $shortOnlyTotal = max(0, $shortLines - array_sum($overlapPerSupplier));
+        // Splits are placed first: each consumes two delivery lines and one short line.
+        $splitPerSupplier = $this->capacityAwareDistribution(
+            $splitLines,
+            $volumeWeights,
+            array_map(static fn (array $a): int => intdiv($a[0] - $a[1], 2), $allocation),
+        );
+
+        $overlapPerSupplier = $this->spread(
+            min($lateAndShort, array_sum($lateCapacity)),
+            $lateCapacity,
+            $this->byDescendingValue($lateCapacity),
+        );
+
+        $shortOnlyTotal = max(
+            0,
+            $shortLines - array_sum($overlapPerSupplier) - array_sum($splitPerSupplier),
+        );
         $shortOnlyPerSupplier = $this->distribute($shortOnlyTotal, $volumeWeights);
+        $overPerSupplier = $this->distribute($overLines, $volumeWeights);
 
         $orders = [];
         $index = 0;
 
-        foreach ($allocation as $code => [$lines, $late]) {
+        foreach ($allocation as $code => [$deliveryLines, $late]) {
+            $splits = $splitPerSupplier[$code] ?? 0;
             $overlap = $overlapPerSupplier[$code] ?? 0;
-            $shortOnly = min($shortOnlyPerSupplier[$code] ?? 0, max(0, $lines - $late));
+
+            $budget = $deliveryLines - (2 * $splits) - $late;
+            $shortOnly = min($shortOnlyPerSupplier[$code] ?? 0, max(0, $budget));
+            $over = min($overPerSupplier[$code] ?? 0, max(0, $budget - $shortOnly));
+
+            for ($i = 0; $i < $splits; $i++) {
+                $orders[] = $this->splitOrder($month, $code, $index++);
+            }
 
             // Late lines get their own single-line order so the late count is exact.
             for ($i = 0; $i < $late; $i++) {
@@ -139,12 +182,93 @@ final class DemoOrderPlanner
                 $orders[] = $this->singleLineOrder($month, $code, $index++, late: false, short: true);
             }
 
-            $remaining = $lines - $late - $shortOnly;
+            for ($i = 0; $i < $over; $i++) {
+                $orders[] = $this->overOrder($month, $code, $index++);
+            }
+
+            $remaining = $budget - $shortOnly - $over;
             $orders = [...$orders, ...$this->cleanOrders($month, $code, $remaining, $index)];
             $index += $remaining;
         }
 
         return $orders;
+    }
+
+    /**
+     * A split shipment: one order line filled by two receipts, both on or before
+     * the scheduled date. The first is cumulatively SHORT, the second settles it
+     * as FULL - which is exactly what the runtime calculator would derive.
+     */
+    private function splitOrder(Carbon $month, string $supplierCode, int $index): DemoOrderSpec
+    {
+        // The first receipt arrives early, so the schedule must sit far enough
+        // into the month that it cannot spill into the previous period.
+        $schedule = $this->scheduleFor($month, $index, self::SPLIT_FIRST_RECEIPT_LEAD_DAYS);
+        $line = $this->makeLine(1, $index, late: false, short: false);
+
+        $firstQty = round($line->qtyOrdered * DemoBlueprint::SPLIT_FIRST_RECEIPT_RATIO, 4);
+        $stamp = $month->format('Ym');
+
+        $receipts = [
+            new DemoReceiptSpec(
+                deliveryNumber: $this->nextNumber('DN', $stamp),
+                deliveryDate: $schedule->copy()->subDays(self::SPLIT_FIRST_RECEIPT_LEAD_DAYS)->toDateString(),
+                daysLate: 0,
+                quantities: [1 => $firstQty],
+            ),
+            new DemoReceiptSpec(
+                deliveryNumber: $this->nextNumber('DN', $stamp),
+                deliveryDate: $schedule->toDateString(),
+                daysLate: 0,
+                quantities: [1 => round($line->qtyOrdered - $firstQty, 4)],
+            ),
+        ];
+
+        return $this->makeOrder($month, $supplierCode, $schedule, $index, [$line], $receipts);
+    }
+
+    /**
+     * A punctual receipt above the ordered quantity: OVER_DELIVERY. Flagged for
+     * visibility rather than blocked, because the business needs to see it.
+     */
+    private function overOrder(Carbon $month, string $supplierCode, int $index): DemoOrderSpec
+    {
+        $schedule = $this->scheduleFor($month, $index);
+        $base = $this->makeLine(1, $index, late: false, short: false);
+        $line = new DemoLineSpec(
+            lineNo: $base->lineNo,
+            materialCode: $base->materialCode,
+            qtyOrdered: $base->qtyOrdered,
+            unitPrice: $base->unitPrice,
+            late: false,
+            short: false,
+            over: true,
+        );
+
+        return $this->makeOrder(
+            $month,
+            $supplierCode,
+            $schedule,
+            $index,
+            [$line],
+            [$this->receiptFor($month, $schedule, 0, [1 => $this->receivedQuantity($line)])],
+        );
+    }
+
+    private function singleLineOrder(Carbon $month, string $supplierCode, int $index, bool $late, bool $short): DemoOrderSpec
+    {
+        $schedule = $this->scheduleFor($month, $index);
+        $line = $this->makeLine(1, $index, $late, $short);
+        $daysLate = $late ? 1 + ($index % 7) : 0;
+
+        return $this->makeOrder(
+            $month,
+            $supplierCode,
+            $schedule,
+            $index,
+            [$line],
+            [$this->receiptFor($month, $schedule, $daysLate, [1 => $this->receivedQuantity($line)])],
+        );
     }
 
     /**
@@ -162,31 +286,30 @@ final class DemoOrderPlanner
         while ($placed < $lineCount) {
             $size = min($groupSizes[$group % count($groupSizes)], $lineCount - $placed);
             $index = $indexOffset + $placed;
+            $schedule = $this->scheduleFor($month, $index);
 
             $lines = [];
+            $quantities = [];
             for ($line = 0; $line < $size; $line++) {
-                $lines[] = $this->makeLine($line + 1, $index + $line, late: false, short: false, delivered: true);
+                $spec = $this->makeLine($line + 1, $index + $line, late: false, short: false);
+                $lines[] = $spec;
+                $quantities[$spec->lineNo] = $spec->qtyOrdered;
             }
 
-            $orders[] = $this->makeOrder($month, $supplierCode, $index, $lines, daysLate: 0, delivered: true);
+            $orders[] = $this->makeOrder(
+                $month,
+                $supplierCode,
+                $schedule,
+                $index,
+                $lines,
+                [$this->receiptFor($month, $schedule, 0, $quantities)],
+            );
 
             $placed += $size;
             $group++;
         }
 
         return $orders;
-    }
-
-    private function singleLineOrder(Carbon $month, string $supplierCode, int $index, bool $late, bool $short): DemoOrderSpec
-    {
-        return $this->makeOrder(
-            $month,
-            $supplierCode,
-            $index,
-            [$this->makeLine(1, $index, $late, $short, delivered: true)],
-            daysLate: $late ? 1 + ($index % 7) : 0,
-            delivered: true,
-        );
     }
 
     /**
@@ -201,26 +324,23 @@ final class DemoOrderPlanner
 
         for ($i = 0; $i < self::PENDING_ORDERS; $i++) {
             $index = 900_000 + $i;
-            $material = self::PENDING_MATERIALS[$i % count(self::PENDING_MATERIALS)];
 
             $line = new DemoLineSpec(
                 lineNo: 1,
-                materialCode: $material,
+                materialCode: self::PENDING_MATERIALS[$i % count(self::PENDING_MATERIALS)],
                 qtyOrdered: $this->quantityFor($index),
-                qtyReceived: 0.0,
                 unitPrice: $this->priceFor($index),
                 late: false,
                 short: false,
-                delivered: false,
             );
 
             $orders[] = $this->makeOrder(
                 $this->anchorMonth,
                 $codes[$i % count($codes)],
+                $this->scheduleFor($this->anchorMonth, $index),
                 $index,
                 [$line],
-                daysLate: 0,
-                delivered: false,
+                receipts: [],
             );
         }
 
@@ -229,47 +349,77 @@ final class DemoOrderPlanner
 
     /**
      * @param  array<int, DemoLineSpec>  $lines
+     * @param  array<int, DemoReceiptSpec>  $receipts
      */
     private function makeOrder(
         Carbon $month,
         string $supplierCode,
+        Carbon $schedule,
         int $index,
         array $lines,
-        int $daysLate,
-        bool $delivered,
+        array $receipts,
     ): DemoOrderSpec {
-        $schedule = $month->copy()->startOfMonth()->addDays($index % 20);
-        $deliveryDate = $delivered ? $schedule->copy()->addDays($daysLate) : null;
-        $stamp = $month->format('Ym');
-
         return new DemoOrderSpec(
-            poNumber: $this->nextNumber('PO', $stamp),
-            deliveryNumber: $this->nextNumber('DN', $stamp),
+            poNumber: $this->nextNumber('PO', $month->format('Ym')),
             supplierCode: $supplierCode,
             plantCode: $this->plantCodes[$index % count($this->plantCodes)],
             poDate: $schedule->copy()->subDays(14)->toDateString(),
             scheduleDate: $schedule->toDateString(),
-            deliveryDate: $deliveryDate?->toDateString(),
-            daysLate: $daysLate,
             lines: $lines,
+            receipts: $receipts,
         );
     }
 
-    private function makeLine(int $lineNo, int $index, bool $late, bool $short, bool $delivered): DemoLineSpec
+    /**
+     * @param  array<int, float>  $quantities
+     */
+    private function receiptFor(Carbon $month, Carbon $schedule, int $daysLate, array $quantities): DemoReceiptSpec
     {
-        $ordered = $this->quantityFor($index);
-        $received = $short ? max(1.0, $ordered - max(1.0, floor($ordered * 0.05))) : $ordered;
+        return new DemoReceiptSpec(
+            deliveryNumber: $this->nextNumber('DN', $month->format('Ym')),
+            deliveryDate: $schedule->copy()->addDays($daysLate)->toDateString(),
+            daysLate: $daysLate,
+            quantities: $quantities,
+        );
+    }
 
+    private function makeLine(int $lineNo, int $index, bool $late, bool $short): DemoLineSpec
+    {
         return new DemoLineSpec(
             lineNo: $lineNo,
             materialCode: $this->materialFor($index, problem: $late || $short),
-            qtyOrdered: $ordered,
-            qtyReceived: $delivered ? $received : 0.0,
+            qtyOrdered: $this->quantityFor($index),
             unitPrice: $this->priceFor($index),
             late: $late,
             short: $short,
-            delivered: $delivered,
         );
+    }
+
+    private function receivedQuantity(DemoLineSpec $line): float
+    {
+        if ($line->over) {
+            return round($line->qtyOrdered * DemoBlueprint::OVER_RECEIPT_RATIO, 4);
+        }
+
+        if (! $line->short) {
+            return $line->qtyOrdered;
+        }
+
+        return max(1.0, $line->qtyOrdered - max(1.0, floor($line->qtyOrdered * 0.05)));
+    }
+
+    /**
+     * Schedules land within the first 20 days so a late receipt stays inside
+     * the same month, keeping monthly aggregates clean.
+     *
+     * @param  int  $minDayOffset  Earliest day of month the schedule may take, for
+     *                             orders whose first receipt arrives ahead of schedule.
+     */
+    private function scheduleFor(Carbon $month, int $index, int $minDayOffset = 0): Carbon
+    {
+        $span = 20 - $minDayOffset;
+
+        return $month->copy()->startOfMonth()->addDays($minDayOffset + ($index % $span));
     }
 
     /**
@@ -337,6 +487,42 @@ final class DemoOrderPlanner
             }
             $result[$key]++;
             $shortfall--;
+        }
+
+        return $result;
+    }
+
+    /**
+     * Weighted apportionment that respects a per-key ceiling, redistributing
+     * whatever a capped key could not take.
+     *
+     * @param  array<string, float>  $weights
+     * @param  array<string, int>  $capacity
+     * @return array<string, int>
+     */
+    private function capacityAwareDistribution(int $total, array $weights, array $capacity): array
+    {
+        $result = $this->distribute($total, $weights);
+        $leftover = 0;
+
+        foreach ($result as $key => $count) {
+            $ceiling = max(0, $capacity[$key] ?? 0);
+
+            if ($count > $ceiling) {
+                $leftover += $count - $ceiling;
+                $result[$key] = $ceiling;
+            }
+        }
+
+        foreach (array_keys($result) as $key) {
+            if ($leftover <= 0) {
+                break;
+            }
+
+            $room = max(0, ($capacity[$key] ?? 0) - $result[$key]);
+            $take = min($leftover, $room);
+            $result[$key] += $take;
+            $leftover -= $take;
         }
 
         return $result;

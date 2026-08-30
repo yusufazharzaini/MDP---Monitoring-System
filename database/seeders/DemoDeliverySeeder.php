@@ -11,15 +11,18 @@ use App\Models\Material;
 use App\Models\Plant;
 use App\Models\User;
 use App\Services\Delivery\DeliveryStatusCalculator;
+use Database\Seeders\Support\DemoLineSpec;
 use Database\Seeders\Support\DemoOrderPlanner;
 use Database\Seeders\Support\DemoOrderSpec;
+use Database\Seeders\Support\DemoReceiptSpec;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 /**
- * Books the receipts for the demo purchase orders.
+ * Books the receipts for the demo purchase orders, including the split
+ * shipments where one order line is filled by two deliveries.
  *
  * Rebuilds the identical plan as DemoPurchaseOrderSeeder (the planner is pure)
  * and matches it back to the persisted lines by po_number + line_no, so the two
@@ -31,14 +34,12 @@ class DemoDeliverySeeder extends Seeder
 
     public function run(): void
     {
-        $planner = new DemoOrderPlanner(
-            Carbon::now()->startOfMonth(),
-            DemoMaterialSeeder::normalMaterialCodes(),
-            Plant::query()->orderBy('id')->pluck('code')->all(),
-        );
-
         $orders = array_values(array_filter(
-            $planner->build(),
+            (new DemoOrderPlanner(
+                Carbon::now()->startOfMonth(),
+                DemoMaterialSeeder::normalMaterialCodes(),
+                Plant::query()->orderBy('id')->pluck('code')->all(),
+            ))->build(),
             static fn (DemoOrderSpec $order): bool => $order->isDelivered(),
         ));
 
@@ -54,6 +55,7 @@ class DemoDeliverySeeder extends Seeder
 
         $materials = Material::query()->pluck('id', 'code');
         $receivedBy = User::query()->orderBy('id')->value('id');
+        $calculator = app(DeliveryStatusCalculator::class);
         $now = Carbon::now();
 
         $deliveryRows = [];
@@ -61,22 +63,24 @@ class DemoDeliverySeeder extends Seeder
         foreach ($orders as $order) {
             $header = $purchaseOrders[$order->poNumber];
 
-            $deliveryRows[] = [
-                'ulid' => (string) Str::ulid(),
-                'delivery_number' => $order->deliveryNumber,
-                'purchase_order_id' => $header->id,
-                'supplier_id' => $header->supplier_id,
-                'plant_id' => $header->plant_id,
-                'delivery_date' => $order->deliveryDate,
-                'do_number' => 'DO-'.substr($order->deliveryNumber, 3),
-                'vehicle_number' => 'B '.(1000 + (crc32($order->deliveryNumber) % 9000)).' TRC',
-                'driver_name' => 'Driver '.substr($order->deliveryNumber, -4),
-                'received_by' => $receivedBy,
-                'status' => $this->deliveryStatus($order)->value,
-                'remarks' => $order->daysLate > 0 ? 'Terlambat '.$order->daysLate.' hari' : null,
-                'created_at' => $now,
-                'updated_at' => $now,
-            ];
+            foreach ($order->receipts as $receipt) {
+                $deliveryRows[] = [
+                    'ulid' => (string) Str::ulid(),
+                    'delivery_number' => $receipt->deliveryNumber,
+                    'purchase_order_id' => $header->id,
+                    'supplier_id' => $header->supplier_id,
+                    'plant_id' => $header->plant_id,
+                    'delivery_date' => $receipt->deliveryDate,
+                    'do_number' => 'DO-'.substr($receipt->deliveryNumber, 3),
+                    'vehicle_number' => 'B '.(1000 + (crc32($receipt->deliveryNumber) % 9000)).' TRC',
+                    'driver_name' => 'Driver '.substr($receipt->deliveryNumber, -4),
+                    'received_by' => $receivedBy,
+                    'status' => $this->deliveryStatus($order, $receipt, $calculator)->value,
+                    'remarks' => $this->remarksFor($order, $receipt),
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ];
+            }
         }
 
         foreach (array_chunk($deliveryRows, self::CHUNK) as $chunk) {
@@ -84,36 +88,49 @@ class DemoDeliverySeeder extends Seeder
         }
 
         $deliveryIds = DB::table('deliveries')->pluck('id', 'delivery_number');
-        $calculator = app(DeliveryStatusCalculator::class);
         $itemRows = [];
 
         foreach ($orders as $order) {
             $header = $purchaseOrders[$order->poNumber];
-            $deliveryId = $deliveryIds[$order->deliveryNumber];
             $lineIndex = $items[$header->id]->keyBy('line_no');
-
             $schedule = Carbon::parse($order->scheduleDate);
-            $actual = Carbon::parse((string) $order->deliveryDate);
 
-            foreach ($order->lines as $line) {
-                $poItem = $lineIndex[$line->lineNo];
-                $verdict = $calculator->evaluate($line->qtyOrdered, $line->qtyReceived, $actual, $schedule);
+            // Replay receipts in date order so each line records the cumulative
+            // position at the moment it arrived - the rule in docs/03 section 2.
+            $cumulative = [];
 
-                $itemRows[] = [
-                    'delivery_id' => $deliveryId,
-                    'purchase_order_item_id' => $poItem->id,
-                    'material_id' => $materials[$line->materialCode],
-                    'uom_id' => $poItem->uom_id,
-                    'qty_received' => $line->qtyReceived,
-                    'condition' => DeliveryItemCondition::GOOD->value,
-                    'timeliness_status' => $verdict['timeliness']->value,
-                    'quantity_status' => $verdict['quantity']->value,
-                    'overall_status' => $verdict['overall']->value,
-                    'days_late' => $verdict['days_late'],
-                    'remarks' => $line->short ? 'Quantity kurang dari PO' : null,
-                    'created_at' => $now,
-                    'updated_at' => $now,
-                ];
+            foreach ($this->orderedReceipts($order) as $receipt) {
+                foreach ($receipt->quantities as $lineNo => $quantity) {
+                    $line = $this->lineFor($order, $lineNo);
+                    $poItem = $lineIndex[$lineNo];
+
+                    $cumulative[$lineNo] = ($cumulative[$lineNo] ?? 0.0) + $quantity;
+
+                    $verdict = $calculator->evaluate(
+                        $line->qtyOrdered,
+                        $cumulative[$lineNo],
+                        Carbon::parse($receipt->deliveryDate),
+                        $schedule,
+                    );
+
+                    $itemRows[] = [
+                        'delivery_id' => $deliveryIds[$receipt->deliveryNumber],
+                        'purchase_order_item_id' => $poItem->id,
+                        'material_id' => $materials[$line->materialCode],
+                        'uom_id' => $poItem->uom_id,
+                        'qty_received' => $quantity,
+                        'condition' => DeliveryItemCondition::GOOD->value,
+                        'timeliness_status' => $verdict['timeliness']->value,
+                        'quantity_status' => $verdict['quantity']->value,
+                        'overall_status' => $verdict['overall']->value,
+                        'days_late' => $verdict['days_late'],
+                        'remarks' => $verdict['quantity'] === QuantityStatus::SHORT
+                            ? 'Quantity kurang dari PO'
+                            : null,
+                        'created_at' => $now,
+                        'updated_at' => $now,
+                    ];
+                }
             }
         }
 
@@ -123,15 +140,43 @@ class DemoDeliverySeeder extends Seeder
     }
 
     /**
-     * COMPLETED when the receipt satisfies every line it touches, PARTIAL when
-     * any line arrived short.
+     * @return array<int, DemoReceiptSpec>
      */
-    private function deliveryStatus(DemoOrderSpec $order): DeliveryStatus
+    private function orderedReceipts(DemoOrderSpec $order): array
     {
-        $calculator = app(DeliveryStatusCalculator::class);
+        $receipts = $order->receipts;
 
+        usort(
+            $receipts,
+            static fn (DemoReceiptSpec $a, DemoReceiptSpec $b): int => $a->deliveryDate <=> $b->deliveryDate,
+        );
+
+        return $receipts;
+    }
+
+    private function lineFor(DemoOrderSpec $order, int $lineNo): DemoLineSpec
+    {
         foreach ($order->lines as $line) {
-            $status = $calculator->quantityStatus($line->qtyOrdered, $line->qtyReceived);
+            if ($line->lineNo === $lineNo) {
+                return $line;
+            }
+        }
+
+        throw new \LogicException("Order {$order->poNumber} has no line {$lineNo}.");
+    }
+
+    /**
+     * COMPLETED when this receipt settles every line it touches, PARTIAL while
+     * quantity is still outstanding.
+     */
+    private function deliveryStatus(
+        DemoOrderSpec $order,
+        DemoReceiptSpec $receipt,
+        DeliveryStatusCalculator $calculator,
+    ): DeliveryStatus {
+        foreach (array_keys($receipt->quantities) as $lineNo) {
+            $line = $this->lineFor($order, $lineNo);
+            $status = $calculator->quantityStatus($line->qtyOrdered, $order->receivedFor($lineNo));
 
             if (! in_array($status, [QuantityStatus::FULL, QuantityStatus::OVER], true)) {
                 return DeliveryStatus::PARTIAL;
@@ -139,5 +184,18 @@ class DemoDeliverySeeder extends Seeder
         }
 
         return DeliveryStatus::COMPLETED;
+    }
+
+    private function remarksFor(DemoOrderSpec $order, DemoReceiptSpec $receipt): ?string
+    {
+        if ($receipt->daysLate > 0) {
+            return 'Terlambat '.$receipt->daysLate.' hari';
+        }
+
+        if (count($order->receipts) > 1) {
+            return 'Pengiriman bertahap (partial delivery)';
+        }
+
+        return null;
     }
 }
