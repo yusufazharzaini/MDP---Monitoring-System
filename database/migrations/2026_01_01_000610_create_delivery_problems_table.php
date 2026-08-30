@@ -16,7 +16,10 @@ return new class extends Migration
             $table->id();
             $table->ulid('ulid')->unique();
             $table->string('problem_number', 30)->unique();
-            $table->foreignId('delivery_id')->constrained('deliveries')->cascadeOnDelete();
+            // RESTRICT: a problem is an independent business record with its own
+            // number, corrective actions and audit trail - it must never disappear
+            // because a delivery row was removed.
+            $table->foreignId('delivery_id')->constrained('deliveries')->restrictOnDelete();
             $table->foreignId('supplier_id')->constrained('suppliers')->restrictOnDelete();
             $table->foreignId('material_id')->nullable()->constrained('materials')->nullOnDelete();
             $table->foreignId('problem_category_id')->constrained('problem_categories')->restrictOnDelete();

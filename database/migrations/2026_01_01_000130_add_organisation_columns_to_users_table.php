@@ -31,8 +31,16 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table): void {
+            // Indexes must go before the columns they cover: SQLite refuses to
+            // drop a column that is still part of a unique index, and MySQL
+            // would silently reshape the index instead.
+            $table->dropUnique('users_ulid_unique');
+            $table->dropUnique('users_employee_code_unique');
+            $table->dropIndex('users_status_index');
+
             $table->dropConstrainedForeignId('department_id');
             $table->dropConstrainedForeignId('plant_id');
+
             $table->dropColumn(['ulid', 'employee_code', 'position', 'phone', 'status', 'deleted_at']);
         });
     }

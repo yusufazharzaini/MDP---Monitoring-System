@@ -13,7 +13,10 @@ return new class extends Migration
     {
         Schema::create('supplier_evaluations', function (Blueprint $table): void {
             $table->id();
-            $table->foreignId('supplier_id')->constrained('suppliers')->cascadeOnDelete();
+            // RESTRICT: a signed-off monthly scorecard is a management record.
+            // Suppliers soft-delete, so this never fires in normal operation - it
+            // exists to stop a force delete destroying the history.
+            $table->foreignId('supplier_id')->constrained('suppliers')->restrictOnDelete();
             $table->unsignedSmallInteger('period_year');
             $table->unsignedTinyInteger('period_month');
             $table->decimal('delivery_score', 10, 4)->default(0);

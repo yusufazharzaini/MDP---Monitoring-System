@@ -67,7 +67,7 @@ erDiagram
 
     PURCHASE_ORDER_ITEMS {
         bigint id PK
-        bigint purchase_order_id FK "cascade"
+        bigint purchase_order_id FK "restrict"
         bigint material_id FK "restrict"
         bigint warehouse_id FK "restrict"
         bigint uom_id FK "restrict"
@@ -101,7 +101,7 @@ erDiagram
 
     DELIVERY_ITEMS {
         bigint id PK
-        bigint delivery_id FK "cascade"
+        bigint delivery_id FK "restrict"
         bigint purchase_order_item_id FK "restrict"
         bigint material_id FK "restrict"
         bigint uom_id FK "restrict"
@@ -221,7 +221,7 @@ erDiagram
         bigint id PK
         char ulid UK
         varchar problem_number UK "PRB-YYYYMM-NNNN"
-        bigint delivery_id FK "cascade"
+        bigint delivery_id FK "restrict"
         bigint supplier_id FK "restrict"
         bigint material_id FK "nullable set null"
         bigint problem_category_id FK "restrict"
@@ -248,7 +248,7 @@ erDiagram
 
     CORRECTIVE_ACTIONS {
         bigint id PK
-        bigint delivery_problem_id FK "cascade"
+        bigint delivery_problem_id FK "restrict"
         date action_date
         bigint action_by FK "nullable"
         text description
@@ -259,7 +259,7 @@ erDiagram
 
     SUPPLIER_EVALUATIONS {
         bigint id PK
-        bigint supplier_id FK "cascade"
+        bigint supplier_id FK "restrict"
         smallint period_year "CHECK 2000-2100"
         tinyint period_month "CHECK 1-12"
         decimal delivery_score "CHECK 0-100"
@@ -517,7 +517,7 @@ Composite indexes: `(plant_id, po_date)`, `(supplier_id, po_date)`, `(status, po
 | Column | Type | Null | Default | Key | Notes |
 |---|---|---|---|---|---|
 | id | BIGINT UNSIGNED | NN | AUTO | PK | |
-| purchase_order_id | BIGINT UNSIGNED | NN | — | FK → `purchase_orders.id` **CASCADE** | a line cannot outlive its order |
+| purchase_order_id | BIGINT UNSIGNED | NN | — | FK → `purchase_orders.id` **RESTRICT** | an order line is business history |
 | material_id | BIGINT UNSIGNED | NN | — | FK → `materials.id` **RESTRICT** | |
 | warehouse_id | BIGINT UNSIGNED | NN | — | FK → `warehouses.id` **RESTRICT** | delivery destination |
 | uom_id | BIGINT UNSIGNED | NN | — | FK → `uoms.id` **RESTRICT** | ordering unit |
@@ -570,7 +570,7 @@ The **measurement grain** of the whole system.
 | Column | Type | Null | Default | Key | Notes |
 |---|---|---|---|---|---|
 | id | BIGINT UNSIGNED | NN | AUTO | PK | |
-| delivery_id | BIGINT UNSIGNED | NN | — | FK → `deliveries.id` **CASCADE** | |
+| delivery_id | BIGINT UNSIGNED | NN | — | FK → `deliveries.id` **RESTRICT** | the receipt line is the measurement grain |
 | purchase_order_item_id | BIGINT UNSIGNED | NN | — | FK → `purchase_order_items.id` **RESTRICT** | the link that makes partial delivery work |
 | material_id | BIGINT UNSIGNED | NN | — | FK → `materials.id` **RESTRICT** | |
 | uom_id | BIGINT UNSIGNED | NN | — | FK → `uoms.id` **RESTRICT** | |
@@ -614,7 +614,7 @@ Seeded codes: `LATE_DELIVERY`, `SHORT_DELIVERY`, `WRONG_MATERIAL`,
 | id | BIGINT UNSIGNED | NN | AUTO | PK | |
 | ulid | CHAR(26) | NN | — | UK | |
 | problem_number | VARCHAR(30) | NN | — | UK | `PRB-YYYYMM-NNNN` |
-| delivery_id | BIGINT UNSIGNED | NN | — | FK → `deliveries.id` **CASCADE** | |
+| delivery_id | BIGINT UNSIGNED | NN | — | FK → `deliveries.id` **RESTRICT** | a problem is an independent record |
 | supplier_id | BIGINT UNSIGNED | NN | — | FK → `suppliers.id` **RESTRICT** | |
 | material_id | BIGINT UNSIGNED | NULL | NULL | FK → `materials.id` **SET NULL** | some problems are document-level |
 | problem_category_id | BIGINT UNSIGNED | NN | — | FK → `problem_categories.id` **RESTRICT** | Pareto dimension |
@@ -654,7 +654,7 @@ Composite indexes: `(supplier_id, problem_date)`, `(problem_category_id, problem
 | Column | Type | Null | Default | Key | Notes |
 |---|---|---|---|---|---|
 | id | BIGINT UNSIGNED | NN | AUTO | PK | |
-| delivery_problem_id | BIGINT UNSIGNED | NN | — | FK → `delivery_problems.id` **CASCADE** | |
+| delivery_problem_id | BIGINT UNSIGNED | NN | — | FK → `delivery_problems.id` **RESTRICT** | evidence the problem was handled |
 | action_date | DATE | NN | — | | |
 | action_by | BIGINT UNSIGNED | NULL | NULL | FK → `users.id` **SET NULL** | |
 | description | TEXT | NN | — | | |
@@ -688,7 +688,7 @@ anywhere in the schema, by design.
 | Column | Type | Null | Default | Key | Notes |
 |---|---|---|---|---|---|
 | id | BIGINT UNSIGNED | NN | AUTO | PK | |
-| supplier_id | BIGINT UNSIGNED | NN | — | FK → `suppliers.id` **CASCADE** | |
+| supplier_id | BIGINT UNSIGNED | NN | — | FK → `suppliers.id` **RESTRICT** | a signed-off scorecard is a management record |
 | period_year | SMALLINT UNSIGNED | NN | — | UK *(supplier_id, year, month)* | CHECK 2000–2100 |
 | period_month | TINYINT UNSIGNED | NN | — | UK | CHECK 1–12 |
 | delivery_score | DECIMAL(10,4) | NN | `0` | | CHECK 0–100 |
@@ -835,7 +835,7 @@ ALTER TABLE supplier_contacts
 | uoms | materials | uom_id | **RESTRICT** | Idem. |
 | suppliers | purchase_orders | supplier_id | **RESTRICT** | Orders are financial history. |
 | plants | purchase_orders | plant_id | **RESTRICT** | Idem. |
-| purchase_orders | purchase_order_items | purchase_order_id | **CASCADE** | A line cannot outlive its order. |
+| purchase_orders | purchase_order_items | purchase_order_id | **RESTRICT** | An order line is business history; the order is cancelled, never deleted. |
 | materials | purchase_order_items | material_id | **RESTRICT** | |
 | warehouses | purchase_order_items | warehouse_id | **RESTRICT** | |
 | uoms | purchase_order_items | uom_id | **RESTRICT** | |
@@ -843,17 +843,17 @@ ALTER TABLE supplier_contacts
 | suppliers | deliveries | supplier_id | **RESTRICT** | |
 | plants | deliveries | plant_id | **RESTRICT** | |
 | users | deliveries (received_by) | received_by | **SET NULL** | The receipt outlives the receiver's account. |
-| deliveries | delivery_items | delivery_id | **CASCADE** | |
+| deliveries | delivery_items | delivery_id | **RESTRICT** | The receipt line is the KPI measurement grain and the record of what arrived. |
 | **purchase_order_items** | **delivery_items** | purchase_order_item_id | **RESTRICT** | **The partial-delivery link.** An ordered line with receipts against it can never be removed. |
 | materials | delivery_items | material_id | **RESTRICT** | |
 | uoms | delivery_items | uom_id | **RESTRICT** | |
-| deliveries | delivery_problems | delivery_id | **CASCADE** | |
+| deliveries | delivery_problems | delivery_id | **RESTRICT** | A problem is an independent record with its own number and audit trail. |
 | problem_categories | delivery_problems | problem_category_id | **RESTRICT** | Pareto needs a stable dimension. |
 | suppliers | delivery_problems | supplier_id | **RESTRICT** | |
 | materials | delivery_problems | material_id | **SET NULL** | Some problems are document-level, with no material. |
 | delivery_problems | problem_attachments | delivery_problem_id | **CASCADE** | |
-| delivery_problems | corrective_actions | delivery_problem_id | **CASCADE** | |
-| suppliers | supplier_evaluations | supplier_id | **CASCADE** | A scorecard is meaningless without its supplier. |
+| delivery_problems | corrective_actions | delivery_problem_id | **RESTRICT** | Evidence that a problem was actually dealt with. |
+| suppliers | supplier_evaluations | supplier_id | **RESTRICT** | A signed-off monthly scorecard is a management record. |
 | supplier_evaluations | supplier_evaluation_items | supplier_evaluation_id | **CASCADE** | |
 | users | audit_logs | user_id | **SET NULL** | The trail must survive the account. |
 | users | notifications | notifiable morph | app-level | Polymorphic; no FK by design. |
@@ -913,13 +913,20 @@ parent destroy evidence of something that happened?**
 
 | Behaviour | Applied to | Reasoning |
 |---|---|---|
-| **CASCADE** | Lines and details that have no standalone meaning: `purchase_order_items`, `delivery_items` (from `deliveries`), `supplier_contacts`, `problem_attachments`, `corrective_actions`, `supplier_evaluation_items` | Deleting the parent deletes a composition, not evidence. |
-| **RESTRICT** | Every master-data reference from a transaction, and `purchase_order_items → delivery_items` | The delete must *fail loudly* rather than take history with it. This is why a material that has ever been ordered cannot be hard-deleted. |
+| **CASCADE** | Only details with no standalone business value: `supplier_contacts` (a contact is an attribute of its supplier) and `problem_attachments` / `supplier_evaluation_items` (pure compositions of a parent that is itself RESTRICT-protected). | Deleting the parent removes a composition, not evidence. Leaving these behind would create orphan rows pointing nowhere. |
+| **RESTRICT** | Everything with historical business value: all master-data references from a transaction, plus `purchase_orders → purchase_order_items`, `deliveries → delivery_items`, `deliveries → delivery_problems`, `delivery_problems → corrective_actions`, `suppliers → supplier_evaluations`. | The delete must *fail loudly* rather than take history with it. A material that has ever been ordered cannot be hard-deleted, and no purchase order or delivery can be removed at all while it carries lines. |
 | **SET NULL** | Every `users` reference (`created_by`, `approved_by`, `received_by`, `uploaded_by`, `action_by`, `audit_logs.user_id`) and `delivery_problems.material_id` | The record outlives the person. Losing *who* is acceptable; losing *what happened* is not. |
 
-Note the deliberate asymmetry on `delivery_items`: **CASCADE** from `deliveries`
-(cancel a whole receipt and its lines go with it) but **RESTRICT** from
-`purchase_order_items` (an ordered line with receipts is immovable).
+**RESTRICT protects the parent, never the child.** Editing a draft order can
+still drop one of its own lines — deleting a `purchase_order_items` row is
+unaffected. What RESTRICT forbids is destroying the *header* while lines still
+reference it. That is the difference between correcting a document and erasing
+one, and it is asserted by
+`SchemaIntegrityTest::an_order_line_can_still_be_removed_from_a_draft_order`.
+
+The practical consequence is that no purchase order, delivery or problem can
+ever be removed by an accidental `delete()`, a careless console command, or a
+stray `ON DELETE CASCADE` chain. Cancellation is the only exit.
 
 ## C.5 Why `audit_logs.record_id` is not a foreign key
 
@@ -993,6 +1000,24 @@ the order.
 Seeder order follows the same dependency graph
 (`DatabaseSeeder`): roles → master data → KPI settings → plants → users →
 suppliers → materials → purchase orders → deliveries → problems.
+
+## D.1 Verification
+
+The migration set is verified three ways, not just by `migrate:fresh`:
+
+```bash
+php artisan migrate            # from an empty database: 29 migrations, clean
+php artisan migrate            # again: "Nothing to migrate" (idempotent)
+php artisan migrate:rollback   # full rollback: only the migrations table remains
+php artisan migrate            # round trip back up: clean
+php artisan migrate:fresh --seed
+```
+
+Rollback matters: it is the only thing that exercises every `down()` method, and
+it is where the one real defect in this set was found — `users`' organisational
+columns were dropped while `users_ulid_unique` and `users_employee_code_unique`
+still covered them. SQLite refuses that outright; MySQL would quietly reshape the
+index instead. The indexes are now dropped before their columns.
 
 ---
 

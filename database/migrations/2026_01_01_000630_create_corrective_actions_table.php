@@ -13,7 +13,9 @@ return new class extends Migration
     {
         Schema::create('corrective_actions', function (Blueprint $table): void {
             $table->id();
-            $table->foreignId('delivery_problem_id')->constrained('delivery_problems')->cascadeOnDelete();
+            // RESTRICT: a corrective action is the evidence that a problem was
+            // actually dealt with, and outlives any cleanup of its parent.
+            $table->foreignId('delivery_problem_id')->constrained('delivery_problems')->restrictOnDelete();
             $table->date('action_date');
             $table->foreignId('action_by')->nullable()->constrained('users')->nullOnDelete();
             $table->text('description');

@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Database;
 
+use App\Models\CorrectiveAction;
 use App\Models\Delivery;
+use App\Models\DeliveryItem;
+use App\Models\DeliveryProblem;
 use App\Models\Material;
 use App\Models\Plant;
 use App\Models\PurchaseOrder;
@@ -167,6 +170,70 @@ final class SchemaIntegrityTest extends TestCase
         $this->expectException(QueryException::class);
 
         $material->forceDelete();
+    }
+
+    #[Test]
+    public function a_purchase_order_with_lines_cannot_be_deleted(): void
+    {
+        $item = PurchaseOrderItem::factory()->create();
+
+        $this->expectException(QueryException::class);
+
+        $item->purchaseOrder->delete();
+    }
+
+    #[Test]
+    public function a_delivery_with_receipt_lines_cannot_be_deleted(): void
+    {
+        $item = DeliveryItem::factory()->create();
+
+        $this->expectException(QueryException::class);
+
+        $item->delivery->delete();
+    }
+
+    #[Test]
+    public function a_delivery_that_raised_a_problem_cannot_be_deleted(): void
+    {
+        $problem = DeliveryProblem::factory()->create();
+
+        $this->expectException(QueryException::class);
+
+        $problem->delivery->delete();
+    }
+
+    #[Test]
+    public function a_problem_with_a_corrective_action_cannot_be_deleted(): void
+    {
+        $action = CorrectiveAction::factory()->create();
+
+        $this->expectException(QueryException::class);
+
+        $action->problem->delete();
+    }
+
+    #[Test]
+    public function a_supplier_with_a_signed_off_evaluation_cannot_be_force_deleted(): void
+    {
+        $evaluation = SupplierEvaluation::factory()->create();
+
+        $this->expectException(QueryException::class);
+
+        $evaluation->supplier->forceDelete();
+    }
+
+    #[Test]
+    public function an_order_line_can_still_be_removed_from_a_draft_order(): void
+    {
+        $order = PurchaseOrder::factory()->draft()->create();
+        $item = PurchaseOrderItem::factory()->create(['purchase_order_id' => $order->getKey()]);
+
+        // RESTRICT protects the parent, never the child: editing a draft order
+        // must still be able to drop one of its own lines.
+        $item->delete();
+
+        $this->assertDatabaseMissing(PurchaseOrderItem::class, ['id' => $item->getKey()]);
+        $this->assertDatabaseHas(PurchaseOrder::class, ['id' => $order->getKey()]);
     }
 
     #[Test]

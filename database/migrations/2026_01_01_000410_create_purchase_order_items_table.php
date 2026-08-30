@@ -15,7 +15,10 @@ return new class extends Migration
     {
         Schema::create('purchase_order_items', function (Blueprint $table): void {
             $table->id();
-            $table->foreignId('purchase_order_id')->constrained('purchase_orders')->cascadeOnDelete();
+            // RESTRICT, not CASCADE: an order line is business history. A purchase
+            // order is cancelled, never deleted, so nothing should be able to take
+            // its lines with it.
+            $table->foreignId('purchase_order_id')->constrained('purchase_orders')->restrictOnDelete();
             $table->foreignId('material_id')->constrained('materials')->restrictOnDelete();
             $table->foreignId('warehouse_id')->constrained('warehouses')->restrictOnDelete();
             $table->foreignId('uom_id')->constrained('uoms')->restrictOnDelete();

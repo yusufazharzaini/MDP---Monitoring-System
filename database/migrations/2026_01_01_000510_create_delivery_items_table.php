@@ -21,7 +21,10 @@ return new class extends Migration
     {
         Schema::create('delivery_items', function (Blueprint $table): void {
             $table->id();
-            $table->foreignId('delivery_id')->constrained('deliveries')->cascadeOnDelete();
+            // RESTRICT, not CASCADE: the receipt line is the KPI measurement grain
+            // and the record of what physically arrived. A delivery is cancelled,
+            // never deleted.
+            $table->foreignId('delivery_id')->constrained('deliveries')->restrictOnDelete();
             $table->foreignId('purchase_order_item_id')->constrained('purchase_order_items')->restrictOnDelete();
             $table->foreignId('material_id')->constrained('materials')->restrictOnDelete();
             $table->foreignId('uom_id')->constrained('uoms')->restrictOnDelete();
