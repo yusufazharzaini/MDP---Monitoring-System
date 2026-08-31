@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Dashboard\DashboardController;
+use App\Http\Controllers\Delivery\DeliveryController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MasterData\DepartmentController;
 use App\Http\Controllers\MasterData\MaterialCategoryController;
@@ -77,6 +78,25 @@ Route::middleware('auth')->group(function (): void {
                 Route::post('approve', 'approve')->name('approve');
                 Route::post('cancel', 'cancel')->name('cancel');
             });
+    });
+
+    /*
+     * Deliveries.
+     *
+     * Receiving always starts from a purchase order, so create and store are
+     * nested under one; everything else addresses the receipt itself.
+     */
+    Route::middleware('permission:delivery.view')->group(function (): void {
+        Route::get('deliveries', [DeliveryController::class, 'index'])->name('deliveries.index');
+        Route::get('deliveries/{delivery}', [DeliveryController::class, 'show'])->name('deliveries.show');
+        Route::get('deliveries/{delivery}/edit', [DeliveryController::class, 'edit'])->name('deliveries.edit');
+        Route::put('deliveries/{delivery}', [DeliveryController::class, 'update'])->name('deliveries.update');
+        Route::post('deliveries/{delivery}/cancel', [DeliveryController::class, 'cancel'])->name('deliveries.cancel');
+
+        Route::get('purchase-orders/{purchase_order}/receive', [DeliveryController::class, 'create'])
+            ->name('deliveries.create');
+        Route::post('purchase-orders/{purchase_order}/receive', [DeliveryController::class, 'store'])
+            ->name('deliveries.store');
     });
 });
 

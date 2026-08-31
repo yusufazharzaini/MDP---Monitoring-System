@@ -21,9 +21,10 @@ const items: NavItem[] = [
     { key: 'suppliers', label: 'Supplier', icon: 'supplier', href: route('suppliers.index') },
     { key: 'materials', label: 'Material', icon: 'material', href: route('materials.index') },
     { key: 'plants', label: 'Plant', icon: 'box', href: route('plants.index') },
-    { key: 'warehouses', label: 'Warehouse', icon: 'delivery', href: route('warehouses.index') },
+    { key: 'warehouses', label: 'Warehouse', icon: 'box', href: route('warehouses.index') },
     { key: 'departments', label: 'Department', icon: 'report', href: route('departments.index') },
     { key: 'purchase-orders', label: 'Purchase Order', icon: 'order', href: route('purchase-orders.index') },
+    { key: 'deliveries', label: 'Delivery', icon: 'delivery', href: route('deliveries.index') },
     { key: 'problems', label: 'Problem Analysis', icon: 'problem' },
     { key: 'reports', label: 'Report', icon: 'report' },
 ];

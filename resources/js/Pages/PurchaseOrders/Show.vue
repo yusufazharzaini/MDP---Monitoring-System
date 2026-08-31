@@ -105,6 +105,13 @@ const details = computed(() => [
                     >
                         Setujui
                     </button>
+                    <Link
+                        v-if="record.status === 'APPROVED' || record.status === 'PARTIAL'"
+                        :href="route('deliveries.create', record.ulid)"
+                        class="rounded-lg bg-good px-3.5 py-2 text-sm font-semibold text-white transition hover:opacity-90"
+                    >
+                        Terima barang
+                    </Link>
                     <button
                         v-if="can.cancel"
                         type="button"

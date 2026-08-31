@@ -74,7 +74,10 @@ class RolesAndPermissionsSeeder extends Seeder
         'MANAGEMENT' => [
             'dashboard.view',
             'supplier.view', 'material.view', 'plant.view', 'warehouse.view',
-            'po.view', 'po.approve',
+            // A manager who may release an order must also be able to stop
+            // one; approving without the power to cancel leaves them able to
+            // start work they cannot call off.
+            'po.view', 'po.approve', 'po.cancel',
             'delivery.view',
             'problem.view', 'problem.close',
             'report.view', 'report.export',

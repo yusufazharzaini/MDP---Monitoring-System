@@ -258,3 +258,75 @@ export interface PurchaseOrderFormOptions {
     uoms: SelectOption[];
     warehouses: Array<SelectOption & { plant_id: number }>;
 }
+
+/* --- Delivery ----------------------------------------------------------- */
+
+export interface ReceivableLine {
+    purchase_order_item_id: number;
+    line_no: number;
+    material_code: string | null;
+    material_name: string | null;
+    warehouse_name: string | null;
+    uom_code: string | null;
+    schedule_delivery_date: string;
+    qty_ordered: number;
+    qty_received: number;
+    outstanding: number;
+    booked_here: number | null;
+    booked_condition: string | null;
+}
+
+export interface ReceivingContext {
+    id: number;
+    ulid: string;
+    po_number: string;
+    po_date: string;
+    supplier_name: string | null;
+    plant_name: string | null;
+    status: string;
+    status_label: string;
+    status_variant: BadgeVariant;
+    lines: ReceivableLine[];
+}
+
+export interface DeliveryLine {
+    id: number;
+    purchase_order_item_id: number;
+    line_no: number | null;
+    material_code: string | null;
+    material_name: string | null;
+    uom_code: string | null;
+    schedule_delivery_date: string | null;
+    qty_ordered: number;
+    qty_received: number;
+    condition: string;
+    condition_label: string;
+    condition_variant: BadgeVariant;
+    overall_status: string;
+    overall_status_label: string;
+    overall_status_variant: BadgeVariant;
+    days_late: number;
+    remarks: string | null;
+}
+
+export interface DeliveryRecord {
+    id: number;
+    ulid: string;
+    delivery_number: string;
+    delivery_date: string;
+    do_number: string | null;
+    vehicle_number: string | null;
+    driver_name: string | null;
+    po_number: string | null;
+    purchase_order_ulid: string | null;
+    supplier_name: string | null;
+    plant_name: string | null;
+    received_by_name: string | null;
+    remarks: string | null;
+    items_count: number;
+    problems_count: number;
+    status: string;
+    status_label: string;
+    status_variant: BadgeVariant;
+    items: DeliveryLine[];
+}

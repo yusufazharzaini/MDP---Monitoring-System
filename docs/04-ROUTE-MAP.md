@@ -110,12 +110,14 @@ so the UI never maps status→colour by hand.
 
 | `MasterDataService` + 8 subclasses | `Services\MasterData` | Shared create/update/retire flow, per-entity deletion guards |
 | `PurchaseOrderService` | `Services\PurchaseOrder` | The PO lifecycle: create, amend, submit, approve, cancel |
+| `DeliveryService` | `Services\Delivery` | Booking, correcting and reversing goods receipts |
+| `SyncDeliveryItems` | `Actions\Delivery` | Reconciles receipt lines against the order they belong to |
 | `SyncPurchaseOrderItems` | `Actions\PurchaseOrder` | Reconciles order lines, protecting received ones |
 | `RecalculatePurchaseOrderTotal` | `Actions\PurchaseOrder` | Sole writer of the denormalised order total |
 
 ### Planned
 
-`DeliveryService`, `ProblemService`,
+`ProblemService`,
 `CorrectiveActionService`, `AttachmentService`, `ReportService`,
 `PurchaseOrderImportService`.
 
@@ -152,6 +154,34 @@ Events: `PurchaseOrderSubmitted`, `PurchaseOrderApproved`, `PurchaseOrderCancell
 all implementing `PurchaseOrderLifecycleEvent`. Listeners bind to that *interface*
 rather than a base class, because Laravel's dispatcher resolves listeners through
 interfaces - so a future transition needs a new event, not a new registration.
+
+## 4.0.1 Receiving (Phase 4)
+
+`DeliveryService` owns the transaction; `DeliveryStatusService` owns the
+consequences. Every write ends by asking that service to settle the derived
+statuses, the order-line rollup and the purchase order's own status - so a
+receipt and the numbers it moves are never saved apart.
+
+| Rule | Why |
+|---|---|
+| Goods may only be booked against an APPROVED or PARTIAL order | A receipt without a live commitment behind it is not measurable |
+| A receipt's supplier and plant come from the order, not the form | A receipt cannot re-attribute itself elsewhere |
+| A line's material and unit come from the order line | A receipt records what was ordered arriving, not something else under its number |
+| Every line must belong to the receipt's own order | No booking goods against someone else's commitment |
+| One receipt records an order line at most once | The KPI grain depends on it; the unique key enforces it |
+| The delivery date cannot be in the future | It would count as on time against a schedule it has not had to meet |
+| Receiving more than ordered is flagged, not blocked | The business needs to see over-delivery, not be prevented from recording it |
+| REJECTED goods are recorded but never fulfil the order | Rejected material did not arrive in any useful sense |
+| Cancelling keeps the lines but clears their verdicts | What was booked and later reversed is itself history |
+| A receipt is never deleted, by anyone | Same structural rule as purchase orders |
+
+Cancelling a receipt recalculates every order line it touched, so the purchase
+order falls back from COMPLETED to PARTIAL - or to APPROVED - as the remaining
+receipts warrant.
+
+Events: `DeliveryReceived`, `DeliveryUpdated`, `DeliveryCancelled`, all behind
+`DeliveryLifecycleEvent`. They fire *after* the statuses settle, so a listener
+always reads a consistent picture.
 
 ## 4.1 Master-data deletion guards (Phase 2)
 
