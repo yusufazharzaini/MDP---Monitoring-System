@@ -99,6 +99,27 @@ final readonly class DashboardFilter
         );
     }
 
+    /**
+     * The same filter widened to cover the N months ending with its own period.
+     *
+     * The trend chart needs one query over the whole window rather than one
+     * query per point, so it widens the range and groups by month.
+     */
+    public function spanningMonths(int $months): self
+    {
+        $anchor = Carbon::parse($this->dateTo)->startOfMonth();
+
+        return new self(
+            dateFrom: $anchor->copy()->subMonths($months - 1)->startOfMonth()->toDateString(),
+            dateTo: $anchor->copy()->endOfMonth()->toDateString(),
+            plantId: $this->plantId,
+            supplierId: $this->supplierId,
+            materialId: $this->materialId,
+            materialCategoryId: $this->materialCategoryId,
+            status: $this->status,
+        );
+    }
+
     public function periodLabel(): string
     {
         return Carbon::parse($this->dateFrom)->format('Y-m');

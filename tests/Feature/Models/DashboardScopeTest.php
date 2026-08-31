@@ -166,6 +166,30 @@ final class DashboardScopeTest extends TestCase
     }
 
     #[Test]
+    public function the_trend_window_never_skips_a_month_on_a_thirty_first(): void
+    {
+        // Carbon::parse('2026-08-31')->subMonths(4) is 1 May, not April.
+        // The filter normalises to the first of the month before stepping back,
+        // so a six-month window is always six consecutive months.
+        $filter = DashboardFilter::fromArray([
+            'date_from' => '2026-08-01',
+            'date_to' => '2026-08-31',
+        ]);
+
+        $this->assertSame(
+            ['2026-03', '2026-04', '2026-05', '2026-06', '2026-07', '2026-08'],
+            array_map(
+                static fn (DashboardFilter $month): string => $month->periodLabel(),
+                $filter->trailingMonths(6),
+            ),
+        );
+
+        $window = $filter->spanningMonths(6);
+        $this->assertSame('2026-03-01', $window->dateFrom);
+        $this->assertSame('2026-08-31', $window->dateTo);
+    }
+
+    #[Test]
     public function two_filters_with_the_same_criteria_share_a_cache_key(): void
     {
         $this->assertSame(

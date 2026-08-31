@@ -89,31 +89,62 @@ so the UI never maps status→colour by hand.
 
 ## 4. Service inventory
 
-| Service | Responsibility |
-|---|---|
-| `DeliveryStatusCalculator` | Pure functions: quantity, timeliness, overall status. No DB. |
-| `DeliveryStatusService` | Persists recalculation across delivery lines, PO items, PO header |
-| `PurchaseOrderService` | Create/update/submit/approve/cancel PO + items |
-| `DeliveryService` | Create/update/cancel delivery + items, orchestrates recalculation |
-| `ServiceRateCalculator` + strategies | Configurable service-rate formula |
-| `DashboardService` | Assembles the §32 contract from `DashboardRepository` |
-| `SupplierPerformanceService` | Ranking, scorecard, grade assignment |
-| `SupplierEvaluationService` | Period evaluation generation and scoring |
-| `ProblemService` | Problem lifecycle, closing rules |
-| `CorrectiveActionService` | Corrective action lifecycle |
-| `AttachmentService` | Private-disk storage, MIME validation, streaming |
-| `CriticalMaterialService` | Configurable critical-material rules |
-| `KpiSettingService` | Threshold lookup with caching |
-| `SystemSettingService` | Typed settings access with caching |
-| `AuditLogService` | Writes audit entries from observers/listeners |
-| `ReportService` | Report datasets for Excel/PDF/print |
-| `PurchaseOrderImportService` | Validate → preview → transactional import |
-| `NumberGeneratorService` | Sequential PO/DN/PRB numbers under row lock |
+### Built
+
+| Service | Namespace | Responsibility |
+|---|---|---|
+| `DeliveryStatusCalculator` | `Services\Delivery` | Pure functions: quantity, timeliness, overall status. No DB. |
+| `DeliveryStatusService` | `Services\Delivery` | Persists recalculation across delivery lines, PO items, PO header |
+| `DeliveryPerformanceService` | `Services\Performance` | Per-record rules + aggregate rates over a filter |
+| `SupplierPerformanceService` | `Services\Performance` | Ranking, monthly trend, scorecard, grading |
+| `ServiceRateCalculator` + 2 strategies | `Services\Performance` | Configurable service-rate formula |
+| `DashboardService` | `Services\Dashboard` | Assembles the §32 contract |
+| `ParetoAnalysisService` | `Services\Dashboard` | Frequency, share, cumulative curve, vital few |
+| `CriticalMaterialService` | `Services\Dashboard` | Four configurable rules, risk banding |
+| `SupplierEvaluationService` | `Services\Supplier` | Period scorecard generation and grading |
+| `KpiSettingService` | `Services\Setting` | Threshold lookup, cached as plain arrays |
+| `SystemSettingService` | `Services\Setting` | Typed settings access with caching |
+| `AuditLogService` | `Services\Audit` | Writes audit entries, diffing only what changed |
+| `NumberGeneratorService` | `Services\Support` | Sequential PO/DN/PRB numbers under row lock |
+
+### Planned
+
+`PurchaseOrderService`, `DeliveryService`, `ProblemService`,
+`CorrectiveActionService`, `AttachmentService`, `ReportService`,
+`PurchaseOrderImportService`.
 
 ## 5. Repository inventory
 
-`DashboardRepository`, `SupplierPerformanceRepository`, `ReportRepository`.
-Only these three — trivial CRUD stays in services (§3).
+| Repository | Responsibility |
+|---|---|
+| `DeliveryAggregateQuery` | The three filtered base populations: delivery lines, order lines, problems |
+| `DashboardRepository` | Every dashboard aggregate, expressed as SQL |
+
+`ReportRepository` follows in Phase 8. Trivial CRUD stays in services (§3).
+
+## 5.1 Aggregation, and why it matters here
+
+Every figure on the dashboard is a `GROUP BY`, not a `foreach`. A month of
+1,250 delivery lines crosses into PHP as a handful of integers.
+
+| Panel | Queries |
+|---|---|
+| KPI cards | 2 (counts at delivery-line grain, quantities at order-line grain) |
+| Six-month trend | 2 — one grouped query per grain, **not one per month** |
+| Supplier ranking | 1 grouped query, whatever the number of suppliers |
+| Pareto | 1 grouped query |
+| PO monitoring | 1 |
+| Critical materials | 4 rule queries + 1 hydration |
+| **Whole payload** | **≤ 14, independent of how many deliveries the month holds** |
+
+`DeliveryPerformanceServiceTest`, `SupplierPerformanceServiceTest`,
+`ParetoAnalysisServiceTest` and `DashboardServiceTest` assert these counts, so a
+`foreach` creeping into an aggregate path fails the build.
+
+Two grains coexist deliberately, because the specification defines them that
+way: **counts** are delivery lines dated by arrival; **quantities** are order
+lines dated by promise. `DeliveryMetrics` carries both and derives every rate
+from them, which is what stops two panels quoting different denominators.
 
 ## 6. Vue component inventory
 

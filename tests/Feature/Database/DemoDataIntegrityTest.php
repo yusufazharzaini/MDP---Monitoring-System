@@ -96,7 +96,10 @@ final class DemoDataIntegrityTest extends TestCase
         $expected = [5 => 97.2, 4 => 96.5, 3 => 98.1, 2 => 95.8, 1 => 97.0, 0 => 96.8];
 
         foreach ($expected as $monthsAgo => $rate) {
-            $month = Carbon::now()->subMonths($monthsAgo);
+            // Normalise to the first of the month *before* subtracting: on a
+            // 31st, Carbon::now()->subMonths(4) lands on 1 May rather than in
+            // April, silently skipping a month.
+            $month = Carbon::now()->startOfMonth()->subMonths($monthsAgo);
 
             $total = $this->lines($month)->count();
             $onTime = $this->lines($month)
