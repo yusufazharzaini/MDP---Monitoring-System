@@ -39,6 +39,9 @@ class SystemSettingService
 
     public const CRITICAL_FLAG_CRITICAL_PROBLEM = 'critical_material.flag_critical_problem';
 
+    // Purchase order
+    public const PO_REQUIRE_SEPARATE_APPROVER = 'purchase_order.require_separate_approver';
+
     // Import
     public const IMPORT_AUTO_CREATE_MASTER = 'import.auto_create_master';
 

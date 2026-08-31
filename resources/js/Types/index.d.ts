@@ -194,3 +194,67 @@ export interface DashboardFilterOptions {
     materials: SelectOption[];
     materialCategories: SelectOption[];
 }
+
+/* --- Purchase order ----------------------------------------------------- */
+
+export interface PurchaseOrderLine {
+    id: number | null;
+    line_no?: number;
+    material_id: number | null;
+    material_code?: string | null;
+    material_name?: string | null;
+    warehouse_id: number | null;
+    warehouse_name?: string | null;
+    uom_id: number | null;
+    uom_code?: string | null;
+    schedule_delivery_date: string;
+    qty_ordered: number;
+    qty_received?: number;
+    outstanding?: number;
+    unit_price: number;
+    amount?: number;
+    overall_status?: string;
+    overall_status_label?: string;
+    overall_status_variant?: BadgeVariant;
+    remarks: string | null;
+}
+
+export interface PurchaseOrderRecord {
+    id: number;
+    ulid: string;
+    po_number: string;
+    po_date: string;
+    supplier_id: number;
+    supplier_name: string | null;
+    supplier_code: string | null;
+    plant_id: number;
+    plant_name: string | null;
+    currency: string;
+    payment_term: string | null;
+    remarks: string | null;
+    items_count: number;
+    total_amount: number;
+    status: string;
+    status_label: string;
+    status_variant: BadgeVariant;
+    created_by_name?: string | null;
+    approved_by_name?: string | null;
+    approved_at?: string | null;
+    items: PurchaseOrderLine[];
+    deliveries: Array<{
+        ulid: string;
+        delivery_number: string;
+        delivery_date: string;
+        status: string;
+        status_label: string;
+        status_variant: BadgeVariant;
+    }>;
+}
+
+export interface PurchaseOrderFormOptions {
+    suppliers: SelectOption[];
+    plants: SelectOption[];
+    materials: Array<SelectOption & { uom_id: number }>;
+    uoms: SelectOption[];
+    warehouses: Array<SelectOption & { plant_id: number }>;
+}

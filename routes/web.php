@@ -12,6 +12,7 @@ use App\Http\Controllers\MasterData\SupplierContactController;
 use App\Http\Controllers\MasterData\SupplierController;
 use App\Http\Controllers\MasterData\UomController;
 use App\Http\Controllers\MasterData\WarehouseController;
+use App\Http\Controllers\PurchaseOrder\PurchaseOrderController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth')->group(function (): void {
@@ -58,6 +59,25 @@ Route::middleware('auth')->group(function (): void {
     Route::middleware('permission:user.view')
         ->resource('departments', DepartmentController::class)
         ->except('show');
+
+    /*
+     * Purchase orders.
+     *
+     * A purchase order is never deleted, so the resource excludes destroy;
+     * cancellation is the only exit and it carries its own permission.
+     */
+    Route::middleware('permission:po.view')->group(function (): void {
+        Route::resource('purchase-orders', PurchaseOrderController::class)->except('destroy');
+
+        Route::controller(PurchaseOrderController::class)
+            ->prefix('purchase-orders/{purchase_order}')
+            ->name('purchase-orders.')
+            ->group(function (): void {
+                Route::post('submit', 'submit')->name('submit');
+                Route::post('approve', 'approve')->name('approve');
+                Route::post('cancel', 'cancel')->name('cancel');
+            });
+    });
 });
 
 require __DIR__.'/auth.php';

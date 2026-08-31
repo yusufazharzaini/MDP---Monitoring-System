@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Models\Delivery;
+use App\Models\PurchaseOrder;
 use App\Models\User;
 use App\Services\Delivery\DeliveryStatusCalculator;
 use App\Services\Setting\SystemSettingService;
@@ -48,8 +50,17 @@ class AppServiceProvider extends ServiceProvider
          * being added without a re-seed, which is exactly when an admin would
          * otherwise find themselves locked out of a screen they own.
          */
-        Gate::before(static function (User $user, string $ability): ?bool {
-            unset($ability);
+        Gate::before(static function (User $user, string $ability, array $arguments = []): ?bool {
+            /*
+             * Deleting a purchase order or a delivery is not a permission
+             * anyone can be granted - those records are cancelled, never
+             * removed - so the bypass defers to the policy that says no.
+             */
+            $subject = $arguments[0] ?? null;
+
+            if ($ability === 'delete' && ($subject instanceof PurchaseOrder || $subject instanceof Delivery)) {
+                return null;
+            }
 
             return $user->hasRole(RolesAndPermissionsSeeder::SUPER_ADMIN) ? true : null;
         });

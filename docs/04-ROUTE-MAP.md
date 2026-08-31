@@ -109,12 +109,49 @@ so the UI never maps status→colour by hand.
 | `NumberGeneratorService` | `Services\Support` | Sequential PO/DN/PRB numbers under row lock |
 
 | `MasterDataService` + 8 subclasses | `Services\MasterData` | Shared create/update/retire flow, per-entity deletion guards |
+| `PurchaseOrderService` | `Services\PurchaseOrder` | The PO lifecycle: create, amend, submit, approve, cancel |
+| `SyncPurchaseOrderItems` | `Actions\PurchaseOrder` | Reconciles order lines, protecting received ones |
+| `RecalculatePurchaseOrderTotal` | `Actions\PurchaseOrder` | Sole writer of the denormalised order total |
 
 ### Planned
 
-`PurchaseOrderService`, `DeliveryService`, `ProblemService`,
+`DeliveryService`, `ProblemService`,
 `CorrectiveActionService`, `AttachmentService`, `ReportService`,
 `PurchaseOrderImportService`.
+
+## 4.0 Purchase order lifecycle (Phase 3)
+
+```
+DRAFT --submit--> SUBMITTED --approve--> APPROVED --(receipts)--> PARTIAL --> COMPLETED
+   \                   \                     \
+    `----------------- cancel ----------------'--> CANCELLED
+```
+
+Guarded in `PurchaseOrderService`, so the same rules apply however a transition
+is reached - screen, console command, or a future import.
+
+| Rule | Why |
+|---|---|
+| A new order is always a DRAFT and always gets a number | A saved order without an identity cannot be referred to |
+| Only DRAFT and SUBMITTED may be edited | Once approved, the supplier is already working to those lines |
+| Submitting requires at least one line | An order with nothing on it is not an order |
+| Only a SUBMITTED order may be approved | Skipping submission skips the review |
+| The creator may not approve their own order | Standard segregation of duties; switchable via `purchase_order.require_separate_approver` |
+| A line with receipts cannot be removed | It carries a receipt history and a rollup |
+| A line's quantity cannot fall below what arrived | It would leave the order over-delivered on paper |
+| Cancelling requires a reason | A cancellation nobody can explain later is an audit gap |
+| COMPLETED and CANCELLED are terminal | History, not a workspace |
+| An order is never deleted, by anyone | Structural: the policy denies it and the super-admin gate defers to that denial |
+
+Line numbers are re-sequenced on every save. Because `(purchase_order_id, line_no)`
+is unique, existing and new lines are first parked in two separate temporary
+ranges and only then brought down to 1..n - renumbering in place would collide
+the moment one line took a number another still held.
+
+Events: `PurchaseOrderSubmitted`, `PurchaseOrderApproved`, `PurchaseOrderCancelled`,
+all implementing `PurchaseOrderLifecycleEvent`. Listeners bind to that *interface*
+rather than a base class, because Laravel's dispatcher resolves listeners through
+interfaces - so a future transition needs a new event, not a new registration.
 
 ## 4.1 Master-data deletion guards (Phase 2)
 

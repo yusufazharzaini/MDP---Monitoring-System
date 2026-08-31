@@ -23,7 +23,7 @@ const items: NavItem[] = [
     { key: 'plants', label: 'Plant', icon: 'box', href: route('plants.index') },
     { key: 'warehouses', label: 'Warehouse', icon: 'delivery', href: route('warehouses.index') },
     { key: 'departments', label: 'Department', icon: 'report', href: route('departments.index') },
-    { key: 'purchase-orders', label: 'PO Monitoring', icon: 'order' },
+    { key: 'purchase-orders', label: 'Purchase Order', icon: 'order', href: route('purchase-orders.index') },
     { key: 'problems', label: 'Problem Analysis', icon: 'problem' },
     { key: 'reports', label: 'Report', icon: 'report' },
 ];

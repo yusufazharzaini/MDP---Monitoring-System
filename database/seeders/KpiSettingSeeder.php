@@ -128,6 +128,13 @@ class KpiSettingSeeder extends Seeder
             'description' => 'Hitung material dengan problem severity CRITICAL sebagai critical material.',
         ],
         [
+            'key' => SystemSettingService::PO_REQUIRE_SEPARATE_APPROVER,
+            'value' => '1',
+            'type' => SettingType::BOOLEAN,
+            'group' => 'purchase_order',
+            'description' => 'Wajibkan approver purchase order berbeda dari pembuatnya (segregation of duties).',
+        ],
+        [
             'key' => SystemSettingService::IMPORT_AUTO_CREATE_MASTER,
             'value' => '0',
             'type' => SettingType::BOOLEAN,
