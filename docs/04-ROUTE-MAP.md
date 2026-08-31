@@ -354,6 +354,29 @@ from them, which is what stops two panels quoting different denominators.
 `EmptyState`, `LoadingState`, `ErrorState`, `FormField`, `PageHeader`
 **Charts:** `ServiceRateChart`, `SupplierPerformanceChart`, `ParetoChart`, `BaseChart`
 
+## 6.1 Test strategy
+
+The suite runs on two engines because they prove different things.
+
+| Job | Engine | Proves |
+|---|---|---|
+| `backend` | SQLite in memory, PHP 8.3 + 8.4 | Fast feedback on every push |
+| `mysql` | MySQL 8 | The 26 CHECK constraints, `ONLY_FULL_GROUP_BY`, `FOR UPDATE`, real index behaviour |
+| `rollback` | MySQL 8 | `migrate:fresh --seed` then `migrate:reset`, asserting an empty schema |
+| `frontend` | - | `vue-tsc` and a production build |
+
+SQLite skips the CHECK-constraint tests and emits no row locks, so a green
+SQLite run proves neither. Running MySQL in CI is what caught `DROP CHECK`
+portability, the four composite indexes InnoDB adopts as foreign-key indexes,
+a factory producing a due date before its problem date, and a `SELECT *` under
+`GROUP BY`.
+
+Cross-cutting services carry their own tests rather than being reached only
+through the lifecycles: `NumberGeneratorTest`, `AuditLogServiceTest`,
+`SyncLineItemsTest`, `SettingsCacheTest` (against a real cache store, since
+`phpunit.xml` uses the array driver where a stale read cannot surface), and
+`ConcurrentWriteTest`.
+
 ## 7. Development roadmap
 
 | Phase | Scope | Exit criteria |

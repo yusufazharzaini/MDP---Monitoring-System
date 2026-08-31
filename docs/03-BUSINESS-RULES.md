@@ -209,6 +209,37 @@ with a `BusinessRuleException`.
 - Grade bands (`GRADE_EXCELLENT` / `GRADE_GOOD` / `GRADE_AVERAGE`) come from `kpi_settings`;
   nothing in the UI restates them.
 
+## 11.2 Document numbering
+
+`PO-YYYYMM-####`, `DN-YYYYMM-####`, `PRB-YYYYMM-####`, allocated inside a
+transaction under `lockForUpdate()`, with the unique index as the final word.
+
+- The sequence restarts at `0001` each month, and is dated by the *document*
+  (a receipt booked today for July goods takes a July number), not by today.
+- A cancelled document never frees its number: reissuing it would give two
+  records the same identifier in the supplier's files.
+- The four-digit pad is a minimum, not a ceiling. Past 9,999 the number widens
+  to five digits and keeps counting; the read orders by length before value,
+  because a plain string sort ranks `9999` above `10000` and would mint 10000
+  twice.
+
+## 11.3 Monetary precision (characterised, not assumed)
+
+The schema holds money as `decimal(18,4)`; the arithmetic above it runs through
+PHP floats (`round((float) qty * (float) price, 4)`, and a float cast on the SQL
+`SUM`). `tests/Feature/PurchaseOrder/MonetaryPrecisionTest.php` records what
+that costs:
+
+- Exact for every magnitude this system handles - orders in the tens of billions
+  of rupiah to four decimal places, hundred-line orders, fractional quantities
+  and prices, and edits that re-derive the total.
+- The bound is the column's own maximum, `99,999,999,999,999.9999`: eighteen
+  significant digits against a float64's fifteen or sixteen. That is roughly
+  five orders of magnitude above the largest order Torica raises.
+- **Accepted**, not fixed. `bcmath` is not among the deployment's PHP
+  extensions, so honouring the rule literally would add a hard dependency to buy
+  precision the business does not use. Revisit if amounts ever approach 10^12.
+
 ## 12. Import rules (§26)
 
 Upload → validate → preview → confirm → transactional import.
