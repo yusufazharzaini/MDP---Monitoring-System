@@ -10,6 +10,7 @@ use App\Models\Delivery;
 use App\Models\DeliveryProblem;
 use App\Models\ProblemCategory;
 use App\Models\Supplier;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -36,8 +37,30 @@ class DeliveryProblemFactory extends Factory
             'root_cause' => $this->faker->sentence(10),
             'status' => ProblemStatus::OPEN,
             'pic' => $this->faker->name(),
-            'due_date' => $date->copy()->addDays($severity->resolutionDays())->toDateString(),
+            /*
+             * Derived from whatever problem_date and severity end up being, not
+             * from the pair generated above: a caller that overrides the report
+             * date would otherwise get a due date before it, which the
+             * chk_problem_due_after_report constraint rejects.
+             */
+            'due_date' => fn (array $attributes): string => CarbonImmutable::parse($attributes['problem_date'])
+                ->addDays(self::severityOf($attributes)->resolutionDays())
+                ->toDateString(),
         ];
+    }
+
+    /**
+     * Severity as an enum whether it arrived as one or as its backing value.
+     *
+     * @param  array<string, mixed>  $attributes
+     */
+    private static function severityOf(array $attributes): ProblemSeverity
+    {
+        $severity = $attributes['severity'];
+
+        return $severity instanceof ProblemSeverity
+            ? $severity
+            : ProblemSeverity::from((string) $severity);
     }
 
     public function critical(): static
