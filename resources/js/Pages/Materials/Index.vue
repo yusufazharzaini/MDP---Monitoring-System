@@ -1,0 +1,79 @@
+<script setup lang="ts">
+import { Link } from '@inertiajs/vue3';
+import ResourceIndex, {
+    type Column,
+    type MasterDataRow,
+} from '@/Components/MasterData/ResourceIndex.vue';
+import type { Paginated, SelectOption } from '@/Types';
+
+defineProps<{
+    records: Paginated<MasterDataRow>;
+    filters: { search?: string; status?: string };
+    can: { create: boolean; update: boolean; delete: boolean };
+}>();
+
+const columns: Column[] = [
+    {
+        key: "code",
+        label: "Kode"
+    },
+    {
+        key: "name",
+        label: "Nama"
+    },
+    {
+        key: "category_name",
+        label: "Kategori"
+    },
+    {
+        key: "uom_code",
+        label: "Satuan"
+    },
+    {
+        key: "minimum_stock",
+        label: "Min. Stok",
+        align: "right",
+        numeric: true
+    },
+    {
+        key: "status",
+        label: "Status",
+        badge: true
+    }
+];
+
+/** Ziggy's route() is a global, not a component property, so hrefs are
+ *  resolved here rather than in the template where vue-tsc cannot see it. */
+const showHref = (row: MasterDataRow): string =>
+    route('materials.show', (row.ulid ?? row.id) as string | number);
+
+const statusOptions: SelectOption[] = [
+    { value: 'ACTIVE', label: 'Active' },
+    { value: 'INACTIVE', label: 'Inactive' },
+];
+</script>
+
+<template>
+    <ResourceIndex
+        title="Master Material"
+        subtitle="Katalog material beserta ambang stok dan penanda critical"
+        current="materials"
+        route-name="materials"
+        route-key="ulid"
+        search-placeholder="Cari kode, nama, atau spesifikasi…"
+        :columns="columns"
+        :records="records"
+        :filters="filters"
+        :can="can"
+        :status-options="statusOptions"
+    >
+        <template #row-actions="{ row }">
+            <Link
+                :href="showHref(row)"
+                class="rounded-md px-2 py-1 text-xs font-semibold text-ink-muted transition hover:text-ink"
+            >
+                Detail
+            </Link>
+        </template>
+    </ResourceIndex>
+</template>

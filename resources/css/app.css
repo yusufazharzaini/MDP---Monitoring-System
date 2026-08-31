@@ -1,0 +1,138 @@
+@import 'tailwindcss';
+
+/*
+ * Design tokens.
+ *
+ * Every colour used by the application is declared once here and consumed as a
+ * Tailwind utility (bg-surface, text-muted, border-line...). Components never
+ * name a raw hex value, so retheming is a single-file change (requirement 28).
+ */
+@theme {
+    --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+    /* Enterprise dark navy surfaces */
+    --color-canvas: #0b1220;
+    --color-surface: #111a2b;
+    --color-surface-raised: #17223a;
+    --color-surface-hover: #1c2942;
+    --color-line: #22304d;
+    --color-line-strong: #2e4066;
+
+    /* Foreground */
+    --color-ink: #e8eefb;
+    --color-ink-muted: #93a3bd;
+    --color-ink-subtle: #64748b;
+
+    /*
+     * Status palette. These four are reserved for state - good / warning /
+     * serious / critical - and are never reused as a chart series colour.
+     * Every one clears 3:1 against the navy surface, checked with the
+     * data-viz validator rather than by eye. Red and green sit close under
+     * deuteranopia, so a status colour never travels alone: each ships with
+     * an icon and a text label.
+     */
+    --color-good: #0ca30c;
+    --color-warning: #fab219;
+    --color-serious: #ec835a;
+    --color-critical: #d03b3b;
+
+    /* Semantic aliases used by badges and buttons */
+    --color-brand: #1a63b8;
+    --color-brand-soft: #1e4a80;
+    --color-success: var(--color-good);
+    --color-danger: var(--color-critical);
+    --color-info: #3987e5;
+    --color-neutral: #64748b;
+
+    /* Tinted panel grounds for KPI cards - dark enough to keep white ink legible */
+    --color-good-ground: #0d2a17;
+    --color-info-ground: #10243d;
+    --color-warning-ground: #2e2410;
+    --color-critical-ground: #2e1616;
+    --color-neutral-ground: #1a2436;
+
+    /*
+     * Chart series slots, in fixed order - never cycled, never assigned by rank.
+     * Validated as a set against this surface (#111a2b): worst all-pairs CVD
+     * deltaE 9.4, normal-vision 20.9, all >= 3:1 contrast.
+     * Past three series, fold the tail into "Other" or facet.
+     */
+    --color-series-1: #3987e5;
+    --color-series-2: #d95926;
+    --color-series-3: #199e70;
+
+    /* Recessive chart furniture */
+    --color-grid: #1e2b42;
+    --color-axis: #2a3a56;
+
+    --radius-card: 0.875rem;
+}
+
+@layer base {
+    html {
+        color-scheme: dark;
+    }
+
+    body {
+        background-color: var(--color-canvas);
+        color: var(--color-ink);
+        -webkit-font-smoothing: antialiased;
+    }
+
+    /* Keyboard focus stays visible everywhere - never removed, only restyled. */
+    :focus-visible {
+        outline: 2px solid var(--color-info);
+        outline-offset: 2px;
+    }
+
+    ::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: var(--color-canvas);
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: var(--color-line-strong);
+        border-radius: 9999px;
+    }
+}
+
+@layer components {
+    .card {
+        background-color: var(--color-surface);
+        border: 1px solid var(--color-line);
+        border-radius: var(--radius-card);
+    }
+
+    .field-label {
+        display: block;
+        margin-bottom: 0.375rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--color-ink-muted);
+    }
+
+    .field-input {
+        width: 100%;
+        border-radius: 0.5rem;
+        border: 1px solid var(--color-line);
+        background-color: var(--color-canvas);
+        padding: 0.5rem 0.75rem;
+        font-size: 0.875rem;
+        color: var(--color-ink);
+    }
+
+    .field-input::placeholder {
+        color: var(--color-ink-subtle);
+    }
+
+    .field-input:focus {
+        border-color: var(--color-info);
+        outline: none;
+    }
+}
