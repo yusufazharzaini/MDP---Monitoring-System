@@ -34,6 +34,12 @@ class RolesAndPermissionsSeeder extends Seeder
         'po' => ['view', 'create', 'update', 'approve', 'cancel'],
         'delivery' => ['view', 'create', 'update', 'cancel'],
         'problem' => ['view', 'create', 'update', 'close'],
+        /*
+         * Approving a monthly scorecard is a management judgement on a
+         * supplier, not a reporting action - `report.view` reaches every
+         * VIEWER, and a viewer must not be able to sign one off.
+         */
+        'evaluation' => ['view', 'create', 'approve'],
         'report' => ['view', 'export'],
         'user' => ['view', 'create', 'update', 'delete'],
         'setting' => ['view', 'update'],
@@ -53,6 +59,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'po.view', 'po.create', 'po.update', 'po.cancel',
             'delivery.view',
             'problem.view', 'problem.create', 'problem.update',
+            'evaluation.view', 'evaluation.create',
             'report.view', 'report.export',
         ],
         'WAREHOUSE' => [
@@ -69,6 +76,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'po.view',
             'delivery.view', 'delivery.create', 'delivery.update', 'delivery.cancel',
             'problem.view', 'problem.create', 'problem.update', 'problem.close',
+            'evaluation.view',
             'report.view', 'report.export',
         ],
         'MANAGEMENT' => [
@@ -80,6 +88,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'po.view', 'po.approve', 'po.cancel',
             'delivery.view',
             'problem.view', 'problem.close',
+            'evaluation.view', 'evaluation.create', 'evaluation.approve',
             'report.view', 'report.export',
             'audit.view', 'setting.view',
         ],
@@ -91,7 +100,9 @@ class RolesAndPermissionsSeeder extends Seeder
         'VIEWER' => [
             'dashboard.view',
             'supplier.view', 'material.view', 'plant.view', 'warehouse.view',
-            'po.view', 'delivery.view', 'problem.view', 'report.view',
+            'po.view', 'delivery.view', 'problem.view',
+            'evaluation.view',
+            'report.view',
         ],
     ];
 

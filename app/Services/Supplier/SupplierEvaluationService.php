@@ -5,10 +5,14 @@ declare(strict_types=1);
 namespace App\Services\Supplier;
 
 use App\DataTransferObjects\DashboardFilter;
+use App\Enums\EvaluationStatus;
 use App\Enums\SupplierGrade;
+use App\Events\Supplier\SupplierEvaluationApproved;
+use App\Events\Supplier\SupplierEvaluationReopened;
 use App\Exceptions\BusinessRuleException;
 use App\Models\Supplier;
 use App\Models\SupplierEvaluation;
+use App\Models\User;
 use App\Repositories\DashboardRepository;
 use App\Services\Performance\DeliveryPerformanceService;
 use App\Services\Setting\KpiSettingService;
@@ -91,6 +95,7 @@ class SupplierEvaluationService
     public function generateForPeriod(Supplier $supplier, int $year, int $month, ?string $remarks = null): SupplierEvaluation
     {
         $this->guardPeriod($year, $month);
+        $this->guardSupplierWasActive($supplier, $year, $month);
 
         $scores = $this->calculateScores($supplier, $year, $month);
         $total = $this->calculateTotalScore($scores);
@@ -101,6 +106,21 @@ class SupplierEvaluationService
                 'period_year' => $year,
                 'period_month' => $month,
             ]);
+
+            /*
+             * A signed-off scorecard is a record of what a manager approved,
+             * not a cache of the current numbers. Regenerating one would let a
+             * data correction months later silently restate a figure somebody
+             * put their name to, so it is refused - reopening is an explicit,
+             * audited act with its own permission.
+             */
+            if ($evaluation->exists && $evaluation->isApproved()) {
+                throw new BusinessRuleException(
+                    "Evaluasi {$supplier->code} periode "
+                    .sprintf('%04d-%02d', $year, $month)
+                    .' sudah disetujui dan tidak dapat dihitung ulang. Buka kembali evaluasi terlebih dahulu.'
+                );
+            }
 
             $evaluation->forceFill([
                 ...$scores,
@@ -128,11 +148,76 @@ class SupplierEvaluationService
 
         $from = Carbon::create($year, $month, 1)->startOfMonth();
 
+        $approved = SupplierEvaluation::query()
+            ->forPeriod($year, $month)
+            ->approved()
+            ->pluck('supplier_id')
+            ->all();
+
         return Supplier::query()
             ->activeInPeriod($from->toDateString(), $from->copy()->endOfMonth()->toDateString())
+            // A month-end batch skips the scorecards already signed off rather
+            // than failing on the first one; the rest of the run still lands.
+            ->whereNotIn('id', $approved === [] ? [0] : $approved)
             ->get()
             ->map(fn (Supplier $supplier): SupplierEvaluation => $this->generateForPeriod($supplier, $year, $month))
             ->all();
+    }
+
+    /**
+     * Sign off a scorecard, freezing its figures.
+     *
+     * From here the evaluation stops tracking the transactions underneath it,
+     * which is the whole point: last quarter's approved grade must not move
+     * because a receipt was corrected this morning.
+     */
+    public function approve(SupplierEvaluation $evaluation, ?User $actor = null): SupplierEvaluation
+    {
+        if ($evaluation->isApproved()) {
+            throw new BusinessRuleException(
+                'Evaluasi periode '.$evaluation->periodLabel().' sudah disetujui.'
+            );
+        }
+
+        return DB::transaction(function () use ($evaluation, $actor): SupplierEvaluation {
+            $evaluation->forceFill([
+                'status' => EvaluationStatus::APPROVED,
+                'approved_by' => $actor?->getKey() ?? Auth::id(),
+                'approved_at' => Carbon::now(),
+            ])->save();
+
+            SupplierEvaluationApproved::dispatch($evaluation, $actor);
+
+            return $evaluation;
+        });
+    }
+
+    /**
+     * Return an approved scorecard to DRAFT so it can be recomputed.
+     *
+     * The reason is required and audited: reopening a signed-off month is a
+     * management decision, and the trail has to say why the figures moved.
+     */
+    public function reopen(SupplierEvaluation $evaluation, ?User $actor = null, ?string $reason = null): SupplierEvaluation
+    {
+        if (! $evaluation->isApproved()) {
+            throw new BusinessRuleException(
+                'Evaluasi periode '.$evaluation->periodLabel().' masih berstatus draft.'
+            );
+        }
+
+        return DB::transaction(function () use ($evaluation, $actor, $reason): SupplierEvaluation {
+            $evaluation->forceFill([
+                'status' => EvaluationStatus::DRAFT,
+                'approved_by' => null,
+                'approved_at' => null,
+                'remarks' => $reason ?? $evaluation->remarks,
+            ])->save();
+
+            SupplierEvaluationReopened::dispatch($evaluation, $actor, $reason);
+
+            return $evaluation;
+        });
     }
 
     /**
@@ -203,6 +288,29 @@ class SupplierEvaluationService
             dateTo: $anchor->copy()->endOfMonth()->toDateString(),
             supplierId: $supplier->getKey(),
         );
+    }
+
+    /**
+     * A supplier that delivered nothing in the month is not evaluated.
+     *
+     * Scoring one anyway produces a scorecard that reads as terrible
+     * performance when it means no activity: delivery, quantity and quality
+     * are all zero for want of data, while responsiveness scores full marks
+     * because no problem could be raised against a delivery that never
+     * happened. The ranking already omits these suppliers; a signed-off
+     * scorecard must not contradict it.
+     */
+    private function guardSupplierWasActive(Supplier $supplier, int $year, int $month): void
+    {
+        $metrics = $this->performance->metrics($this->periodFilter($supplier, $year, $month));
+
+        if ($metrics->totalDelivery <= 0) {
+            throw new BusinessRuleException(
+                "Supplier {$supplier->code} tidak memiliki penerimaan pada periode "
+                .sprintf('%04d-%02d', $year, $month)
+                .', sehingga tidak dapat dievaluasi.'
+            );
+        }
     }
 
     private function guardPeriod(int $year, int $month): void

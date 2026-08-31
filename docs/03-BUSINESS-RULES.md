@@ -195,6 +195,20 @@ with a `BusinessRuleException`.
 - Overdue problems (`due_date < today`, status not CLOSED/CANCELLED) are notified as one
   daily digest per recipient, sent to everyone holding `problem.close`.
 
+## 11.1 Supplier evaluation lifecycle
+
+- A scorecard is generated per `(supplier, period_year, period_month)` and starts `DRAFT`.
+- A DRAFT is recomputed from transactions on demand; an `APPROVED` one is frozen and
+  refuses recomputation until it is reopened.
+- Approving stamps `approved_by` and `approved_at`; reopening clears both and requires a reason.
+- `generateForAllSuppliers` skips approved scorecards instead of failing the batch.
+- A supplier with no receipts in the period is not evaluated at all - scoring one would
+  publish 10/100 and grade POOR, which reads as bad performance rather than no activity.
+- Ranking order: service rate desc, then delivery count desc, then supplier name asc.
+  A supplier with no deliveries in the period does not appear.
+- Grade bands (`GRADE_EXCELLENT` / `GRADE_GOOD` / `GRADE_AVERAGE`) come from `kpi_settings`;
+  nothing in the UI restates them.
+
 ## 12. Import rules (§26)
 
 Upload → validate → preview → confirm → transactional import.

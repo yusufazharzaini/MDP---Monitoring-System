@@ -177,6 +177,45 @@ class SupplierPerformanceService
         return $this->kpi->gradeFor($serviceRate);
     }
 
+    /**
+     * The grade bands themselves, for a screen that has to show a reader why a
+     * supplier landed where it did.
+     *
+     * Read from kpi_settings rather than restated in the page, so retuning a
+     * band moves the legend and the grades together (requirement 31).
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function gradeBands(): array
+    {
+        $bands = [];
+        $previous = null;
+
+        foreach ([SupplierGrade::EXCELLENT, SupplierGrade::GOOD, SupplierGrade::AVERAGE] as $grade) {
+            $floor = $this->kpi->target((string) $grade->thresholdCode(), 0.0);
+
+            $bands[] = [
+                'grade' => $grade->value,
+                'label' => $grade->label(),
+                'variant' => $grade->badgeVariant(),
+                'floor' => $floor,
+                'ceiling' => $previous,
+            ];
+
+            $previous = $floor;
+        }
+
+        $bands[] = [
+            'grade' => SupplierGrade::POOR->value,
+            'label' => SupplierGrade::POOR->label(),
+            'variant' => SupplierGrade::POOR->badgeVariant(),
+            'floor' => 0.0,
+            'ceiling' => $previous,
+        ];
+
+        return $bands;
+    }
+
     private function scopedToSupplier(DashboardFilter $filter, int $supplierId): DashboardFilter
     {
         return new DashboardFilter(

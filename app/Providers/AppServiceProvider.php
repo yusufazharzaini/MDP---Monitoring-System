@@ -9,6 +9,7 @@ use App\Models\Delivery;
 use App\Models\DeliveryProblem;
 use App\Models\ProblemAttachment;
 use App\Models\PurchaseOrder;
+use App\Models\SupplierEvaluation;
 use App\Models\User;
 use App\Services\Delivery\DeliveryStatusCalculator;
 use App\Services\Setting\SystemSettingService;
@@ -38,6 +39,7 @@ class AppServiceProvider extends ServiceProvider
         DeliveryProblem::class => ['update', 'close', 'cancel', 'delete'],
         CorrectiveAction::class => ['create', 'complete', 'delete'],
         ProblemAttachment::class => ['create', 'delete'],
+        SupplierEvaluation::class => ['regenerate', 'approve', 'reopen', 'delete'],
     ];
 
     /**

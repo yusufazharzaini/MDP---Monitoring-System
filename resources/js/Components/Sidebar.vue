@@ -26,6 +26,9 @@ const items: NavItem[] = [
     { key: 'purchase-orders', label: 'Purchase Order', icon: 'order', href: route('purchase-orders.index') },
     { key: 'deliveries', label: 'Delivery', icon: 'delivery', href: route('deliveries.index') },
     { key: 'problems', label: 'Problem Analysis', icon: 'problem', href: route('problems.index') },
+    { key: 'supplier-performance', label: 'Supplier Performance', icon: 'trend', href: route('supplier-performance.index') },
+    { key: 'supplier-evaluations', label: 'Evaluasi Supplier', icon: 'good', href: route('supplier-evaluations.index') },
+    { key: 'critical-materials', label: 'Critical Material', icon: 'warning', href: route('critical-materials.index') },
     { key: 'reports', label: 'Report', icon: 'report' },
 ];
 </script>

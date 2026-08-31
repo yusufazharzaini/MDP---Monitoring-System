@@ -13,6 +13,9 @@ use App\Http\Controllers\MasterData\SupplierContactController;
 use App\Http\Controllers\MasterData\SupplierController;
 use App\Http\Controllers\MasterData\UomController;
 use App\Http\Controllers\MasterData\WarehouseController;
+use App\Http\Controllers\Performance\CriticalMaterialController;
+use App\Http\Controllers\Performance\SupplierEvaluationController;
+use App\Http\Controllers\Performance\SupplierPerformanceController;
 use App\Http\Controllers\Problem\CorrectiveActionController;
 use App\Http\Controllers\Problem\DeliveryProblemController;
 use App\Http\Controllers\Problem\ProblemAttachmentController;
@@ -143,6 +146,43 @@ Route::middleware('auth')->group(function (): void {
                 Route::get('{attachment}', 'download')->name('download');
                 Route::delete('{attachment}', 'destroy')->name('destroy');
             });
+    });
+
+    /*
+     * Supplier performance and the critical material watchlist.
+     *
+     * These are the reporting side of the dashboard aggregates, so they sit
+     * behind report.view rather than dashboard.view - a role may be trusted
+     * with the summary without being handed the whole supplier league table.
+     */
+    Route::middleware('permission:report.view')->group(function (): void {
+        Route::get('supplier-performance', [SupplierPerformanceController::class, 'index'])
+            ->name('supplier-performance.index');
+        Route::get('supplier-performance/{supplier}', [SupplierPerformanceController::class, 'show'])
+            ->name('supplier-performance.show');
+
+        Route::get('critical-materials', [CriticalMaterialController::class, 'index'])
+            ->name('critical-materials.index');
+    });
+
+    /*
+     * Monthly supplier evaluations.
+     *
+     * A scorecard is never deleted and never edited by hand - it is generated
+     * from transactions, approved, and reopened if it must change - so the
+     * routes are exactly those four verbs.
+     */
+    Route::middleware('permission:evaluation.view')->group(function (): void {
+        Route::get('supplier-evaluations', [SupplierEvaluationController::class, 'index'])
+            ->name('supplier-evaluations.index');
+        Route::post('supplier-evaluations', [SupplierEvaluationController::class, 'store'])
+            ->name('supplier-evaluations.store');
+        Route::get('supplier-evaluations/{evaluation}', [SupplierEvaluationController::class, 'show'])
+            ->name('supplier-evaluations.show');
+        Route::post('supplier-evaluations/{evaluation}/approve', [SupplierEvaluationController::class, 'approve'])
+            ->name('supplier-evaluations.approve');
+        Route::post('supplier-evaluations/{evaluation}/reopen', [SupplierEvaluationController::class, 'reopen'])
+            ->name('supplier-evaluations.reopen');
     });
 });
 

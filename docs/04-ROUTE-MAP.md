@@ -51,8 +51,12 @@ All routes are behind `auth` + `verified`; each carries a `permission:` middlewa
 | resource | `/problem-categories` | `problem-categories.*` | `problem.*` |
 | GET | `/supplier-performance` | `supplier-performance.index` | `report.view` |
 | GET | `/supplier-performance/{supplier}` | `supplier-performance.show` | `report.view` |
-| resource | `/supplier-evaluations` | `supplier-evaluations.*` | `report.view` |
-| GET | `/critical-materials` | `critical-materials.index` | `dashboard.view` |
+| GET | `/critical-materials` | `critical-materials.index` | `report.view` |
+| GET | `/supplier-evaluations` | `supplier-evaluations.index` | `evaluation.view` |
+| POST | `/supplier-evaluations` | `supplier-evaluations.store` | `evaluation.create` |
+| GET | `/supplier-evaluations/{evaluation}` | `supplier-evaluations.show` | `evaluation.view` |
+| POST | `/supplier-evaluations/{evaluation}/approve` | `supplier-evaluations.approve` | `evaluation.approve` |
+| POST | `/supplier-evaluations/{evaluation}/reopen` | `supplier-evaluations.reopen` | `evaluation.approve` |
 | GET | `/reports` | `reports.index` | `report.view` |
 | GET | `/reports/{type}/export` | `reports.export` | `report.export` |
 | resource | `/users` | `users.*` | `user.*` |
@@ -112,9 +116,9 @@ so the UI never maps status→colour by hand.
 | `DashboardService` | `Services\Dashboard` | Assembles the §32 contract |
 | `ParetoAnalysisService` | `Services\Dashboard` | Frequency, share, cumulative curve, vital few |
 | `CriticalMaterialService` | `Services\Dashboard` | Four configurable rules, risk banding |
-| `SupplierEvaluationService` | `Services\Supplier` | Period scorecard generation and grading |
 | `KpiSettingService` | `Services\Setting` | Threshold lookup, cached as plain arrays |
 | `SystemSettingService` | `Services\Setting` | Typed settings access with caching |
+| `SupplierEvaluationService` | `Services\Supplier` | Scorecard generation, sign-off and reopening |
 | `AuditLogService` | `Services\Audit` | Writes audit entries, diffing only what changed |
 | `NumberGeneratorService` | `Services\Support` | Sequential PO/DN/PRB numbers under row lock |
 | `ProblemService` | `Services\Problem` | The problem lifecycle, and the rule that closing needs a completed action |
@@ -247,6 +251,50 @@ backlog.
 Events: `ProblemReported`, `ProblemUpdated`, `ProblemClosed`, `ProblemCancelled`,
 all behind `ProblemLifecycleEvent`, audited by one listener.
 
+## 4.0.3 Supplier performance and evaluation (Phase 7)
+
+The ranking, the scorecard and the critical-material list are read models over
+aggregates that already existed; the new business rule in this phase is the
+evaluation lifecycle.
+
+**Ranking order is fixed, not incidental.** Service rate descending, then
+delivery count, then supplier name. The tiebreakers are the point: two suppliers
+on 100% are not equally proven, so the one with more deliveries ranks higher,
+and name settles the rest so the table does not reshuffle between page loads.
+
+**A supplier that did not deliver is absent, not ranked at 0%.** Nothing to
+measure is a different answer from measured badly, and a 0% row would drag any
+average that reads the table.
+
+**Grade bands come from `kpi_settings`.** The screen renders the bands it is
+given, floor and ceiling, so retuning a threshold moves the legend and the
+grades together. Nothing about 98 / 95 / 90 is written in the page.
+
+### The evaluation lifecycle
+
+| Rule | Why |
+|---|---|
+| A generated scorecard starts as `DRAFT` | It is a working figure until somebody signs it |
+| A DRAFT is recomputed from transactions as often as asked | That is what makes it current |
+| Approving freezes it, recording who and when | It becomes a record of what was approved |
+| An APPROVED scorecard is never silently recomputed | A correction months later must not restate a figure a manager put their name to |
+| Reopening returns it to DRAFT and requires a reason | Moving published figures is a decision the trail has to explain |
+| A month-end batch skips approved scorecards rather than failing | One signed-off supplier must not stop the rest of the run |
+| A supplier with no receipts in the month is not evaluated | Delivery, quantity and quality would all be zero for want of data while responsiveness scored full marks, because no problem can be raised against a delivery that never happened - 10/100 and grade POOR reads as terrible performance when it means no activity |
+| A scorecard is never deleted | Management history |
+
+Approving is its own permission. `report.view` reaches every VIEWER, and a
+viewer must not sign off a supplier's grade - hence `evaluation.view`,
+`evaluation.create` and `evaluation.approve`, held by MANAGEMENT in full and by
+PURCHASING as far as generating.
+
+`AppServiceProvider::POLICY_ALONE` covers `regenerate`, `approve` and `reopen`,
+so the super-admin bypass defers to the record's state here as it does for
+settled purchase orders, receipts and problems.
+
+Events: `SupplierEvaluationApproved`, `SupplierEvaluationReopened`, both behind
+`EvaluationLifecycleEvent`, audited by one listener.
+
 ## 4.1 Master-data deletion guards (Phase 2)
 
 Master data soft-deletes, so retiring a record never destroys history. What the
@@ -316,8 +364,8 @@ from them, which is what stops two panels quoting different denominators.
 | 4 | Delivery + items + automatic status calculation | §40 business-rule tests green ✅ |
 | 5 | Dashboard: KPI, trend, ranking, pareto, PO monitoring | §32 contract test green ✅ |
 | **6** | Problem management, attachments, corrective action | Problem lifecycle tests green ✅ |
-| **7** | Supplier performance, scorecard, evaluation | Ranking tests green ← next |
-| 8 | Reporting: Excel, PDF, print | Export tests green |
+| **7** | Supplier performance, scorecard, evaluation | Ranking tests green ✅ |
+| **8** | Reporting: Excel, PDF, print | Export tests green ← next |
 | 9 | Roles, permissions, policies, audit log | Permission tests green |
 | 10 | Caching, indexes, query tuning, queue, notifications | No N+1; dashboard aggregate-only |
 

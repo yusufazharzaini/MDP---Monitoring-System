@@ -423,3 +423,70 @@ export interface ProblemQueueSummary {
     overdue: number;
     critical: number;
 }
+
+/* --- Supplier performance & evaluation ---------------------------------- */
+
+export interface SupplierGradeBand {
+    grade: string;
+    label: string;
+    variant: BadgeVariant;
+    floor: number;
+    /** Null on the top band: nothing sits above Excellent. */
+    ceiling: number | null;
+}
+
+export interface SupplierScorecard {
+    supplier: {
+        id: number;
+        ulid: string;
+        code: string;
+        name: string;
+        short_name: string | null;
+        supplier_type: string;
+        lead_time_days: number;
+    };
+    period: DashboardFilters;
+    metrics: DashboardSummary;
+    service_rate: number;
+    service_rate_target: number;
+    meets_target: boolean;
+    grade: string;
+    grade_label: string;
+    grade_variant: BadgeVariant;
+    trend: TrendPoint[];
+    problem_breakdown: Array<{ category: string; count: number }>;
+}
+
+export interface EvaluationSummary {
+    id: number;
+    period: string;
+    supplier_code: string | null;
+    supplier_name: string | null;
+    delivery_score: number;
+    quality_score: number;
+    quantity_score: number;
+    responsiveness_score: number;
+    total_score: number;
+    grade: string;
+    grade_label: string;
+    grade_variant: BadgeVariant;
+    status: string;
+    status_label: string;
+    status_variant: BadgeVariant;
+    approved_by: string | null;
+    criteria_count: number;
+}
+
+export interface EvaluationRecord extends EvaluationSummary {
+    supplier_ulid: string | null;
+    remarks: string | null;
+    created_by: string | null;
+    approved_at: string | null;
+    criteria: Array<{
+        criteria_name: string;
+        weight: number;
+        score: number;
+        /** The contribution to the total, computed server-side. */
+        weighted: number;
+    }>;
+}
