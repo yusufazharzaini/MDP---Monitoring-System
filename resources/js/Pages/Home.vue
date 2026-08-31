@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Head, router, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
-import type { SharedPageProps } from '@/types';
+import type { SharedPageProps } from '@/Types';
 
 interface ModuleCard {
     key: string;

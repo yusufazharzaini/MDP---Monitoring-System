@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import StatusBadge from '@/Components/StatusBadge.vue';
-import type { MonitoringRow } from '@/types';
+import type { MonitoringRow } from '@/Types';
 
 defineProps<{ rows: MonitoringRow[] }>();
 

@@ -111,11 +111,13 @@ app/
 ├── Enums/          16 backed enums - no status is ever a magic string
 ├── DataTransferObjects/  DashboardFilter - one filter object for every panel
 ├── Models/         23 Eloquent models with their relationships
+├── Policies/       MasterDataPolicy + one subclass per master entity
 ├── Repositories/   aggregate query objects (dashboard only)
 ├── Services/       business logic, one namespace per concern
 │   ├── Delivery/   DeliveryStatusCalculator (pure) + DeliveryStatusService
 │   ├── Performance/ delivery + supplier performance, service-rate strategies
 │   ├── Dashboard/  dashboard payload, Pareto, critical materials
+│   ├── MasterData/ shared CRUD flow + per-entity deletion guards
 │   ├── Supplier/   period evaluation and scoring
 │   ├── Setting/    cached KPI and system settings access
 │   ├── Audit/      the append-only activity trail
@@ -135,7 +137,9 @@ resources/js/
 ├── Pages/          Inertia pages
 ├── Layouts/
 ├── Components/
-└── types/          shared TypeScript contracts
+├── Composables/
+├── Stores/         Pinia - the dashboard filter selection
+└── Types/          shared TypeScript contracts
 ```
 
 ## Delivery status model, in brief
@@ -166,7 +170,7 @@ Vue layer hard-codes a threshold.
 | Phase | Scope | Status |
 |---|---|---|
 | 1 | Setup, auth, schema, models, factories, seeders | **Complete** |
-| 2 | Master data CRUD | Planned |
+| 2 | Master data CRUD | **Complete** |
 | 3 | Purchase Order module | Planned |
 | 4 | Delivery & receiving | Planned |
 | 5 | Dashboard | **Complete** |

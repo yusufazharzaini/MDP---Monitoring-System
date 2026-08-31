@@ -1,66 +1,47 @@
-import { computed, reactive, ref, watch } from 'vue';
-import type { DashboardFilters, DashboardPayload } from '@/types';
-
-/** Filter fields the user can change from the filter bar. */
-export type EditableFilters = Pick<
-    DashboardFilters,
-    'period' | 'plant_id' | 'supplier_id' | 'material_id' | 'material_category_id'
->;
+import { computed, ref, watch } from 'vue';
+import { storeToRefs } from 'pinia';
+import { useDashboardFilterStore } from '@/Stores/dashboardFilter';
+import type { DashboardPayload } from '@/Types';
 
 const DEBOUNCE_MS = 350;
 
 /**
- * Owns the dashboard's data lifecycle: the filter state, the debounced refetch,
- * and the loading / error flags every panel reads.
+ * Owns the dashboard's data lifecycle: watching the filter store, debouncing
+ * the refetch, and exposing the loading / error flags every panel reads.
  *
  * It fetches JSON rather than making a full Inertia visit, so changing a filter
  * repaints the panels without re-rendering the shell or losing scroll position.
- * All figures arrive already computed - this composable never does arithmetic
- * on them.
+ * All figures arrive already computed - nothing here does arithmetic on them.
  */
 export function useDashboard(initial: DashboardPayload, initialGeneratedAt: string) {
+    const store = useDashboardFilterStore();
+    store.hydrate(initial.filters);
+
     const payload = ref<DashboardPayload>(initial);
     const generatedAt = ref<string>(initialGeneratedAt);
     const loading = ref(false);
     const error = ref<string | null>(null);
 
-    const filters = reactive<EditableFilters>({
-        period: initial.filters.period,
-        plant_id: initial.filters.plant_id,
-        supplier_id: initial.filters.supplier_id,
-        material_id: initial.filters.material_id,
-        material_category_id: initial.filters.material_category_id,
-    });
-
     let timer: ReturnType<typeof setTimeout> | undefined;
     let inFlight: AbortController | undefined;
-
-    function queryString(): string {
-        const params = new URLSearchParams();
-
-        for (const [key, value] of Object.entries(filters)) {
-            if (value !== null && value !== '') {
-                params.set(key, String(value));
-            }
-        }
-
-        return params.toString();
-    }
 
     async function fetchData(): Promise<void> {
         // A newer request always wins: without this, a slow response for an old
         // filter can land after a fast one and repaint stale numbers.
         inFlight?.abort();
-        inFlight = new AbortController();
+        const controller = new AbortController();
+        inFlight = controller;
 
         loading.value = true;
         error.value = null;
 
         try {
-            const response = await fetch(`${route('dashboard.data')}?${queryString()}`, {
+            const query = new URLSearchParams(store.queryParams).toString();
+
+            const response = await fetch(`${route('dashboard.data')}?${query}`, {
                 headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
                 credentials: 'same-origin',
-                signal: inFlight.signal,
+                signal: controller.signal,
             });
 
             if (!response.ok) {
@@ -83,7 +64,7 @@ export function useDashboard(initial: DashboardPayload, initialGeneratedAt: stri
 
             error.value = caught instanceof Error ? caught.message : 'Gagal memuat data dashboard.';
         } finally {
-            if (!inFlight?.signal.aborted) {
+            if (!controller.signal.aborted) {
                 loading.value = false;
             }
         }
@@ -94,16 +75,10 @@ export function useDashboard(initial: DashboardPayload, initialGeneratedAt: stri
         void fetchData();
     }
 
-    function resetFilters(): void {
-        filters.plant_id = null;
-        filters.supplier_id = null;
-        filters.material_id = null;
-        filters.material_category_id = null;
-    }
-
-    // Debounced so dragging through a long supplier list fires one request, not one per keystroke.
+    // Debounced so stepping through a long supplier list fires one request at
+    // rest rather than one per keystroke.
     watch(
-        () => ({ ...filters }),
+        () => store.queryParams,
         () => {
             clearTimeout(timer);
             timer = setTimeout(() => void fetchData(), DEBOUNCE_MS);
@@ -111,13 +86,17 @@ export function useDashboard(initial: DashboardPayload, initialGeneratedAt: stri
         { deep: true },
     );
 
-    const hasActiveFilters = computed(
-        () =>
-            filters.plant_id !== null ||
-            filters.supplier_id !== null ||
-            filters.material_id !== null ||
-            filters.material_category_id !== null,
-    );
+    const { hasActiveFilters, activeFilterCount } = storeToRefs(store);
 
-    return { payload, generatedAt, loading, error, filters, refresh, resetFilters, hasActiveFilters };
+    return {
+        payload,
+        generatedAt,
+        loading,
+        error,
+        filters: store,
+        hasActiveFilters: computed(() => hasActiveFilters.value),
+        activeFilterCount: computed(() => activeFilterCount.value),
+        refresh,
+        resetFilters: () => store.reset(),
+    };
 }

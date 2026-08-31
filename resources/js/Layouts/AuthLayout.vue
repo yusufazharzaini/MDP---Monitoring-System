@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
-import type { SharedPageProps } from '@/types';
+import type { SharedPageProps } from '@/Types';
 
 defineProps<{ title: string; subtitle?: string }>();
 

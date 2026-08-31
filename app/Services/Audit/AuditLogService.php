@@ -50,11 +50,16 @@ class AuditLogService
 
     /**
      * Audit a model change, storing only the differing attributes.
+     *
+     * Call this BEFORE save(). Eloquent syncs a model's original attributes as
+     * part of saving, so afterwards the "before" values are gone and both
+     * columns would record the new value - an audit trail that shows a change
+     * from 1200 to 1200 is worse than none at all.
      */
     public function recordModelChange(AuditAction $action, Model $model): AuditLog
     {
-        $changes = $this->auditable($model->getChanges());
-        $original = array_intersect_key($this->auditable($model->getRawOriginal()), $changes);
+        $changes = $this->auditable($model->getDirty());
+        $original = array_intersect_key($this->auditable($model->getOriginal()), $changes);
 
         return $this->record(
             $action,

@@ -108,11 +108,31 @@ so the UI never maps status→colour by hand.
 | `AuditLogService` | `Services\Audit` | Writes audit entries, diffing only what changed |
 | `NumberGeneratorService` | `Services\Support` | Sequential PO/DN/PRB numbers under row lock |
 
+| `MasterDataService` + 8 subclasses | `Services\MasterData` | Shared create/update/retire flow, per-entity deletion guards |
+
 ### Planned
 
 `PurchaseOrderService`, `DeliveryService`, `ProblemService`,
 `CorrectiveActionService`, `AttachmentService`, `ReportService`,
 `PurchaseOrderImportService`.
+
+## 4.1 Master-data deletion guards (Phase 2)
+
+Master data soft-deletes, so retiring a record never destroys history. What the
+guards protect is the present - a record still needed by work in flight cannot
+be taken away underneath it. A refused delete raises `BusinessRuleException`,
+which renders as a flashed error naming what is still using the record.
+
+| Entity | Refused while |
+|---|---|
+| Supplier | it has a purchase order that is not yet completed or cancelled |
+| Plant | it has warehouses, or an outstanding purchase order |
+| Warehouse | an outstanding order line still delivers into it |
+| Material | it sits on an outstanding order line |
+| Material category | any material still belongs to it |
+| UOM | a material or an order line still measures in it |
+| Department | staff are still assigned to it |
+| Supplier contact | never - a contact is a detail of its supplier |
 
 ## 5. Repository inventory
 

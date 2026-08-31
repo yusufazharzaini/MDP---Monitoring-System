@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import AppIcon from '@/Components/AppIcon.vue';
-import type { DashboardFilterOptions, SelectOption } from '@/types';
-import type { EditableFilters } from '@/Composables/useDashboard';
+import type { DashboardFilterOptions, SelectOption } from '@/Types';
+import { useDashboardFilterStore, type IdFilterKey } from '@/Stores/dashboardFilter';
 
 defineProps<{
     options: DashboardFilterOptions;
@@ -9,9 +9,10 @@ defineProps<{
     loading?: boolean;
 }>();
 
-const filters = defineModel<EditableFilters>({ required: true });
-
 defineEmits<{ reset: [] }>();
+
+/** The store is the single owner of the selection; this bar just edits it. */
+const filters = useDashboardFilterStore();
 
 /** Selects bind to strings; the query layer wants an id or nothing. */
 function toId(value: string): number | null {
@@ -19,8 +20,6 @@ function toId(value: string): number | null {
 }
 
 /** Only the id-valued filters are rendered as selects; period has its own input. */
-type IdFilterKey = 'plant_id' | 'supplier_id' | 'material_id' | 'material_category_id';
-
 const selects: Array<{ key: IdFilterKey; label: string; source: keyof DashboardFilterOptions; all: string }> = [
     { key: 'plant_id', label: 'Plant', source: 'plants', all: 'Semua Plant' },
     { key: 'supplier_id', label: 'Supplier', source: 'suppliers', all: 'Semua Supplier' },

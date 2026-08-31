@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import AppIcon from '@/Components/AppIcon.vue';
-import type { BadgeVariant } from '@/types';
+import type { BadgeVariant } from '@/Types';
 
 const props = withDefaults(
     defineProps<{ label: string; variant?: BadgeVariant; icon?: boolean }>(),

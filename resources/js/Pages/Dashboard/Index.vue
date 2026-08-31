@@ -12,7 +12,7 @@ import SkeletonBlock from '@/Components/SkeletonBlock.vue';
 import StatusBadge from '@/Components/StatusBadge.vue';
 import SupplierPerformanceTable from '@/Components/SupplierPerformanceTable.vue';
 import { useDashboard } from '@/Composables/useDashboard';
-import type { BadgeVariant, DashboardFilterOptions, DashboardPayload } from '@/types';
+import type { BadgeVariant, DashboardFilterOptions, DashboardPayload } from '@/Types';
 
 /**
  * ECharts is by far the heaviest dependency on this page. Loading the charts
@@ -30,7 +30,7 @@ const props = defineProps<{
     generatedAt: string;
 }>();
 
-const { payload, generatedAt, loading, error, filters, refresh, resetFilters, hasActiveFilters } =
+const { payload, generatedAt, loading, error, refresh, resetFilters, hasActiveFilters } =
     useDashboard(props.dashboard, props.generatedAt);
 
 const number = new Intl.NumberFormat('id-ID');
@@ -122,11 +122,11 @@ const periodLabel = computed(() =>
         :subtitle="`Monitor ketepatan delivery material dari supplier — periode ${periodLabel}`"
         :generated-at="generatedAt"
         :refreshing="loading"
+        refreshable
         @refresh="refresh"
     >
         <div class="space-y-5">
             <FilterBar
-                v-model="filters"
                 :options="options"
                 :has-active-filters="hasActiveFilters"
                 :loading="loading"

@@ -4,7 +4,7 @@ import type { EChartsCoreOption } from 'echarts/core';
 import BaseChart from '@/Components/Charts/BaseChart.vue';
 import { tooltipStyle, useChartTheme } from '@/Composables/useChartTheme';
 import { useIsNarrow } from '@/Composables/useIsNarrow';
-import type { ParetoDataset } from '@/types';
+import type { ParetoDataset } from '@/Types';
 
 const props = defineProps<{ dataset: ParetoDataset }>();
 

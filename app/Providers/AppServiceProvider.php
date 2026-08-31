@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Models\User;
 use App\Services\Delivery\DeliveryStatusCalculator;
 use App\Services\Setting\SystemSettingService;
+use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 
@@ -36,5 +39,19 @@ class AppServiceProvider extends ServiceProvider
         DB::prohibitDestructiveCommands($this->app->isProduction());
 
         Password::defaults(static fn (): Password => Password::min(8)->letters()->numbers());
+
+        /*
+         * The super administrator passes every gate.
+         *
+         * The seeder also grants the role each permission explicitly, so this is
+         * belt and braces - but it is the half that survives a new permission
+         * being added without a re-seed, which is exactly when an admin would
+         * otherwise find themselves locked out of a screen they own.
+         */
+        Gate::before(static function (User $user, string $ability): ?bool {
+            unset($ability);
+
+            return $user->hasRole(RolesAndPermissionsSeeder::SUPER_ADMIN) ? true : null;
+        });
     }
 }

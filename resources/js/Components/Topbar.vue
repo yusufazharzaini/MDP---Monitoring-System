@@ -2,14 +2,19 @@
 import { router, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import AppIcon from '@/Components/AppIcon.vue';
-import type { SharedPageProps } from '@/types';
+import type { SharedPageProps } from '@/Types';
 
-const props = defineProps<{
-    title: string;
-    subtitle?: string;
-    generatedAt: string | null;
-    refreshing?: boolean;
-}>();
+const props = withDefaults(
+    defineProps<{
+        title: string;
+        subtitle?: string;
+        generatedAt: string | null;
+        refreshing?: boolean;
+        /** Only screens that can actually refetch show the refresh control. */
+        refreshable?: boolean;
+    }>(),
+    { refreshable: false },
+);
 
 defineEmits<{ toggleSidebar: []; refresh: [] }>();
 
@@ -59,7 +64,7 @@ function logout(): void {
 
             <div class="flex items-center gap-2 sm:gap-3">
                 <p
-                    v-if="lastUpdated"
+                    v-if="refreshable && lastUpdated"
                     class="hidden items-center gap-1.5 text-xs text-ink-subtle md:flex"
                     :title="`Data dihitung pada ${lastUpdated}`"
                 >
@@ -68,6 +73,7 @@ function logout(): void {
                 </p>
 
                 <button
+                    v-if="refreshable"
                     type="button"
                     class="inline-flex items-center gap-2 rounded-lg border border-line px-3 py-1.5 text-xs font-semibold text-ink-muted transition hover:border-info hover:text-info disabled:cursor-not-allowed disabled:opacity-60"
                     :disabled="refreshing"

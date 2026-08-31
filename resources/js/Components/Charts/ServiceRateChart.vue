@@ -3,7 +3,7 @@ import { computed } from 'vue';
 import type { EChartsCoreOption } from 'echarts/core';
 import BaseChart from '@/Components/Charts/BaseChart.vue';
 import { tooltipStyle, useChartTheme } from '@/Composables/useChartTheme';
-import type { TrendPoint } from '@/types';
+import type { TrendPoint } from '@/Types';
 
 const props = defineProps<{ points: TrendPoint[]; target: number }>();
 

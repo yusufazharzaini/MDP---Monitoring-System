@@ -8,6 +8,7 @@ use App\Enums\RecordStatus;
 use App\Enums\UomType;
 use App\Models\Concerns\HasRecordStatus;
 use App\Models\Concerns\HasSearch;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -38,6 +39,15 @@ class Uom extends Model
             'type' => UomType::class,
             'status' => RecordStatus::class,
         ];
+    }
+
+    /**
+     * @param  Builder<static>  $query
+     * @return Builder<static>
+     */
+    public function scopeWithListRelations(Builder $query): Builder
+    {
+        return $query->withCount('materials');
     }
 
     public function materials(): HasMany

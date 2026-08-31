@@ -18,12 +18,14 @@ interface NavItem {
  */
 const items: NavItem[] = [
     { key: 'dashboard', label: 'Overview', icon: 'dashboard', href: route('dashboard') },
-    { key: 'supplier-performance', label: 'Supplier Performance', icon: 'supplier' },
-    { key: 'materials', label: 'Material Delivery', icon: 'material' },
+    { key: 'suppliers', label: 'Supplier', icon: 'supplier', href: route('suppliers.index') },
+    { key: 'materials', label: 'Material', icon: 'material', href: route('materials.index') },
+    { key: 'plants', label: 'Plant', icon: 'box', href: route('plants.index') },
+    { key: 'warehouses', label: 'Warehouse', icon: 'delivery', href: route('warehouses.index') },
+    { key: 'departments', label: 'Department', icon: 'report', href: route('departments.index') },
     { key: 'purchase-orders', label: 'PO Monitoring', icon: 'order' },
     { key: 'problems', label: 'Problem Analysis', icon: 'problem' },
     { key: 'reports', label: 'Report', icon: 'report' },
-    { key: 'settings', label: 'Setting', icon: 'settings' },
 ];
 </script>
 
