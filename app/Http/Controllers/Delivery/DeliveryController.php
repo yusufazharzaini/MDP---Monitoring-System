@@ -11,6 +11,7 @@ use App\Http\Requests\Delivery\CancelDeliveryRequest;
 use App\Http\Requests\Delivery\DeliveryRequest;
 use App\Models\Delivery;
 use App\Models\DeliveryItem;
+use App\Models\DeliveryProblem;
 use App\Models\Plant;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderItem;
@@ -128,6 +129,10 @@ class DeliveryController extends Controller
             'can' => [
                 'update' => request()->user()?->can('update', $delivery) ?? false,
                 'cancel' => request()->user()?->can('cancel', $delivery) ?? false,
+                // Problems are raised from here, because a problem without a
+                // receipt behind it has no supplier and no period.
+                'reportProblem' => ! $delivery->isCancelled()
+                    && (request()->user()?->can('create', DeliveryProblem::class) ?? false),
             ],
         ]);
     }

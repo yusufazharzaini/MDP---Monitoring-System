@@ -25,7 +25,7 @@ const items: NavItem[] = [
     { key: 'departments', label: 'Department', icon: 'report', href: route('departments.index') },
     { key: 'purchase-orders', label: 'Purchase Order', icon: 'order', href: route('purchase-orders.index') },
     { key: 'deliveries', label: 'Delivery', icon: 'delivery', href: route('deliveries.index') },
-    { key: 'problems', label: 'Problem Analysis', icon: 'problem' },
+    { key: 'problems', label: 'Problem Analysis', icon: 'problem', href: route('problems.index') },
     { key: 'reports', label: 'Report', icon: 'report' },
 ];
 </script>

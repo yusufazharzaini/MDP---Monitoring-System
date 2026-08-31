@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Models\CorrectiveAction;
 use App\Models\Delivery;
+use App\Models\DeliveryProblem;
+use App\Models\ProblemAttachment;
 use App\Models\PurchaseOrder;
 use App\Models\User;
 use App\Services\Delivery\DeliveryStatusCalculator;
@@ -18,6 +21,43 @@ use Illuminate\Validation\Rules\Password;
 
 class AppServiceProvider extends ServiceProvider
 {
+    /**
+     * Abilities the policy decides alone, even for a super administrator.
+     *
+     * These are the ones whose answer comes from the record's own state rather
+     * than from what the user is permitted to do: a purchase order and a
+     * delivery are cancelled rather than deleted, and a closed or cancelled
+     * problem is shut to everybody. Letting the bypass overrule them would put
+     * buttons on screens that the service layer then refuses.
+     *
+     * @var array<class-string, array<int, string>>
+     */
+    private const POLICY_ALONE = [
+        PurchaseOrder::class => ['delete'],
+        Delivery::class => ['delete'],
+        DeliveryProblem::class => ['update', 'close', 'cancel', 'delete'],
+        CorrectiveAction::class => ['create', 'complete', 'delete'],
+        ProblemAttachment::class => ['create', 'delete'],
+    ];
+
+    /**
+     * Whether this ability is one the bypass must defer on.
+     *
+     * The subject arrives as a model for an ability about one record and as a
+     * class-string for an ability about the type (`create`), so both forms are
+     * resolved to the same key.
+     */
+    private static function policyAlone(string $ability, mixed $subject): bool
+    {
+        $key = match (true) {
+            is_object($subject) => $subject::class,
+            is_string($subject) => $subject,
+            default => null,
+        };
+
+        return $key !== null && in_array($ability, self::POLICY_ALONE[$key] ?? [], true);
+    }
+
     public function register(): void
     {
         $this->app->singleton(SystemSettingService::class);
@@ -51,14 +91,7 @@ class AppServiceProvider extends ServiceProvider
          * otherwise find themselves locked out of a screen they own.
          */
         Gate::before(static function (User $user, string $ability, array $arguments = []): ?bool {
-            /*
-             * Deleting a purchase order or a delivery is not a permission
-             * anyone can be granted - those records are cancelled, never
-             * removed - so the bypass defers to the policy that says no.
-             */
-            $subject = $arguments[0] ?? null;
-
-            if ($ability === 'delete' && ($subject instanceof PurchaseOrder || $subject instanceof Delivery)) {
+            if (self::policyAlone($ability, $arguments[0] ?? null)) {
                 return null;
             }
 

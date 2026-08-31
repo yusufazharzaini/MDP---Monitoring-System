@@ -178,9 +178,22 @@ with a `BusinessRuleException`.
 - `problem_number` is generated `PRB-YYYYMM-####`, `delivery_number` `DN-YYYYMM-####`,
   `po_number` `PO-YYYYMM-####`, each allocated inside a locked transaction.
 - Closing a problem requires at least one corrective action with status `DONE`.
-- Attachments go to the **private** `storage/app/private/problem-attachments` disk,
-  validated by MIME type and size; downloads stream through an authorized controller.
-- An overdue problem (`due_date < today`, status not CLOSED/CANCELLED) triggers a notification.
+- A problem's supplier comes from the receipt it was raised against, and a material it
+  names must be one that receipt actually carried.
+- `problem_date` is never in the future and never before the receipt's `delivery_date`.
+- An empty `due_date` defaults to the severity's resolution window: LOW 30, MEDIUM 14,
+  HIGH 7, CRITICAL 3 days.
+- Recording the first corrective action moves the problem `OPEN -> IN_PROGRESS`.
+  Completing one never closes the problem: closing carries `problem.close`.
+- A completed corrective action is neither editable nor removable; a closure may rest on it.
+- A settled problem (CLOSED or CANCELLED) is closed to everyone, super administrator
+  included - `Gate::before` defers on the abilities listed in `AppServiceProvider::POLICY_ALONE`.
+- Attachments go to the **private** disk (`storage/app/private/attachments`) under
+  `problem-attachments/{problem ulid}/`, with a generated filename. The type is validated
+  twice - extension in the form request, probed MIME in `AttachmentService` - and downloads
+  stream through an authorized controller.
+- Overdue problems (`due_date < today`, status not CLOSED/CANCELLED) are notified as one
+  daily digest per recipient, sent to everyone holding `problem.close`.
 
 ## 12. Import rules (§26)
 

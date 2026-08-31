@@ -13,6 +13,9 @@ use App\Http\Controllers\MasterData\SupplierContactController;
 use App\Http\Controllers\MasterData\SupplierController;
 use App\Http\Controllers\MasterData\UomController;
 use App\Http\Controllers\MasterData\WarehouseController;
+use App\Http\Controllers\Problem\CorrectiveActionController;
+use App\Http\Controllers\Problem\DeliveryProblemController;
+use App\Http\Controllers\Problem\ProblemAttachmentController;
 use App\Http\Controllers\PurchaseOrder\PurchaseOrderController;
 use Illuminate\Support\Facades\Route;
 
@@ -97,6 +100,49 @@ Route::middleware('auth')->group(function (): void {
             ->name('deliveries.create');
         Route::post('purchase-orders/{purchase_order}/receive', [DeliveryController::class, 'store'])
             ->name('deliveries.store');
+    });
+
+    /*
+     * Delivery problems.
+     *
+     * A problem is always raised against a receipt, so reporting is nested
+     * under a delivery. A problem is never deleted - it is cancelled - so the
+     * resource excludes destroy. Corrective actions and attachments are nested
+     * under their problem because neither means anything on its own.
+     */
+    Route::middleware('permission:problem.view')->group(function (): void {
+        Route::get('problems', [DeliveryProblemController::class, 'index'])->name('problems.index');
+        Route::get('problems/{problem}', [DeliveryProblemController::class, 'show'])->name('problems.show');
+        Route::get('problems/{problem}/edit', [DeliveryProblemController::class, 'edit'])->name('problems.edit');
+        Route::put('problems/{problem}', [DeliveryProblemController::class, 'update'])->name('problems.update');
+        Route::post('problems/{problem}/close', [DeliveryProblemController::class, 'close'])->name('problems.close');
+        Route::post('problems/{problem}/cancel', [DeliveryProblemController::class, 'cancel'])->name('problems.cancel');
+
+        Route::get('deliveries/{delivery}/problems/create', [DeliveryProblemController::class, 'create'])
+            ->name('problems.create');
+        Route::post('deliveries/{delivery}/problems', [DeliveryProblemController::class, 'store'])
+            ->name('problems.store');
+
+        Route::controller(CorrectiveActionController::class)
+            ->prefix('problems/{problem}/corrective-actions')
+            ->name('corrective-actions.')
+            ->group(function (): void {
+                Route::post('/', 'store')->name('store');
+                Route::put('{action}', 'update')->name('update');
+                Route::post('{action}/start', 'start')->name('start');
+                Route::post('{action}/complete', 'complete')->name('complete');
+                Route::delete('{action}', 'destroy')->name('destroy');
+            });
+
+        Route::controller(ProblemAttachmentController::class)
+            ->prefix('problems/{problem}/attachments')
+            ->name('problem-attachments.')
+            ->group(function (): void {
+                Route::post('/', 'store')->name('store');
+                // The only route to the bytes: the private disk is not served.
+                Route::get('{attachment}', 'download')->name('download');
+                Route::delete('{attachment}', 'destroy')->name('destroy');
+            });
     });
 });
 

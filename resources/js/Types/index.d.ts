@@ -330,3 +330,96 @@ export interface DeliveryRecord {
     status_variant: BadgeVariant;
     items: DeliveryLine[];
 }
+
+/* --- Delivery problem --------------------------------------------------- */
+
+export interface ProblemAttachmentRow {
+    ulid: string;
+    file_name: string;
+    human_file_size: string;
+    mime_type: string;
+    is_image: boolean;
+    uploaded_by: string | null;
+    uploaded_at: string | null;
+}
+
+export interface CorrectiveActionRow {
+    id: number;
+    action_date: string | null;
+    due_date: string | null;
+    description: string;
+    action_by: string | null;
+    status: string;
+    status_label: string;
+    status_variant: BadgeVariant;
+    is_done: boolean;
+    is_overdue: boolean;
+    completed_at: string | null;
+}
+
+export interface ProblemSummary {
+    id: number;
+    ulid: string;
+    problem_number: string;
+    problem_date: string | null;
+    due_date: string | null;
+    supplier_name: string | null;
+    material_name: string | null;
+    category_name: string | null;
+    delivery_number: string | null;
+    delivery_ulid: string | null;
+    pic: string | null;
+    severity: string;
+    severity_label: string;
+    severity_variant: BadgeVariant;
+    status: string;
+    status_label: string;
+    status_variant: BadgeVariant;
+    /** Both computed server-side: the page never derives "late" from dates. */
+    is_overdue: boolean;
+    days_until_due: number | null;
+    attachments_count: number;
+    corrective_actions_count: number;
+}
+
+export interface ProblemRecord extends ProblemSummary {
+    description: string;
+    root_cause: string | null;
+    closed_at: string | null;
+    reported_by: string | null;
+    plant_name: string | null;
+    po_number: string | null;
+    po_ulid: string | null;
+    delivery_date: string | null;
+    attachments: ProblemAttachmentRow[];
+    corrective_actions: CorrectiveActionRow[];
+}
+
+/** The subset the edit form reads back; the rest of ProblemSummary comes along. */
+export interface ProblemFormRecord extends ProblemSummary {
+    material_id: number | null;
+    problem_category_id: number;
+    description: string;
+    root_cause: string | null;
+}
+
+export interface ProblemDeliveryContext {
+    ulid: string;
+    delivery_number: string;
+    delivery_date: string | null;
+    supplier_name: string | null;
+    plant_name: string | null;
+    /** Only the materials this receipt carried; the service refuses others. */
+    materials: SelectOption[];
+}
+
+export interface ProblemFormOptions {
+    severities: SelectOption[];
+    categories: SelectOption[];
+}
+
+export interface ProblemQueueSummary {
+    open: number;
+    overdue: number;
+    critical: number;
+}

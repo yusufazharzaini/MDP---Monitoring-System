@@ -8,7 +8,7 @@ import type { DeliveryRecord } from '@/Types';
 
 const props = defineProps<{
     record: DeliveryRecord;
-    can: { update: boolean; cancel: boolean };
+    can: { update: boolean; cancel: boolean; reportProblem: boolean };
 }>();
 
 const number = new Intl.NumberFormat('id-ID', { maximumFractionDigits: 4 });
@@ -65,6 +65,13 @@ const isCancelled = computed(() => props.record.status === 'CANCELLED');
                         class="rounded-lg border border-line px-3.5 py-2 text-sm font-semibold text-ink-muted transition hover:border-info hover:text-info"
                     >
                         Lihat PO
+                    </Link>
+                    <Link
+                        v-if="can.reportProblem"
+                        :href="route('problems.create', record.ulid)"
+                        class="rounded-lg border border-line px-3.5 py-2 text-sm font-semibold text-ink-muted transition hover:border-warning hover:text-warning"
+                    >
+                        Laporkan problem
                     </Link>
                     <Link
                         v-if="can.update"

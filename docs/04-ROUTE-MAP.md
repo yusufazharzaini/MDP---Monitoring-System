@@ -32,12 +32,22 @@ All routes are behind `auth` + `verified`; each carries a `permission:` middlewa
 | POST | `/purchase-orders/import/confirm` | `purchase-orders.import.confirm` | `po.create` |
 | resource | `/deliveries` | `deliveries.*` | `delivery.*` |
 | POST | `/deliveries/{delivery}/cancel` | `deliveries.cancel` | `delivery.cancel` |
-| resource | `/problems` | `problems.*` | `problem.*` |
+| GET | `/problems` | `problems.index` | `problem.view` |
+| GET | `/problems/{problem}` | `problems.show` | `problem.view` |
+| GET | `/problems/{problem}/edit` | `problems.edit` | `problem.update` |
+| PUT | `/problems/{problem}` | `problems.update` | `problem.update` |
 | POST | `/problems/{problem}/close` | `problems.close` | `problem.close` |
-| POST | `/problems/{problem}/attachments` | `problems.attachments.store` | `problem.update` |
-| GET | `/problems/attachments/{attachment}` | `problems.attachments.download` | `problem.view` |
-| DELETE | `/problems/attachments/{attachment}` | `problems.attachments.destroy` | `problem.update` |
-| resource | `/problems/{problem}/corrective-actions` | `corrective-actions.*` | `problem.update` |
+| POST | `/problems/{problem}/cancel` | `problems.cancel` | `problem.close` |
+| GET | `/deliveries/{delivery}/problems/create` | `problems.create` | `problem.create` |
+| POST | `/deliveries/{delivery}/problems` | `problems.store` | `problem.create` |
+| POST | `/problems/{problem}/corrective-actions` | `corrective-actions.store` | `problem.update` |
+| PUT | `/problems/{problem}/corrective-actions/{action}` | `corrective-actions.update` | `problem.update` |
+| POST | `/problems/{problem}/corrective-actions/{action}/start` | `corrective-actions.start` | `problem.update` |
+| POST | `/problems/{problem}/corrective-actions/{action}/complete` | `corrective-actions.complete` | `problem.update` |
+| DELETE | `/problems/{problem}/corrective-actions/{action}` | `corrective-actions.destroy` | `problem.update` |
+| POST | `/problems/{problem}/attachments` | `problem-attachments.store` | `problem.update` |
+| GET | `/problems/{problem}/attachments/{attachment}` | `problem-attachments.download` | `problem.view` |
+| DELETE | `/problems/{problem}/attachments/{attachment}` | `problem-attachments.destroy` | `problem.update` |
 | resource | `/problem-categories` | `problem-categories.*` | `problem.*` |
 | GET | `/supplier-performance` | `supplier-performance.index` | `report.view` |
 | GET | `/supplier-performance/{supplier}` | `supplier-performance.show` | `report.view` |
@@ -107,6 +117,9 @@ so the UI never maps status→colour by hand.
 | `SystemSettingService` | `Services\Setting` | Typed settings access with caching |
 | `AuditLogService` | `Services\Audit` | Writes audit entries, diffing only what changed |
 | `NumberGeneratorService` | `Services\Support` | Sequential PO/DN/PRB numbers under row lock |
+| `ProblemService` | `Services\Problem` | The problem lifecycle, and the rule that closing needs a completed action |
+| `CorrectiveActionService` | `Services\Problem` | Recording, starting, completing and withdrawing actions |
+| `AttachmentService` | `Services\Problem` | Private-disk storage, MIME validation, authorised streaming |
 
 | `MasterDataService` + 8 subclasses | `Services\MasterData` | Shared create/update/retire flow, per-entity deletion guards |
 | `PurchaseOrderService` | `Services\PurchaseOrder` | The PO lifecycle: create, amend, submit, approve, cancel |
@@ -117,9 +130,7 @@ so the UI never maps status→colour by hand.
 
 ### Planned
 
-`ProblemService`,
-`CorrectiveActionService`, `AttachmentService`, `ReportService`,
-`PurchaseOrderImportService`.
+`ReportService`, `PurchaseOrderImportService`.
 
 ## 4.0 Purchase order lifecycle (Phase 3)
 
@@ -182,6 +193,59 @@ receipts warrant.
 Events: `DeliveryReceived`, `DeliveryUpdated`, `DeliveryCancelled`, all behind
 `DeliveryLifecycleEvent`. They fire *after* the statuses settle, so a listener
 always reads a consistent picture.
+
+## 4.0.2 Problem management (Phase 6)
+
+A problem is raised against a goods receipt, which is what gives it a supplier
+and a period. `ProblemService` owns `problem_number`, `status` and `closed_at`;
+none of them are fillable, because each carries a rule no form can enforce.
+
+Lifecycle: `OPEN -> IN_PROGRESS -> CLOSED`, with `CANCELLED` as the exit for a
+report that should never have been raised.
+
+| Rule | Why |
+|---|---|
+| Closing requires at least one corrective action with status DONE | "Resolved" must have evidence behind it, not just an opinion |
+| A problem's supplier comes from the receipt, not the form | A problem cannot re-attribute itself and distort another supplier's score |
+| A named material must be one the receipt actually carried | Otherwise Pareto and the critical-material rule count a material against a delivery that never held it |
+| A problem cannot be dated in the future, or before its receipt | It is observed when the goods are handled |
+| An empty due date defaults to the severity's resolution window | LOW 30 / MEDIUM 14 / HIGH 7 / CRITICAL 3 days - it is what makes "overdue" mean anything |
+| No problem may be raised against a cancelled receipt | The receipt was reversed; there is nothing left to report against |
+| Recording the first corrective action moves the problem to IN_PROGRESS | Status should follow what is happening, not wait to be remembered |
+| Completing an action never closes the problem | Closing is a separate decision carrying `problem.close` |
+| A completed action can be neither edited nor removed | A closure may rest on it |
+| A settled problem is closed to everyone, super administrator included | See the gate note below |
+| A problem is never deleted - it is cancelled | Same structural rule as orders and receipts |
+
+Reporting (`problem.create`) and closing (`problem.close`) are separate rights on
+purpose: WAREHOUSE and PURCHASING raise and work problems, LOGISTIC and
+MANAGEMENT sign them off.
+
+**The super-admin bypass defers on state.** `Gate::before` grants a super
+administrator every permission, but a closed problem is not a permission
+question - it is the record's own state. `AppServiceProvider::POLICY_ALONE`
+lists the abilities the policy decides alone, so the UI never offers a button
+the service would then refuse.
+
+**Attachments.** Bytes go to the `private` disk, which has no public URL, under
+`problem-attachments/{problem ulid}/{generated ulid}.{ext}`. Nothing the
+uploader controls reaches a path - the original filename is kept for display
+only - so a name like `../../.env` cannot escape the directory. The type is
+checked twice, because either check alone is bypassable: the form request
+validates the extension against the guessed type, and `AttachmentService`
+validates the probed MIME type against its own allow-list. Downloads stream
+through `ProblemAttachmentController`, which runs the policy first; `file_path`
+is `$hidden` on the model so it never reaches a payload.
+
+**Notifications.** `problems:notify-overdue`, scheduled daily at 07:00, sends
+one `OverdueProblemsDigest` per recipient rather than one per problem - a
+supervisor with thirty overdue problems needs a queue to work through, not
+thirty mails. Recipients are the users holding `problem.close`. It counts in the
+database and lists only the ten worst, so its cost does not grow with the
+backlog.
+
+Events: `ProblemReported`, `ProblemUpdated`, `ProblemClosed`, `ProblemCancelled`,
+all behind `ProblemLifecycleEvent`, audited by one listener.
 
 ## 4.1 Master-data deletion guards (Phase 2)
 
@@ -246,13 +310,13 @@ from them, which is what stops two panels quoting different denominators.
 
 | Phase | Scope | Exit criteria |
 |---|---|---|
-| **1** | Setup, auth, migrations, enums, models, factories, seeders | `migrate:fresh --seed` clean, Phase-1 tests green |
-| 2 | Master data CRUD (supplier, contact, plant, warehouse, material, category, UOM, department) | CRUD + policies + feature tests |
-| 3 | Purchase Order + items, submit/approve/cancel | PO lifecycle tests green |
-| 4 | Delivery + items + automatic status calculation | §40 business-rule tests green |
-| 5 | Dashboard: KPI, trend, ranking, pareto, PO monitoring | §32 contract test green |
-| 6 | Problem management, attachments, corrective action | Problem lifecycle tests green |
-| 7 | Supplier performance, scorecard, evaluation | Ranking tests green |
+| 1 | Setup, auth, migrations, enums, models, factories, seeders | `migrate:fresh --seed` clean, Phase-1 tests green ✅ |
+| 2 | Master data CRUD (supplier, contact, plant, warehouse, material, category, UOM, department) | CRUD + policies + feature tests ✅ |
+| 3 | Purchase Order + items, submit/approve/cancel | PO lifecycle tests green ✅ |
+| 4 | Delivery + items + automatic status calculation | §40 business-rule tests green ✅ |
+| 5 | Dashboard: KPI, trend, ranking, pareto, PO monitoring | §32 contract test green ✅ |
+| **6** | Problem management, attachments, corrective action | Problem lifecycle tests green ✅ |
+| **7** | Supplier performance, scorecard, evaluation | Ranking tests green ← next |
 | 8 | Reporting: Excel, PDF, print | Export tests green |
 | 9 | Roles, permissions, policies, audit log | Permission tests green |
 | 10 | Caching, indexes, query tuning, queue, notifications | No N+1; dashboard aggregate-only |
