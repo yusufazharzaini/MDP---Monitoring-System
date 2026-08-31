@@ -57,8 +57,8 @@ All routes are behind `auth` + `verified`; each carries a `permission:` middlewa
 | GET | `/supplier-evaluations/{evaluation}` | `supplier-evaluations.show` | `evaluation.view` |
 | POST | `/supplier-evaluations/{evaluation}/approve` | `supplier-evaluations.approve` | `evaluation.approve` |
 | POST | `/supplier-evaluations/{evaluation}/reopen` | `supplier-evaluations.reopen` | `evaluation.approve` |
-| GET | `/reports` | `reports.index` | `report.view` |
-| GET | `/reports/{type}/export` | `reports.export` | `report.export` |
+| GET | `/reports` | `reports.index` | `report.view` — catalogue with a live preview |
+| GET | `/reports/{type}/export` | `reports.export` | `report.export` — `format=xlsx\|csv\|pdf\|print` |
 | resource | `/users` | `users.*` | `user.*` |
 | resource | `/roles` | `roles.*` | `user.*` |
 | GET | `/notifications` | `notifications.index` | authenticated |
@@ -119,6 +119,7 @@ so the UI never maps status→colour by hand.
 | `KpiSettingService` | `Services\Setting` | Threshold lookup, cached as plain arrays |
 | `SystemSettingService` | `Services\Setting` | Typed settings access with caching |
 | `SupplierEvaluationService` | `Services\Supplier` | Scorecard generation, sign-off and reopening |
+| `ReportService` | `Services\Report` | Assembles each report as columns plus a row generator |
 | `AuditLogService` | `Services\Audit` | Writes audit entries, diffing only what changed |
 | `NumberGeneratorService` | `Services\Support` | Sequential PO/DN/PRB numbers under row lock |
 | `ProblemService` | `Services\Problem` | The problem lifecycle, and the rule that closing needs a completed action |
@@ -134,7 +135,7 @@ so the UI never maps status→colour by hand.
 
 ### Planned
 
-`ReportService`, `PurchaseOrderImportService`.
+`PurchaseOrderImportService`.
 
 ## 4.0 Purchase order lifecycle (Phase 3)
 
@@ -295,6 +296,42 @@ settled purchase orders, receipts and problems.
 Events: `SupplierEvaluationApproved`, `SupplierEvaluationReopened`, both behind
 `EvaluationLifecycleEvent`, audited by one listener.
 
+## 4.0.4 Reporting (Phase 8)
+
+Five reports, four formats, one generator.
+
+| Report | Grain | Dated by |
+|---|---|---|
+| Delivery | one row per delivery line | arrival |
+| Purchase Order | one row per order line | the promise (`schedule_delivery_date`) |
+| Problem | one row per problem | report date |
+| Supplier Performance | one row per supplier | period aggregate |
+| Critical Material | one row per material | period aggregate |
+
+**The formats cannot drift apart.** `ReportService` returns a `ReportDataset`:
+columns, plus a closure yielding rows. Excel, CSV, the PDF, the print view and
+the on-screen preview all walk that one generator, so a spreadsheet and a
+printout of the same report are the same data by construction rather than by
+discipline. Enum values become labels in the service, not in a template, for the
+same reason.
+
+**Nothing loads the whole result set.** The row-level reports stream from a
+database cursor (`ReportRepository` returns `LazyCollection`), and
+`ReportExport` implements `FromGenerator` rather than `FromArray`. A year of
+receipts is written a row at a time. The PDF and print views cap at 2,000 rows
+and say so in the footer, because a document is for reading; the spreadsheet is
+the unbounded one.
+
+**Two rights, not one.** `report.view` opens the catalogue and its preview;
+`report.export` is needed to take data out of the building, and every export is
+written to the audit trail with the report, format and period. A refused export
+leaves no entry - the trail records what happened, not what was blocked.
+
+**Column precision is data.** `ReportColumn::integer()` for counts and ranks,
+`::number()` for measured values. Rank 1 rendered as "1,00" reads as a
+measurement rather than an ordinal, so the precision travels with the column and
+the spreadsheet, the PDF and the preview all honour it.
+
 ## 4.1 Master-data deletion guards (Phase 2)
 
 Master data soft-deletes, so retiring a record never destroys history. What the
@@ -320,7 +357,7 @@ which renders as a flashed error naming what is still using the record.
 | `DeliveryAggregateQuery` | The three filtered base populations: delivery lines, order lines, problems |
 | `DashboardRepository` | Every dashboard aggregate, expressed as SQL |
 
-`ReportRepository` follows in Phase 8. Trivial CRUD stays in services (§3).
+`ReportRepository` streams the export datasets. Trivial CRUD stays in services (§3).
 
 ## 5.1 Aggregation, and why it matters here
 
@@ -388,8 +425,8 @@ through the lifecycles: `NumberGeneratorTest`, `AuditLogServiceTest`,
 | 5 | Dashboard: KPI, trend, ranking, pareto, PO monitoring | §32 contract test green ✅ |
 | **6** | Problem management, attachments, corrective action | Problem lifecycle tests green ✅ |
 | **7** | Supplier performance, scorecard, evaluation | Ranking tests green ✅ |
-| **8** | Reporting: Excel, PDF, print | Export tests green ← next |
-| 9 | Roles, permissions, policies, audit log | Permission tests green |
+| **8** | Reporting: Excel, PDF, print | Export tests green ✅ |
+| **9** | Roles, permissions, policies, audit log | Permission tests green ← next |
 | 10 | Caching, indexes, query tuning, queue, notifications | No N+1; dashboard aggregate-only |
 
 Each phase must run without error and must not break the previous phase.

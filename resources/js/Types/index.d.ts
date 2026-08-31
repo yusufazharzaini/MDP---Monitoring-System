@@ -490,3 +490,22 @@ export interface EvaluationRecord extends EvaluationSummary {
         weighted: number;
     }>;
 }
+
+/* --- Reporting ---------------------------------------------------------- */
+
+export interface ReportColumnMeta {
+    key: string;
+    label: string;
+    align: 'left' | 'right';
+    numeric: boolean;
+    /** 0 for counts and ranks, 2 for measured values. */
+    decimals: number;
+}
+
+export interface ReportCatalogueEntry {
+    value: string;
+    label: string;
+    description: string;
+    /** Row-level reports stream a row per transaction; the rest are aggregates. */
+    row_level: boolean;
+}

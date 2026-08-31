@@ -20,6 +20,7 @@ use App\Http\Controllers\Problem\CorrectiveActionController;
 use App\Http\Controllers\Problem\DeliveryProblemController;
 use App\Http\Controllers\Problem\ProblemAttachmentController;
 use App\Http\Controllers\PurchaseOrder\PurchaseOrderController;
+use App\Http\Controllers\Report\ReportController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth')->group(function (): void {
@@ -172,6 +173,19 @@ Route::middleware('auth')->group(function (): void {
      * from transactions, approved, and reopened if it must change - so the
      * routes are exactly those four verbs.
      */
+    /*
+     * Reporting.
+     *
+     * Viewing a report and taking its data out of the building are different
+     * rights: the catalogue is report.view, every export is report.export.
+     */
+    Route::middleware('permission:report.view')->group(function (): void {
+        Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
+        Route::get('reports/{type}/export', [ReportController::class, 'export'])
+            ->middleware('permission:report.export')
+            ->name('reports.export');
+    });
+
     Route::middleware('permission:evaluation.view')->group(function (): void {
         Route::get('supplier-evaluations', [SupplierEvaluationController::class, 'index'])
             ->name('supplier-evaluations.index');
