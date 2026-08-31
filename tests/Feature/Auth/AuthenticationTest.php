@@ -36,6 +36,7 @@ final class AuthenticationTest extends TestCase
     #[Test]
     public function guests_are_redirected_to_login(): void
     {
+        $this->get(route('dashboard'))->assertRedirect(route('login'));
         $this->get(route('home'))->assertRedirect(route('login'));
     }
 
@@ -50,7 +51,7 @@ final class AuthenticationTest extends TestCase
         $this->post(route('login'), [
             'email' => 'test@torica.test',
             'password' => 'secret-password',
-        ])->assertRedirect(route('home'));
+        ])->assertRedirect(route('dashboard'));
 
         $this->assertAuthenticatedAs($user);
     }

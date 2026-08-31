@@ -23,27 +23,47 @@
     --color-ink-muted: #93a3bd;
     --color-ink-subtle: #64748b;
 
-    /* Semantic palette */
+    /*
+     * Status palette. These four are reserved for state - good / warning /
+     * serious / critical - and are never reused as a chart series colour.
+     * Every one clears 3:1 against the navy surface, checked with the
+     * data-viz validator rather than by eye. Red and green sit close under
+     * deuteranopia, so a status colour never travels alone: each ships with
+     * an icon and a text label.
+     */
+    --color-good: #0ca30c;
+    --color-warning: #fab219;
+    --color-serious: #ec835a;
+    --color-critical: #d03b3b;
+
+    /* Semantic aliases used by badges and buttons */
     --color-brand: #1a63b8;
     --color-brand-soft: #1e4a80;
-    --color-success: #22c55e;
-    --color-success-soft: #14532d;
-    --color-info: #3b82f6;
-    --color-info-soft: #1e3a8a;
-    --color-warning: #f59e0b;
-    --color-warning-soft: #78350f;
-    --color-danger: #ef4444;
-    --color-danger-soft: #7f1d1d;
+    --color-success: var(--color-good);
+    --color-danger: var(--color-critical);
+    --color-info: #3987e5;
     --color-neutral: #64748b;
-    --color-neutral-soft: #334155;
 
-    /* Chart series - colour-blind safe ordering */
-    --color-chart-1: #22c55e;
-    --color-chart-2: #3b82f6;
-    --color-chart-3: #f59e0b;
-    --color-chart-4: #a855f7;
-    --color-chart-5: #ef4444;
-    --color-chart-6: #14b8a6;
+    /* Tinted panel grounds for KPI cards - dark enough to keep white ink legible */
+    --color-good-ground: #0d2a17;
+    --color-info-ground: #10243d;
+    --color-warning-ground: #2e2410;
+    --color-critical-ground: #2e1616;
+    --color-neutral-ground: #1a2436;
+
+    /*
+     * Chart series slots, in fixed order - never cycled, never assigned by rank.
+     * Validated as a set against this surface (#111a2b): worst all-pairs CVD
+     * deltaE 9.4, normal-vision 20.9, all >= 3:1 contrast.
+     * Past three series, fold the tail into "Other" or facet.
+     */
+    --color-series-1: #3987e5;
+    --color-series-2: #d95926;
+    --color-series-3: #199e70;
+
+    /* Recessive chart furniture */
+    --color-grid: #1e2b42;
+    --color-axis: #2a3a56;
 
     --radius-card: 0.875rem;
 }

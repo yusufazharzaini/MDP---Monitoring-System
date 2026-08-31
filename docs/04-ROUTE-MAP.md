@@ -7,7 +7,8 @@ All routes are behind `auth` + `verified`; each carries a `permission:` middlewa
 | Method | URI | Name | Permission |
 |---|---|---|---|
 | GET | `/` | `dashboard` | `dashboard.view` |
-| GET | `/dashboard/data` | `dashboard.data` | `dashboard.view` |
+| GET | `/dashboard/data` | `dashboard.data` | `dashboard.view` — JSON, used by the filter bar and refresh button |
+| GET | `/workspace` | `home` | authenticated — permission-filtered module launcher |
 | GET | `/suppliers` | `suppliers.index` | `supplier.view` |
 | GET | `/suppliers/create` | `suppliers.create` | `supplier.create` |
 | POST | `/suppliers` | `suppliers.store` | `supplier.create` |

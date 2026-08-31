@@ -169,7 +169,7 @@ Vue layer hard-codes a threshold.
 | 2 | Master data CRUD | Planned |
 | 3 | Purchase Order module | Planned |
 | 4 | Delivery & receiving | Planned |
-| 5 | Dashboard | **Service layer complete**, UI pending |
+| 5 | Dashboard | **Complete** |
 | 6 | Problem management | Planned |
 | 7 | Supplier performance | **Service layer complete**, UI pending |
 | 8 | Reporting | Planned |
