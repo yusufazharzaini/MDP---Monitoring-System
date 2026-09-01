@@ -4,14 +4,14 @@ Internal system for monitoring material delivery performance from suppliers into
 plants: purchase orders, receiving, late and short delivery, supplier KPI,
 problem analysis, corrective action, dashboard and reporting.
 
-Built for PT. Torica Indonesia.
+Built for PT. Yusuf Azhar Zaini.
 
 ---
 
 ## Stack
 
 Laravel 13 · PHP 8.4 · MySQL 8 · Inertia.js · Vue 3 (TypeScript) · Pinia ·
-Tailwind CSS 4 · Apache ECharts · Laravel Sanctum · spatie/laravel-permission ·
+Tailwind CSS 4 · Apache ECharts · spatie/laravel-permission ·
 Laravel Excel · DomPDF · PHPUnit 12
 
 ## Documentation

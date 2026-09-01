@@ -15,7 +15,7 @@ const appName = computed(() => page.props.app.name);
             <div class="grid w-full gap-10 lg:grid-cols-2 lg:gap-16">
                 <!-- Brand panel: hidden on small screens where it costs more than it tells -->
                 <section class="hidden flex-col justify-center lg:flex">
-                    <p class="text-2xl font-bold tracking-[0.3em] text-brand">TORICA</p>
+                    <p class="text-2xl font-bold tracking-[0.3em] text-brand">YUSUF</p>
                     <h1 class="mt-6 text-3xl font-semibold leading-tight text-ink">
                         Material Delivery Performance Monitoring
                     </h1>
@@ -34,7 +34,7 @@ const appName = computed(() => page.props.app.name);
 
                 <section class="flex items-center">
                     <div class="card w-full p-8">
-                        <p class="text-lg font-bold tracking-[0.25em] text-brand lg:hidden">TORICA</p>
+                        <p class="text-lg font-bold tracking-[0.25em] text-brand lg:hidden">YUSUF</p>
                         <h2 class="mt-2 text-xl font-semibold text-ink lg:mt-0">{{ title }}</h2>
                         <p v-if="subtitle" class="mt-1 text-sm text-ink-muted">{{ subtitle }}</p>
 

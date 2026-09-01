@@ -15,7 +15,7 @@ No metric is hard-coded in the frontend.
 |---|---|
 | Backend | Laravel 13.x, PHP 8.4 |
 | Database | MySQL 8 (production), SQLite in-memory (test suite) |
-| Auth | Session auth for Inertia, Laravel Sanctum for token/API clients |
+| Auth | Session auth for Inertia; no token/API surface is installed |
 | Authorization | spatie/laravel-permission + Laravel Policies |
 | Frontend | Vue 3 (`<script setup lang="ts">`), Inertia.js 3, Pinia, Tailwind CSS 4 |
 | Charts | Apache ECharts 6 |

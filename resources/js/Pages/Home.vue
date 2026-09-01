@@ -32,7 +32,7 @@ function logout(): void {
         <header class="border-b border-line bg-surface">
             <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6">
                 <div>
-                    <p class="text-sm font-bold tracking-[0.25em] text-brand">TORICA</p>
+                    <p class="text-sm font-bold tracking-[0.25em] text-brand">YUSUF</p>
                     <p class="text-xs text-ink-subtle">Material Delivery Performance Monitoring</p>
                 </div>
 

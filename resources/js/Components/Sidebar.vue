@@ -51,7 +51,7 @@ const items: NavItem[] = [
     >
         <div class="flex items-center justify-between border-b border-line px-5 py-5">
             <div>
-                <p class="text-lg font-bold tracking-[0.25em] text-brand">TORICA</p>
+                <p class="text-lg font-bold tracking-[0.25em] text-brand">YUSUF</p>
                 <p class="mt-0.5 text-[0.65rem] tracking-wide text-ink-subtle uppercase">Dashboard</p>
             </div>
             <button

@@ -31,7 +31,7 @@ use Tests\TestCase;
  * the gap between the rule and the implementation is a documented decision
  * rather than something discovered by a wrong invoice.
  *
- * Verdict: exact for every amount Torica transacts. See docs/03-BUSINESS-RULES.
+ * Verdict: exact for every amount PT. Yusuf Azhar Zaini transacts. See docs/03-BUSINESS-RULES.
  */
 final class MonetaryPrecisionTest extends TestCase
 {
@@ -196,7 +196,7 @@ final class MonetaryPrecisionTest extends TestCase
     public function an_order_far_above_any_real_one_is_still_exact(): void
     {
         // Rp 9,999,999,999.9999 on a single unit - about Rp 10 billion for one
-        // item, an order of magnitude past anything Torica raises. Fourteen
+        // item, an order of magnitude past anything PT. Yusuf Azhar Zaini raises. Fourteen
         // significant digits, comfortably inside a float64.
         $order = $this->orderWith([['qty' => 1, 'price' => 9999999999.9999]]);
 

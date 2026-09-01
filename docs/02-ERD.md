@@ -983,8 +983,8 @@ the order.
 | 25 | `2026_01_01_000810` | `create_audit_logs_table` | users |
 | 26 | `2026_01_01_000820` | `create_system_settings_table` | — |
 | 27 | `2026_01_01_000900` | `add_business_constraints` | **all of the above** |
-| 28 | `2026_08_30_155941` | `create_permission_tables` | — |
-| 29 | `2026_08_30_155941` | `create_personal_access_tokens_table` | — |
+| 28 | `2026_01_01_001000` | `add_approval_to_supplier_evaluations` | supplier_evaluations, users |
+| 29 | `2026_08_30_155941` | `create_permission_tables` | — |
 
 **The two ordering traps, and how they are handled:**
 
@@ -1155,7 +1155,7 @@ public function evaluation(): BelongsTo          // → SupplierEvaluation
 ## E.4 Security, audit, configuration
 
 ```php
-// User  (HasRoles, Notifiable, SoftDeletes, HasApiTokens)
+// User  (HasRoles, Notifiable, SoftDeletes)
 public function department(): BelongsTo          // → Department
 public function plant(): BelongsTo               // → Plant
 public function auditLogs(): HasMany             // → AuditLog

@@ -32,7 +32,7 @@ function submit(): void {
                     autocomplete="username"
                     required
                     autofocus
-                    placeholder="nama@torica.test"
+                    placeholder="nama@yusufazharzaini.test"
                 />
                 <InputError :message="form.errors.email" />
             </div>

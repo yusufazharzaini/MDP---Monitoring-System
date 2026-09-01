@@ -129,7 +129,7 @@ final class ReportScreenTest extends TestCase
             ->get(route('reports.export', ['type' => 'supplier-performance', 'format' => 'print']));
 
         $response->assertOk();
-        $response->assertSee('PT. TORICA INDONESIA');
+        $response->assertSee('PT. YUSUF AZHAR ZAINI');
         $response->assertSee('Laporan Performa Supplier');
         // The same data the PDF carries, in a page the browser can print.
         $response->assertSee('Supplier A');

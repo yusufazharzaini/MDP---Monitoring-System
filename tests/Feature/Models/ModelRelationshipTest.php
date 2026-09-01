@@ -139,10 +139,10 @@ final class ModelRelationshipTest extends TestCase
     #[Test]
     public function the_search_scope_matches_across_declared_columns(): void
     {
-        Supplier::factory()->create(['name' => 'Torica Plastik Nusantara', 'code' => 'SUP-AAA']);
+        Supplier::factory()->create(['name' => 'Yusuf Plastik Nusantara', 'code' => 'SUP-AAA']);
         Supplier::factory()->create(['name' => 'Other Company', 'code' => 'SUP-BBB']);
 
-        $this->assertSame(1, Supplier::query()->search('Torica')->count());
+        $this->assertSame(1, Supplier::query()->search('Yusuf')->count());
         $this->assertSame(1, Supplier::query()->search('SUP-BBB')->count());
         $this->assertSame(2, Supplier::query()->search('')->count());
     }

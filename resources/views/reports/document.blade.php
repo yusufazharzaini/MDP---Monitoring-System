@@ -46,7 +46,7 @@
 </head>
 <body>
     <div class="masthead">
-        <div class="org">PT. TORICA INDONESIA</div>
+        <div class="org">PT. YUSUF AZHAR ZAINI</div>
         <div class="system">Material Delivery Performance Monitoring System</div>
     </div>
 

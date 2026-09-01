@@ -22,7 +22,7 @@ final class AuthenticationTest extends TestCase
         parent::setUp();
 
         $this->seedReferenceData();
-        RateLimiter::clear('test@torica.test|127.0.0.1');
+        RateLimiter::clear('test@yusufazharzaini.test|127.0.0.1');
     }
 
     #[Test]
@@ -44,12 +44,12 @@ final class AuthenticationTest extends TestCase
     public function a_user_can_sign_in_with_valid_credentials(): void
     {
         $user = User::factory()->create([
-            'email' => 'test@torica.test',
+            'email' => 'test@yusufazharzaini.test',
             'password' => 'secret-password',
         ]);
 
         $this->post(route('login'), [
-            'email' => 'test@torica.test',
+            'email' => 'test@yusufazharzaini.test',
             'password' => 'secret-password',
         ])->assertRedirect(route('dashboard'));
 
@@ -60,12 +60,12 @@ final class AuthenticationTest extends TestCase
     public function signing_in_is_recorded_in_the_audit_trail(): void
     {
         User::factory()->create([
-            'email' => 'test@torica.test',
+            'email' => 'test@yusufazharzaini.test',
             'password' => 'secret-password',
         ]);
 
         $this->post(route('login'), [
-            'email' => 'test@torica.test',
+            'email' => 'test@yusufazharzaini.test',
             'password' => 'secret-password',
         ]);
 
@@ -78,10 +78,10 @@ final class AuthenticationTest extends TestCase
     #[Test]
     public function a_wrong_password_is_rejected(): void
     {
-        User::factory()->create(['email' => 'test@torica.test', 'password' => 'secret-password']);
+        User::factory()->create(['email' => 'test@yusufazharzaini.test', 'password' => 'secret-password']);
 
         $this->post(route('login'), [
-            'email' => 'test@torica.test',
+            'email' => 'test@yusufazharzaini.test',
             'password' => 'wrong-password',
         ])->assertSessionHasErrors('email');
 
@@ -92,13 +92,13 @@ final class AuthenticationTest extends TestCase
     public function a_deactivated_account_cannot_sign_in(): void
     {
         User::factory()->create([
-            'email' => 'test@torica.test',
+            'email' => 'test@yusufazharzaini.test',
             'password' => 'secret-password',
             'status' => RecordStatus::INACTIVE,
         ]);
 
         $this->post(route('login'), [
-            'email' => 'test@torica.test',
+            'email' => 'test@yusufazharzaini.test',
             'password' => 'secret-password',
         ])->assertSessionHasErrors('email');
 
@@ -108,14 +108,14 @@ final class AuthenticationTest extends TestCase
     #[Test]
     public function repeated_failures_are_throttled(): void
     {
-        User::factory()->create(['email' => 'test@torica.test', 'password' => 'secret-password']);
+        User::factory()->create(['email' => 'test@yusufazharzaini.test', 'password' => 'secret-password']);
 
         for ($attempt = 0; $attempt < 5; $attempt++) {
-            $this->post(route('login'), ['email' => 'test@torica.test', 'password' => 'nope']);
+            $this->post(route('login'), ['email' => 'test@yusufazharzaini.test', 'password' => 'nope']);
         }
 
         $response = $this->post(route('login'), [
-            'email' => 'test@torica.test',
+            'email' => 'test@yusufazharzaini.test',
             'password' => 'secret-password',
         ]);
 

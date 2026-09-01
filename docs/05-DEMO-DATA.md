@@ -170,13 +170,13 @@ Seeded by `UserSeeder`. The password comes from `MDP_DEMO_PASSWORD`
 
 | Email | Role |
 |---|---|
-| superadmin@torica.test | SUPER_ADMIN |
-| admin@torica.test | ADMIN |
-| purchasing@torica.test | PURCHASING |
-| warehouse@torica.test | WAREHOUSE |
-| logistic@torica.test | LOGISTIC |
-| management@torica.test | MANAGEMENT |
-| viewer@torica.test | VIEWER |
+| superadmin@yusufazharzaini.test | SUPER_ADMIN |
+| admin@yusufazharzaini.test | ADMIN |
+| purchasing@yusufazharzaini.test | PURCHASING |
+| warehouse@yusufazharzaini.test | WAREHOUSE |
+| logistic@yusufazharzaini.test | LOGISTIC |
+| management@yusufazharzaini.test | MANAGEMENT |
+| viewer@yusufazharzaini.test | VIEWER |
 
 ## 7. Re-seeding
 
