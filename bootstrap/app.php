@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\SetLocale;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -28,6 +29,9 @@ return Application::configure(basePath: dirname(__DIR__))
              * action - and without this the attacker simply kept their session.
              */
             AuthenticateSession::class,
+            // Before Inertia: the shared props carry the translated strings,
+            // so the locale has to be resolved by the time they are built.
+            SetLocale::class,
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
         ]);

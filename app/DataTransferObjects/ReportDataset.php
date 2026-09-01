@@ -89,7 +89,7 @@ final readonly class ReportDataset
 
     public function periodLabel(): string
     {
-        return $this->filter->dateFrom.' s/d '.$this->filter->dateTo;
+        return $this->filter->dateFrom.' '.__('ui.common.to').' '.$this->filter->dateTo;
     }
 
     /**

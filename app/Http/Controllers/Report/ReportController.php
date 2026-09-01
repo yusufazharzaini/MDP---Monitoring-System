@@ -105,9 +105,9 @@ class ReportController extends Controller
 
     private function pdf(ReportDataset $dataset): Response
     {
-        return Pdf::loadView('reports.document', $this->documentData($dataset))
+        return $this->asDocument(fn (): Response => Pdf::loadView('reports.document', $this->documentData($dataset))
             ->setPaper('a4', 'landscape')
-            ->download($dataset->filename().'.pdf');
+            ->download($dataset->filename().'.pdf'));
     }
 
     /**
@@ -115,7 +115,35 @@ class ReportController extends Controller
      */
     private function printable(ReportDataset $dataset): Response
     {
-        return response()->view('reports.document', $this->documentData($dataset));
+        return $this->asDocument(fn (): Response => response()->view('reports.document', $this->documentData($dataset)));
+    }
+
+    /**
+     * Render a printed document in the fixed document language.
+     *
+     * DomPDF draws with DejaVu Sans, which carries no CJK glyphs: a Japanese or
+     * Chinese report would come out as empty boxes rather than as an error - the
+     * kind of failure that reaches a manager's desk unnoticed. Rather than let
+     * the language of a filed document depend on who happened to export it, both
+     * the PDF and the printable HTML use config('locales.documents'), so the same
+     * report is the same document whoever produced it.
+     *
+     * The interface stays in the reader's own language; only the artefact is
+     * fixed. Excel exports are unaffected - PhpSpreadsheet writes UTF-8 - and so
+     * they follow the interface language.
+     *
+     * @param  callable(): Response  $render
+     */
+    private function asDocument(callable $render): Response
+    {
+        $previous = app()->getLocale();
+        app()->setLocale((string) config('locales.documents'));
+
+        try {
+            return $render();
+        } finally {
+            app()->setLocale($previous);
+        }
     }
 
     /**

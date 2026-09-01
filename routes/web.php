@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Dashboard\DashboardController;
 use App\Http\Controllers\Delivery\DeliveryController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\MasterData\DepartmentController;
 use App\Http\Controllers\MasterData\MaterialCategoryController;
 use App\Http\Controllers\MasterData\MaterialController;
@@ -26,6 +27,12 @@ use App\Http\Controllers\Problem\ProblemAttachmentController;
 use App\Http\Controllers\PurchaseOrder\PurchaseOrderController;
 use App\Http\Controllers\Report\ReportController;
 use Illuminate\Support\Facades\Route;
+
+/*
+ * Outside the auth group on purpose: somebody who cannot read the login screen
+ * has to be able to change its language before signing in.
+ */
+Route::post('locale', [LocaleController::class, 'update'])->name('locale.update');
 
 Route::middleware('auth')->group(function (): void {
     Route::middleware('permission:dashboard.view')->group(function (): void {

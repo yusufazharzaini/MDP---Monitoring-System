@@ -23,7 +23,7 @@ enum ReportType: string
     case PROBLEM = 'problem';
     case CRITICAL_MATERIAL = 'critical-material';
 
-    public function label(): string
+    public function defaultLabel(): string
     {
         return match ($this) {
             self::DELIVERY => 'Laporan Delivery',

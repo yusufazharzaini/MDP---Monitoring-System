@@ -44,8 +44,22 @@ export interface SharedPageProps {
     unreadNotifications: number;
     flash: FlashMessages;
     app: { name: string };
+    /** Interface language. Business data is never translated. */
+    locale: { current: string; supported: LocaleOption[] };
+    /** Nested groups from lang/<locale>/ui.php, e.g. translations.nav.report. */
+    translations: TranslationGroup;
     errors: Record<string, string>;
     [key: string]: unknown;
+}
+
+export interface LocaleOption {
+    code: string;
+    /** Written the way its own readers write it, so they can find it. */
+    native: string;
+}
+
+export interface TranslationGroup {
+    [key: string]: string | TranslationGroup;
 }
 
 /** A Laravel length-aware paginator, as serialised by Inertia. */

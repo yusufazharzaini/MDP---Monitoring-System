@@ -2,11 +2,14 @@
 import { usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import type { SharedPageProps } from '@/Types';
+import LanguageSwitcher from '@/Components/LanguageSwitcher.vue';
+import { useTranslate } from '@/Composables/useTranslate';
 
 defineProps<{ title: string; subtitle?: string }>();
 
 const page = usePage<SharedPageProps>();
 const appName = computed(() => page.props.app.name);
+const { t } = useTranslate();
 </script>
 
 <template>
@@ -20,8 +23,7 @@ const appName = computed(() => page.props.app.name);
                         Material Delivery Performance Monitoring
                     </h1>
                     <p class="mt-4 max-w-md text-sm leading-relaxed text-ink-muted">
-                        Monitor ketepatan pengiriman material dari supplier ke plant: service rate,
-                        keterlambatan, quantity shortage, analisa masalah, dan performa supplier.
+                        {{ t('auth.tagline') }}
                     </p>
                     <dl class="mt-10 grid grid-cols-3 gap-4 border-t border-line pt-8">
                         <div v-for="metric in ['Service Rate', 'Supplier KPI', 'Problem Analysis']" :key="metric">
@@ -42,9 +44,10 @@ const appName = computed(() => page.props.app.name);
                             <slot />
                         </div>
 
-                        <p class="mt-8 border-t border-line pt-4 text-xs text-ink-subtle">
-                            {{ appName }}
-                        </p>
+                        <div class="mt-8 flex items-center justify-between gap-3 border-t border-line pt-4">
+                            <p class="text-xs text-ink-subtle">{{ appName }}</p>
+                            <LanguageSwitcher />
+                        </div>
                     </div>
                 </section>
             </div>

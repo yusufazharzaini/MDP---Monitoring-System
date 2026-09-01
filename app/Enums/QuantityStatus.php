@@ -18,7 +18,7 @@ enum QuantityStatus: string
     case FULL = 'FULL';
     case OVER = 'OVER';
 
-    public function label(): string
+    public function defaultLabel(): string
     {
         return match ($this) {
             self::PENDING => 'Pending',

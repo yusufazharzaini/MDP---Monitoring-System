@@ -23,7 +23,7 @@ enum OverallDeliveryStatus: string
     case LATE_SHORT = 'LATE_SHORT';
     case OVER_DELIVERY = 'OVER_DELIVERY';
 
-    public function label(): string
+    public function defaultLabel(): string
     {
         return match ($this) {
             self::PENDING => 'Pending',
