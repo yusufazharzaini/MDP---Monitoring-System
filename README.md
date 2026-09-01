@@ -23,6 +23,7 @@ Laravel Excel · DomPDF · PHPUnit 12
 | [docs/03-BUSINESS-RULES.md](docs/03-BUSINESS-RULES.md) | Status enums, delivery calculation, KPI formulas, lifecycles |
 | [docs/04-ROUTE-MAP.md](docs/04-ROUTE-MAP.md) | Route map, dashboard JSON contract, service/component inventory, roadmap |
 | [docs/05-DEMO-DATA.md](docs/05-DEMO-DATA.md) | What the seed reproduces and how |
+| [docs/06-USER-GUIDE.md](docs/06-USER-GUIDE.md) | **How to use the system**: signing in, changing language, the daily PO → delivery → problem flow, how delivery status is decided, reports, administration |
 
 ## Requirements
 
