@@ -63,8 +63,9 @@ All routes are behind `auth` + `verified`; each carries a `permission:` middlewa
 | POST | `/users/{user}/restore` | `users.restore` | `user.update` |
 | GET | `/roles` | `roles.index` | `user.view` |
 | PUT | `/roles/{role}` | `roles.update` | `user.update` |
-| GET | `/notifications` | `notifications.index` | authenticated |
+| GET | `/notifications` | `notifications.index` | authenticated — the reader's own |
 | POST | `/notifications/{id}/read` | `notifications.read` | authenticated |
+| POST | `/notifications/read-all` | `notifications.read-all` | authenticated |
 | GET | `/audit-logs` | `audit-logs.index` | `audit.view` |
 | GET | `/settings` | `settings.index` | `setting.view` |
 | PUT | `/settings` | `settings.update` | `setting.update` |
@@ -124,6 +125,7 @@ so the UI never maps status→colour by hand.
 | `ReportService` | `Services\Report` | Assembles each report as columns plus a row generator |
 | `UserService` | `Services\Admin` | Accounts and role assignment, with the lock-out guards |
 | `RoleService` | `Services\Admin` | The permission matrix and its protected role |
+| `DashboardCache` | `Services\Dashboard` | Cache keys plus the version stamp that retires them |
 | `AuditLogService` | `Services\Audit` | Writes audit entries, diffing only what changed |
 | `NumberGeneratorService` | `Services\Support` | Sequential PO/DN/PRB numbers under row lock |
 | `ProblemService` | `Services\Problem` | The problem lifecycle, and the rule that closing needs a completed action |
@@ -374,6 +376,48 @@ they are audited explicitly with both sides.
 worth asking. A list field renders as what moved (`+ delivery.create`,
 `- po.approve`) rather than two whole arrays.
 
+## 4.0.6 Performance and delivery (Phase 10)
+
+**The dashboard cache now expires on write, not just on time.** Every panel is
+cached per filter, so there is no single key to forget, and the `database` and
+`file` stores this deployment can use do not support tags. `DashboardCache`
+folds a version stamp into every key: one bump retires them all, on any store,
+in constant time. `DeliveryStatusService` bumps it - it is the sole writer of
+every derived column the dashboard reads - and so do the two settings services,
+because a cached payload carries its thresholds baked into its verdicts.
+
+Before this the code claimed writes flushed the cache and nothing did: a clerk
+booked goods and then watched up to five minutes of numbers that did not include
+them.
+
+**No N+1, proved by shape rather than by number.** `QueryBudgetTest` renders
+each of the thirteen index screens twice, growing the population in between, and
+fails if the query count moves. Asserting a fixed count would be a test about
+today's implementation; asserting that the count does not grow is a test about
+the property that matters.
+
+**Index verification, and the conclusion not to add any.** Every query the
+application issues across all fourteen screens was run through `EXPLAIN` on
+MySQL against seeded data - 100 queries. Two apparent full scans (the purchase
+order and delivery lists) turned out to be the optimizer correctly preferring a
+scan on a table of about a thousand rows: refilled to ~9,000 it switches by
+itself to an index walk that stops after the page's fifteen rows, with both
+`withCount` subqueries on covering indexes. Adding an index would have been
+cargo-cult tuning, so none was added.
+
+**What runs on the queue.** The month-end evaluation batch
+(`GenerateSupplierEvaluations`) and both notifications. A single supplier's
+scorecard stays inline, because the reader wants the result. On the `sync`
+driver everything still runs in-process, so a small deployment needs no worker.
+
+**Notifications.** A submitted purchase order tells the people holding
+`po.approve`, and never the person who submitted it - a system that notifies you
+of your own actions teaches people to ignore it. The bell's unread count is a
+shared Inertia prop resolved lazily against `notifications_unread_index`; the
+list itself loads only on its own page. Every query in the controller starts
+from the reader's own relation, so another reader's id is a 404 rather than an
+authorisation question somebody has to remember to ask.
+
 ## 4.1 Master-data deletion guards (Phase 2)
 
 Master data soft-deletes, so retiring a record never destroys history. What the
@@ -469,6 +513,6 @@ through the lifecycles: `NumberGeneratorTest`, `AuditLogServiceTest`,
 | **7** | Supplier performance, scorecard, evaluation | Ranking tests green ✅ |
 | **8** | Reporting: Excel, PDF, print | Export tests green ✅ |
 | **9** | Roles, permissions, policies, audit log | Permission tests green ✅ |
-| **10** | Caching, indexes, query tuning, queue, notifications | No N+1; dashboard aggregate-only ← next |
+| **10** | Caching, indexes, query tuning, queue, notifications | No N+1; dashboard aggregate-only ✅ |
 
 Each phase must run without error and must not break the previous phase.

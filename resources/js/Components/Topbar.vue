@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { router, usePage } from '@inertiajs/vue3';
+import { Link, router, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import AppIcon from '@/Components/AppIcon.vue';
 import type { SharedPageProps } from '@/Types';
@@ -20,6 +20,7 @@ defineEmits<{ toggleSidebar: []; refresh: [] }>();
 
 const page = usePage<SharedPageProps>();
 const user = computed(() => page.props.auth.user);
+const unread = computed(() => page.props.unreadNotifications ?? 0);
 
 /**
  * "Last update" is the moment the server computed the payload, not the moment
@@ -82,6 +83,21 @@ function logout(): void {
                     <AppIcon name="refresh" :size="14" :class="refreshing ? 'animate-spin' : ''" />
                     <span class="hidden sm:inline">{{ refreshing ? 'Memuat…' : 'Refresh' }}</span>
                 </button>
+
+                <!-- The bell. Count comes from a shared prop, so every page has it. -->
+                <Link
+                    :href="route('notifications.index')"
+                    class="relative rounded-lg border border-line p-2 text-ink-muted transition hover:border-info hover:text-info"
+                    :aria-label="unread > 0 ? `Notifikasi, ${unread} belum dibaca` : 'Notifikasi'"
+                >
+                    <AppIcon name="warning" :size="15" />
+                    <span
+                        v-if="unread > 0"
+                        class="absolute -top-1.5 -right-1.5 min-w-[1.1rem] rounded-full bg-critical px-1 text-[0.6rem] font-bold text-white tabular-nums"
+                    >
+                        {{ unread > 99 ? '99+' : unread }}
+                    </span>
+                </Link>
 
                 <div class="hidden items-center gap-3 border-l border-line pl-3 sm:flex">
                     <div class="text-right">

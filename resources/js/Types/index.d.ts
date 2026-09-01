@@ -27,9 +27,21 @@ export interface FlashMessages {
     warning: string | null;
 }
 
+export interface NotificationRow {
+    id: string;
+    title: string;
+    message: string;
+    severity: BadgeVariant;
+    url: string | null;
+    read: boolean;
+    created_at: string | null;
+}
+
 export interface SharedPageProps {
     auth: { user: AuthUser | null };
     kpi: Record<string, KpiThreshold>;
+    /** The bell's badge; the list itself is only loaded on its own page. */
+    unreadNotifications: number;
     flash: FlashMessages;
     app: { name: string };
     errors: Record<string, string>;

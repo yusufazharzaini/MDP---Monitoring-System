@@ -6,6 +6,7 @@ namespace App\Services\Setting;
 
 use App\Enums\SettingType;
 use App\Models\SystemSetting;
+use App\Services\Dashboard\DashboardCache;
 use Illuminate\Support\Facades\Cache;
 
 /**
@@ -128,5 +129,12 @@ class SystemSettingService
     public function flush(): void
     {
         Cache::forget(self::CACHE_KEY);
+
+        /*
+         * The dashboard's cached payloads carry these thresholds baked in - a
+         * target, a grade, a severity band - so retuning one has to retire them
+         * as well, or the screen keeps publishing verdicts from the old rules.
+         */
+        app(DashboardCache::class)->flush();
     }
 }

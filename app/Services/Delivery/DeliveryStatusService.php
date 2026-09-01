@@ -13,6 +13,7 @@ use App\Models\Delivery;
 use App\Models\DeliveryItem;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderItem;
+use App\Services\Dashboard\DashboardCache;
 use Illuminate\Support\Collection;
 
 /**
@@ -26,6 +27,7 @@ class DeliveryStatusService
 {
     public function __construct(
         private readonly DeliveryStatusCalculator $calculator,
+        private readonly DashboardCache $dashboardCache,
     ) {}
 
     /**
@@ -36,6 +38,11 @@ class DeliveryStatusService
      */
     public function recalculateForDelivery(Delivery $delivery): void
     {
+        // Every number the dashboard shows is derived from what this method
+        // settles, so the cached payloads retire with it. Without this the
+        // screen shows figures that predate the receipt for the whole TTL.
+        $this->dashboardCache->flush();
+
         $itemIds = $delivery->items()->pluck('purchase_order_item_id')->unique();
 
         PurchaseOrderItem::query()
@@ -187,6 +194,8 @@ class DeliveryStatusService
      */
     public function clearLineStatuses(Delivery $delivery): void
     {
+        $this->dashboardCache->flush();
+
         $delivery->items()->update([
             'timeliness_status' => TimelinessStatus::PENDING,
             'quantity_status' => QuantityStatus::PENDING,

@@ -8,6 +8,7 @@ use App\Enums\PurchaseOrderStatus;
 use App\Models\Plant;
 use App\Models\PurchaseOrder;
 use App\Models\Supplier;
+use Database\Factories\Concerns\GeneratesDocumentNumbers;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Carbon;
 
@@ -16,6 +17,8 @@ use Illuminate\Support\Carbon;
  */
 class PurchaseOrderFactory extends Factory
 {
+    use GeneratesDocumentNumbers;
+
     protected $model = PurchaseOrder::class;
 
     public function definition(): array
@@ -23,7 +26,7 @@ class PurchaseOrderFactory extends Factory
         $date = Carbon::instance($this->faker->dateTimeBetween('-6 months', 'now'));
 
         return [
-            'po_number' => 'PO-'.$date->format('Ym').'-'.$this->faker->unique()->numerify('####'),
+            'po_number' => $this->documentNumber('PO', $date),
             'po_date' => $date->toDateString(),
             'supplier_id' => Supplier::factory(),
             'plant_id' => Plant::factory(),

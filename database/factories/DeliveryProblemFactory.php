@@ -11,6 +11,7 @@ use App\Models\DeliveryProblem;
 use App\Models\ProblemCategory;
 use App\Models\Supplier;
 use Carbon\CarbonImmutable;
+use Database\Factories\Concerns\GeneratesDocumentNumbers;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -18,6 +19,8 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class DeliveryProblemFactory extends Factory
 {
+    use GeneratesDocumentNumbers;
+
     protected $model = DeliveryProblem::class;
 
     public function definition(): array
@@ -26,7 +29,7 @@ class DeliveryProblemFactory extends Factory
         $date = now()->subDays($this->faker->numberBetween(0, 120));
 
         return [
-            'problem_number' => 'PRB-'.$date->format('Ym').'-'.$this->faker->unique()->numerify('####'),
+            'problem_number' => $this->documentNumber('PRB', $date),
             'delivery_id' => Delivery::factory(),
             'supplier_id' => Supplier::factory(),
             'material_id' => null,

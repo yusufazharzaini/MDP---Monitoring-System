@@ -9,6 +9,7 @@ use App\Enums\SupplierGrade;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Performance\GenerateEvaluationRequest;
 use App\Http\Requests\Performance\ReopenEvaluationRequest;
+use App\Jobs\GenerateSupplierEvaluations;
 use App\Models\Supplier;
 use App\Models\SupplierEvaluation;
 use App\Models\SupplierEvaluationItem;
@@ -117,12 +118,18 @@ class SupplierEvaluationController extends Controller
                 ->with('success', "Evaluasi {$supplier->code} periode {$evaluation->periodLabel()} dihitung.");
         }
 
-        $generated = $this->evaluations->generateForAllSuppliers($year, $month);
+        /*
+         * Queued: a month across every active supplier is four aggregate scores
+         * each, and a manager should not hold a request open for it. On the
+         * sync driver this still runs inline, so a small deployment needs no
+         * worker to function.
+         */
+        GenerateSupplierEvaluations::dispatch($year, $month);
 
         return redirect()
             ->route('supplier-evaluations.index', ['period' => $request->string('period')->toString()])
-            ->with('success', count($generated).' evaluasi supplier dihitung untuk periode '
-                .$request->string('period')->toString().'.');
+            ->with('success', 'Perhitungan evaluasi periode '
+                .$request->string('period')->toString().' sedang diproses.');
     }
 
     public function show(Request $request, SupplierEvaluation $evaluation): Response

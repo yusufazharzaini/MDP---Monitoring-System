@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Notifications\Problem;
 
+use App\Models\Notification as NotificationRecord;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -70,7 +71,9 @@ class OverdueProblemsDigest extends Notification implements ShouldQueue
         return [
             'title' => $this->title(),
             'message' => $this->message(),
-            'severity' => $this->critical > 0 ? 'CRITICAL' : 'HIGH',
+            // A badge variant, matching what the notification list renders -
+            // the model documents `severity` that way.
+            'severity' => $this->critical > 0 ? NotificationRecord::SEVERITY_DANGER : NotificationRecord::SEVERITY_WARNING,
             'url' => route('problems.index', ['overdue' => 1], false),
             'total' => $this->total,
             'critical' => $this->critical,

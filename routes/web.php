@@ -16,6 +16,7 @@ use App\Http\Controllers\MasterData\SupplierContactController;
 use App\Http\Controllers\MasterData\SupplierController;
 use App\Http\Controllers\MasterData\UomController;
 use App\Http\Controllers\MasterData\WarehouseController;
+use App\Http\Controllers\Notification\NotificationController;
 use App\Http\Controllers\Performance\CriticalMaterialController;
 use App\Http\Controllers\Performance\SupplierEvaluationController;
 use App\Http\Controllers\Performance\SupplierPerformanceController;
@@ -34,6 +35,19 @@ Route::middleware('auth')->group(function (): void {
 
     // The permission-filtered module launcher.
     Route::get('workspace', HomeController::class)->name('home');
+
+    /*
+     * A reader's own notifications - no permission, because everyone has them
+     * and every query starts from the signed-in user's own relation.
+     */
+    Route::controller(NotificationController::class)
+        ->prefix('notifications')
+        ->name('notifications.')
+        ->group(function (): void {
+            Route::get('/', 'index')->name('index');
+            Route::post('read-all', 'readAll')->name('read-all');
+            Route::post('{id}/read', 'read')->name('read');
+        });
 
     /*
      * Master data.

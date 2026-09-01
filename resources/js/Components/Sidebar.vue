@@ -33,6 +33,7 @@ const items: NavItem[] = [
     { key: 'users', label: 'Pengguna', icon: 'supplier', href: route('users.index') },
     { key: 'roles', label: 'Peran & Permission', icon: 'settings', href: route('roles.index') },
     { key: 'audit-logs', label: 'Audit Log', icon: 'clock', href: route('audit-logs.index') },
+    { key: 'notifications', label: 'Notifikasi', icon: 'warning', href: route('notifications.index') },
 ];
 </script>
 
