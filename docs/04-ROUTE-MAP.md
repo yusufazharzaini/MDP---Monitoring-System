@@ -2,7 +2,14 @@
 
 ## 1. Web routes (Inertia)
 
-All routes are behind `auth` + `verified`; each carries a `permission:` middleware.
+All routes are behind `auth`; each carries a `permission:` middleware. There is no
+`verified` middleware: accounts are provisioned by an administrator with
+`email_verified_at` already set, so it would pass for everyone and imply a check
+the application does not make.
+
+The `web` group also carries `AuthenticateSession`, which ends every session
+belonging to an account whose password has changed &mdash; see &sect;11.5 of the
+business rules.
 
 | Method | URI | Name | Permission |
 |---|---|---|---|

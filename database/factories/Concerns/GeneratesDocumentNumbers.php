@@ -29,4 +29,19 @@ trait GeneratesDocumentNumbers
 
         return sprintf('%s-%s-%d', $prefix, $date->format('Ym'), ++self::$documentSequence);
     }
+
+    /**
+     * A master-data code that cannot collide with a seeded one.
+     *
+     * The same problem in a different shape: MaterialFactory generated
+     * `MAT-####` at random while the demo seeder owns MAT-0001 to MAT-0020, so
+     * a factory built alongside seeded data eventually minted a code that
+     * already existed. Other factories are safe only because their patterns
+     * happen to differ from their seeders' - reach for this the moment that
+     * stops being true.
+     */
+    protected function uniqueCode(string $prefix): string
+    {
+        return sprintf('%s-%d', $prefix, ++self::$documentSequence);
+    }
 }

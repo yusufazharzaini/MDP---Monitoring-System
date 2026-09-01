@@ -260,6 +260,31 @@ that costs:
 - **No unescaped output anywhere**: no `v-html`, no `{!! !!}`. Pinned by a test that scans
   the source rather than by review.
 
+## 11.5 Account recovery
+
+There is no self-service password reset, and that is deliberate: it removes the
+whole reset-token attack surface from an internal system whose accounts are
+provisioned by an administrator. The cost is that recovery is a human procedure,
+so it is written down here rather than improvised over the phone.
+
+**To reset a password:** an administrator opens the account in User Management
+and sets a new one. Leaving the field blank leaves the existing password alone.
+
+**Every password change ends that account's sessions.** `AuthenticateSession` is
+in the `web` middleware group, so anyone signed in as that user - including an
+attacker holding a stolen session cookie - is logged out on their next request.
+This is what makes the reset an actual compromise-recovery action rather than
+just a new credential alongside the old access.
+
+**To revoke access immediately**, retire the account instead. That soft-deletes
+it and sets it INACTIVE; the existing session stops working on the next request
+and the login screen refuses it by name. History is kept, and the account can be
+restored.
+
+**Verify identity out of band before resetting.** A caller who knows a colleague's
+name and department is not thereby that colleague; this is the step social
+engineering targets.
+
 ## 12. Import rules (§26)
 
 Upload → validate → preview → confirm → transactional import.

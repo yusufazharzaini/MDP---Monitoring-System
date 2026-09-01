@@ -8,6 +8,7 @@ use App\Enums\RecordStatus;
 use App\Models\Material;
 use App\Models\MaterialCategory;
 use App\Models\Uom;
+use Database\Factories\Concerns\GeneratesDocumentNumbers;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -15,12 +16,14 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class MaterialFactory extends Factory
 {
+    use GeneratesDocumentNumbers;
+
     protected $model = Material::class;
 
     public function definition(): array
     {
         return [
-            'code' => strtoupper($this->faker->unique()->bothify('MAT-####')),
+            'code' => $this->uniqueCode('MAT'),
             'name' => $this->faker->unique()->words(3, true),
             'category_id' => MaterialCategory::factory(),
             'uom_id' => Uom::factory(),
