@@ -177,11 +177,11 @@ Vue layer hard-codes a threshold.
 | 3 | Purchase Order module | **Complete** |
 | 4 | Delivery & receiving | **Complete** |
 | 5 | Dashboard | **Complete** |
-| 6 | Problem management | Planned |
-| 7 | Supplier performance | **Service layer complete**, UI pending |
-| 8 | Reporting | Planned |
-| 9 | Roles, policies, audit log | Planned |
-| 10 | Caching & query optimisation | Planned |
+| 6 | Problem management | **Complete** |
+| 7 | Supplier performance | **Complete** |
+| 8 | Reporting | **Complete** |
+| 9 | Roles, policies, audit log | **Complete** |
+| 10 | Caching, query optimisation, queue & notifications | **Complete** |
 
 The full roadmap with exit criteria is in
 [docs/04-ROUTE-MAP.md](docs/04-ROUTE-MAP.md#7-development-roadmap).
