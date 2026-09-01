@@ -9,6 +9,7 @@ use App\Enums\SupplierStatus;
 use App\Enums\SupplierType;
 use App\Models\Supplier;
 use App\Models\SupplierContact;
+use Database\Seeders\Support\RefusesToRunInProduction;
 use Illuminate\Database\Seeder;
 
 /**
@@ -17,6 +18,8 @@ use Illuminate\Database\Seeder;
  */
 class DemoSupplierSeeder extends Seeder
 {
+    use RefusesToRunInProduction;
+
     /**
      * @var array<int, array{code: string, name: string, short: string, city: string, type: SupplierType, lead: int}>
      */
@@ -33,6 +36,8 @@ class DemoSupplierSeeder extends Seeder
 
     public function run(): void
     {
+        $this->guardAgainstProduction();
+
         foreach (self::SUPPLIERS as $index => $definition) {
             $slug = strtolower(str_replace('-', '', $definition['short']));
 

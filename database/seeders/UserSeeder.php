@@ -8,6 +8,7 @@ use App\Enums\RecordStatus;
 use App\Models\Department;
 use App\Models\Plant;
 use App\Models\User;
+use Database\Seeders\Support\RefusesToRunInProduction;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -17,6 +18,8 @@ use Illuminate\Support\Facades\Hash;
  */
 class UserSeeder extends Seeder
 {
+    use RefusesToRunInProduction;
+
     /**
      * @var array<int, array{name: string, email: string, role: string, department: string, position: string}>
      */
@@ -32,6 +35,8 @@ class UserSeeder extends Seeder
 
     public function run(): void
     {
+        $this->guardAgainstProduction();
+
         $password = Hash::make((string) env('MDP_DEMO_PASSWORD', 'password123'));
         $departments = Department::query()->pluck('id', 'code');
         $plantId = Plant::query()->orderBy('id')->value('id');

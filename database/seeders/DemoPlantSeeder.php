@@ -7,10 +7,13 @@ namespace Database\Seeders;
 use App\Enums\RecordStatus;
 use App\Models\Plant;
 use App\Models\Warehouse;
+use Database\Seeders\Support\RefusesToRunInProduction;
 use Illuminate\Database\Seeder;
 
 class DemoPlantSeeder extends Seeder
 {
+    use RefusesToRunInProduction;
+
     /**
      * @var array<int, array{code: string, name: string, city: string, pic: string, warehouses: array<int, array{code: string, name: string}>}>
      */
@@ -49,6 +52,8 @@ class DemoPlantSeeder extends Seeder
 
     public function run(): void
     {
+        $this->guardAgainstProduction();
+
         foreach (self::PLANTS as $index => $definition) {
             $plant = Plant::query()->updateOrCreate(
                 ['code' => $definition['code']],

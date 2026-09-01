@@ -14,6 +14,7 @@ use App\Models\Warehouse;
 use App\Services\Delivery\DeliveryStatusCalculator;
 use Database\Seeders\Support\DemoOrderPlanner;
 use Database\Seeders\Support\DemoOrderSpec;
+use Database\Seeders\Support\RefusesToRunInProduction;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -30,10 +31,14 @@ use Illuminate\Support\Str;
  */
 class DemoPurchaseOrderSeeder extends Seeder
 {
+    use RefusesToRunInProduction;
+
     private const CHUNK = 500;
 
     public function run(): void
     {
+        $this->guardAgainstProduction();
+
         $orders = (new DemoOrderPlanner(
             Carbon::now()->startOfMonth(),
             DemoMaterialSeeder::normalMaterialCodes(),

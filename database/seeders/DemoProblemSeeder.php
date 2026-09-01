@@ -13,6 +13,7 @@ use App\Models\Material;
 use App\Models\ProblemCategory;
 use App\Models\User;
 use Database\Seeders\Support\DemoBlueprint;
+use Database\Seeders\Support\RefusesToRunInProduction;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -30,8 +31,12 @@ use Illuminate\Support\Str;
  */
 class DemoProblemSeeder extends Seeder
 {
+    use RefusesToRunInProduction;
+
     public function run(): void
     {
+        $this->guardAgainstProduction();
+
         $month = Carbon::now()->startOfMonth();
         $categories = ProblemCategory::query()->pluck('id', 'code');
         $reporter = User::query()->orderBy('id')->value('id');

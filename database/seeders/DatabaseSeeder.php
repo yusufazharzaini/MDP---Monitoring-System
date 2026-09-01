@@ -6,6 +6,7 @@ namespace Database\Seeders;
 
 use App\Services\Setting\KpiSettingService;
 use App\Services\Setting\SystemSettingService;
+use Database\Seeders\Support\RefusesToRunInProduction;
 use Illuminate\Database\Seeder;
 
 /**
@@ -18,8 +19,12 @@ use Illuminate\Database\Seeder;
  */
 class DatabaseSeeder extends Seeder
 {
+    use RefusesToRunInProduction;
+
     public function run(): void
     {
+        $this->guardAgainstProduction();
+
         $this->call([
             RolesAndPermissionsSeeder::class,
             MasterDataSeeder::class,

@@ -85,6 +85,43 @@ touch database/database.sqlite
 php artisan migrate:fresh --seed
 ```
 
+## Deploying to a real environment
+
+Everything under *Getting started* seeds demo data: roughly 1250 invented
+deliveries and seven accounts sharing one password. That is for developers. A
+real deployment uses a different path, and the demo seeders now **refuse** to
+run when `APP_ENV=production` rather than trusting anyone to remember.
+
+```bash
+php artisan migrate --force                          # never migrate:fresh
+php artisan db:seed --class=ProductionSeeder --force # roles, reference data, KPI settings
+php artisan mdp:create-admin                         # asks for a password, twice
+```
+
+`ProductionSeeder` installs only what the application cannot start without and
+creates no accounts, no suppliers and no transactions - that data is yours. It
+is idempotent, so re-run it after an upgrade to pick up new reference rows.
+
+`mdp:create-admin` reads the password from a hidden prompt, or from
+`MDP_ADMIN_PASSWORD` for an unattended install; it is never a command-line
+argument, where it would land in the shell history. Minimum 12 characters. There
+is no default administrator password anywhere in this repository.
+
+### Before the first sign-in
+
+| Requirement | Why it matters |
+|---|---|
+| **HTTPS** | In production the session cookie is `secure`. Over plain HTTP nobody can sign in at all, and the failure looks like a silent redirect loop. |
+| `APP_ENV=production`, `APP_DEBUG=false` | The application refuses to boot with debug on in production. |
+| **Queue worker** — `php artisan queue:work` under supervisor | Notifications implement `ShouldQueue`. Without a worker they are written and never delivered, with no error. |
+| **Scheduler** — `* * * * * php artisan schedule:run` | The overdue-problem digest runs daily at 07:00. |
+| **SMTP** | `PurchaseOrderAwaitingApproval` uses the `mail` channel. |
+| `php artisan storage:link` | Report and attachment downloads. |
+| **Database backups** | Purchase orders and deliveries are cancelled, never deleted; the audit trail is append-only. Both are only as durable as your backups. |
+
+Note that `migrate:fresh`, `migrate:refresh` and `db:wipe` are blocked by Laravel
+itself in production, `--force` included.
+
 ## Testing
 
 ```bash
