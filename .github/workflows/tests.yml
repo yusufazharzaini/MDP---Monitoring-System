@@ -7,6 +7,9 @@ on:
   push:
     branches: [main]
   pull_request:
+  # A feature branch with no PR open yet matches neither trigger above, so keep
+  # a manual entry point rather than leaving such a branch with no way to run.
+  workflow_dispatch:
 
 # A newer commit makes an in-flight run for the same ref obsolete.
 concurrency:
