@@ -7,6 +7,9 @@ import EmptyState from '@/Components/EmptyState.vue';
 import Pagination from '@/Components/Pagination.vue';
 import StatusBadge from '@/Components/StatusBadge.vue';
 import type { Paginated, ProblemQueueSummary, ProblemSummary, SelectOption } from '@/Types';
+import { useTranslate } from '@/Composables/useTranslate';
+
+const { t } = useTranslate();
 
 const props = defineProps<{
     records: Paginated<ProblemSummary>;
@@ -113,8 +116,8 @@ watch([search, status, severity, supplierId, categoryId, overdueOnly], () => {
                         />
                     </div>
 
-                    <select v-model="status" class="field-input w-auto min-w-[9rem]" aria-label="Filter status">
-                        <option value="">Semua status</option>
+                    <select v-model="status" class="field-input w-auto min-w-[9rem]" :aria-label="t('filter.status')">
+                        <option value="">{{ t('filter.all_status') }}</option>
                         <option v-for="option in options.statuses" :key="option.value" :value="option.value">
                             {{ option.label }}
                         </option>
@@ -127,15 +130,15 @@ watch([search, status, severity, supplierId, categoryId, overdueOnly], () => {
                         </option>
                     </select>
 
-                    <select v-model="categoryId" class="field-input w-auto min-w-[10rem]" aria-label="Filter kategori">
-                        <option value="">Semua kategori</option>
+                    <select v-model="categoryId" class="field-input w-auto min-w-[10rem]" :aria-label="t('filter.category')">
+                        <option value="">{{ t('filter.all_categories') }}</option>
                         <option v-for="option in options.categories" :key="option.value" :value="option.value">
                             {{ option.label }}
                         </option>
                     </select>
 
-                    <select v-model="supplierId" class="field-input w-auto min-w-[11rem]" aria-label="Filter supplier">
-                        <option value="">Semua supplier</option>
+                    <select v-model="supplierId" class="field-input w-auto min-w-[11rem]" :aria-label="t('filter.supplier')">
+                        <option value="">{{ t('filter.all_suppliers') }}</option>
                         <option v-for="option in options.suppliers" :key="option.value" :value="option.value">
                             {{ option.label }}
                         </option>
@@ -149,7 +152,7 @@ watch([search, status, severity, supplierId, categoryId, overdueOnly], () => {
 
                 <EmptyState
                     v-if="records.data.length === 0"
-                    title="Tidak ada problem"
+                    :title="t('msg.no_problem')"
                     message="Problem dilaporkan dari halaman delivery yang bersangkutan."
                 />
 
@@ -158,14 +161,14 @@ watch([search, status, severity, supplierId, categoryId, overdueOnly], () => {
                         <thead>
                             <tr class="border-b border-line text-[0.65rem] tracking-wider text-ink-subtle uppercase">
                                 <th scope="col" class="px-5 py-3 text-left font-semibold">No Problem</th>
-                                <th scope="col" class="px-5 py-3 text-left font-semibold">Tanggal</th>
-                                <th scope="col" class="px-5 py-3 text-left font-semibold">Supplier</th>
-                                <th scope="col" class="px-5 py-3 text-left font-semibold">Kategori</th>
-                                <th scope="col" class="px-5 py-3 text-left font-semibold">Severity</th>
-                                <th scope="col" class="px-5 py-3 text-left font-semibold">Target</th>
+                                <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('common.date') }}</th>
+                                <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('entity.supplier') }}</th>
+                                <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('common.category') }}</th>
+                                <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('common.severity') }}</th>
+                                <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('common.target') }}</th>
                                 <th scope="col" class="px-5 py-3 text-right font-semibold">Tindakan</th>
-                                <th scope="col" class="px-5 py-3 text-left font-semibold">Status</th>
-                                <th scope="col" class="px-5 py-3 text-right font-semibold">Aksi</th>
+                                <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('common.status') }}</th>
+                                <th scope="col" class="px-5 py-3 text-right font-semibold">{{ t('common.actions') }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -193,9 +196,7 @@ watch([search, status, severity, supplierId, categoryId, overdueOnly], () => {
                                         {{ formatDate(row.due_date) }}
                                     </span>
                                     <span v-if="row.is_overdue" class="ml-1.5 inline-flex items-center gap-1 text-xs text-critical">
-                                        <AppIcon name="warning" :size="12" />
-                                        Terlambat
-                                    </span>
+                                        <AppIcon name="warning" :size="12" />{{ t('state.late') }}</span>
                                 </td>
                                 <td class="px-5 py-3 text-right text-ink tabular-nums">
                                     {{ row.corrective_actions_count }}
@@ -207,9 +208,7 @@ watch([search, status, severity, supplierId, categoryId, overdueOnly], () => {
                                     <Link
                                         :href="route('problems.show', row.ulid)"
                                         class="rounded-md px-2 py-1 text-xs font-semibold text-ink-muted transition hover:text-info"
-                                    >
-                                        Detail
-                                    </Link>
+                                    >{{ t('common.details') }}</Link>
                                 </td>
                             </tr>
                         </tbody>

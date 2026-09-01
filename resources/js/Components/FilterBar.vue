@@ -2,6 +2,9 @@
 import AppIcon from '@/Components/AppIcon.vue';
 import type { DashboardFilterOptions, SelectOption } from '@/Types';
 import { useDashboardFilterStore, type IdFilterKey } from '@/Stores/dashboardFilter';
+import { useTranslate } from '@/Composables/useTranslate';
+
+const { t } = useTranslate();
 
 defineProps<{
     options: DashboardFilterOptions;
@@ -37,7 +40,7 @@ function optionsFor(options: DashboardFilterOptions, key: keyof DashboardFilterO
     <section class="card p-4" aria-label="Filter dashboard">
         <div class="flex flex-wrap items-end gap-3">
             <div class="min-w-[9rem] flex-1 sm:max-w-[11rem]">
-                <label for="filter-period" class="field-label">Periode</label>
+                <label for="filter-period" class="field-label">{{ t('common.period') }}</label>
                 <input
                     id="filter-period"
                     v-model="filters.period"

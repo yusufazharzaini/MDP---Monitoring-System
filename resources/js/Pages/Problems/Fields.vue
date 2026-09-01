@@ -4,6 +4,9 @@ import SelectInput from '@/Components/Form/SelectInput.vue';
 import TextInput from '@/Components/Form/TextInput.vue';
 import TextareaInput from '@/Components/Form/TextareaInput.vue';
 import type { ProblemDeliveryContext, ProblemFormOptions } from '@/Types';
+import { useTranslate } from '@/Composables/useTranslate';
+
+const { t } = useTranslate();
 
 export interface FormData {
     problem_category_id: number | null;
@@ -30,14 +33,14 @@ defineProps<{
         label="Kategori Problem"
         required
         numeric
-        placeholder="Pilih kategori"
+        :placeholder="t('select.category')"
         :options="options.categories"
         :error="form.errors.problem_category_id"
     />
     <SelectInput
         id="severity"
         v-model="form.severity"
-        label="Severity"
+        :label="t('common.severity')"
         required
         :options="options.severities"
         :error="form.errors.severity"
@@ -46,7 +49,7 @@ defineProps<{
     <SelectInput
         id="material_id"
         v-model="form.material_id"
-        label="Material"
+        :label="t('entity.material')"
         numeric
         placeholder="Tidak spesifik ke satu material"
         :options="delivery.materials"
@@ -89,7 +92,7 @@ defineProps<{
         <TextareaInput
             id="root_cause"
             v-model="form.root_cause"
-            label="Root Cause"
+            :label="t('common.root_cause')"
             :error="form.errors.root_cause"
             hint="Dapat diisi kemudian setelah investigasi."
         />

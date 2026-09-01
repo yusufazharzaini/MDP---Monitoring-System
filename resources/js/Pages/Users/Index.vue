@@ -8,6 +8,9 @@ import EmptyState from '@/Components/EmptyState.vue';
 import Pagination from '@/Components/Pagination.vue';
 import StatusBadge from '@/Components/StatusBadge.vue';
 import type { Paginated, SelectOption, UserRow } from '@/Types';
+import { useTranslate } from '@/Composables/useTranslate';
+
+const { t } = useTranslate();
 
 const props = defineProps<{
     records: Paginated<UserRow>;
@@ -59,9 +62,9 @@ watch([search, role, status, departmentId, trashed], () => {
 </script>
 
 <template>
-    <Head title="Pengguna" />
+    <Head :title="t('entity.user')" />
 
-    <AppLayout current="users" title="Pengguna" subtitle="Akun, peran, dan akses sistem">
+    <AppLayout current="users" :title="t('entity.user')" subtitle="Akun, peran, dan akses sistem">
         <section class="card">
             <header class="flex flex-wrap items-center gap-3 border-b border-line px-5 py-4">
                 <div class="relative min-w-[11rem] flex-1 sm:max-w-xs">
@@ -86,8 +89,8 @@ watch([search, role, status, departmentId, trashed], () => {
                     </option>
                 </select>
 
-                <select v-model="status" class="field-input w-auto min-w-[9rem]" aria-label="Filter status">
-                    <option value="">Semua status</option>
+                <select v-model="status" class="field-input w-auto min-w-[9rem]" :aria-label="t('filter.status')">
+                    <option value="">{{ t('filter.all_status') }}</option>
                     <option v-for="option in options.statuses" :key="option.value" :value="option.value">
                         {{ option.label }}
                     </option>
@@ -134,12 +137,12 @@ watch([search, role, status, departmentId, trashed], () => {
                 <table class="w-full min-w-[58rem] text-sm">
                     <thead>
                         <tr class="border-b border-line text-[0.65rem] tracking-wider text-ink-subtle uppercase">
-                            <th scope="col" class="px-5 py-3 text-left font-semibold">Nama</th>
-                            <th scope="col" class="px-5 py-3 text-left font-semibold">Jabatan</th>
-                            <th scope="col" class="px-5 py-3 text-left font-semibold">Departemen</th>
-                            <th scope="col" class="px-5 py-3 text-left font-semibold">Peran</th>
-                            <th scope="col" class="px-5 py-3 text-left font-semibold">Status</th>
-                            <th scope="col" class="px-5 py-3 text-right font-semibold">Aksi</th>
+                            <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('common.name') }}</th>
+                            <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('common.position') }}</th>
+                            <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('common.department') }}</th>
+                            <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('common.role') }}</th>
+                            <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('common.status') }}</th>
+                            <th scope="col" class="px-5 py-3 text-right font-semibold">{{ t('common.actions') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -180,9 +183,7 @@ watch([search, role, status, departmentId, trashed], () => {
                                         v-if="row.can.update && !row.is_retired"
                                         :href="route('users.edit', row.ulid)"
                                         class="rounded-md px-2 py-1 text-xs font-semibold text-ink-muted transition hover:text-info"
-                                    >
-                                        Ubah
-                                    </Link>
+                                    >{{ t('common.edit') }}</Link>
                                     <button
                                         v-if="row.can.delete"
                                         type="button"

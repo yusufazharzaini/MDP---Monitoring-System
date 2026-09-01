@@ -9,6 +9,9 @@ import StatusBadge from '@/Components/StatusBadge.vue';
 import TextInput from '@/Components/Form/TextInput.vue';
 import TextareaInput from '@/Components/Form/TextareaInput.vue';
 import type { CorrectiveActionRow, ProblemAttachmentRow, ProblemRecord } from '@/Types';
+import { useTranslate } from '@/Composables/useTranslate';
+
+const { t } = useTranslate();
 
 const props = defineProps<{
     record: ProblemRecord;
@@ -169,9 +172,7 @@ const isSettled = computed(() => !['OPEN', 'IN_PROGRESS'].includes(props.record.
                         v-if="can.update"
                         :href="route('problems.edit', record.ulid)"
                         class="rounded-lg border border-line px-3.5 py-2 text-sm font-semibold text-ink-muted transition hover:border-info hover:text-info"
-                    >
-                        Ubah
-                    </Link>
+                    >{{ t('common.edit') }}</Link>
                     <button
                         v-if="can.close"
                         type="button"
@@ -196,9 +197,7 @@ const isSettled = computed(() => !['OPEN', 'IN_PROGRESS'].includes(props.record.
                         type="button"
                         class="rounded-lg border border-line px-3.5 py-2 text-sm font-semibold text-ink-muted transition hover:border-critical hover:text-critical"
                         @click="cancelling = true"
-                    >
-                        Batalkan
-                    </button>
+                    >{{ t('common.cancel_record') }}</button>
                 </div>
             </div>
 
@@ -244,11 +243,11 @@ const isSettled = computed(() => !['OPEN', 'IN_PROGRESS'].includes(props.record.
                         <dd class="mt-0.5 text-sm text-ink">{{ detail.value }}</dd>
                     </div>
                     <div class="sm:col-span-2 lg:col-span-5">
-                        <dt class="text-[0.65rem] font-semibold tracking-wider text-ink-subtle uppercase">Deskripsi</dt>
+                        <dt class="text-[0.65rem] font-semibold tracking-wider text-ink-subtle uppercase">{{ t('common.description') }}</dt>
                         <dd class="mt-0.5 text-sm leading-relaxed text-ink-muted">{{ record.description }}</dd>
                     </div>
                     <div v-if="record.root_cause" class="sm:col-span-2 lg:col-span-5">
-                        <dt class="text-[0.65rem] font-semibold tracking-wider text-ink-subtle uppercase">Root Cause</dt>
+                        <dt class="text-[0.65rem] font-semibold tracking-wider text-ink-subtle uppercase">{{ t('common.root_cause') }}</dt>
                         <dd class="mt-0.5 text-sm leading-relaxed text-ink-muted">{{ record.root_cause }}</dd>
                     </div>
                 </dl>
@@ -313,9 +312,7 @@ const isSettled = computed(() => !['OPEN', 'IN_PROGRESS'].includes(props.record.
                                         type="button"
                                         class="rounded-md border border-line px-2 py-1 text-xs font-semibold text-ink-muted transition hover:border-critical hover:text-critical"
                                         @click="removeAction(action)"
-                                    >
-                                        Hapus
-                                    </button>
+                                    >{{ t('common.delete') }}</button>
                                 </template>
                             </div>
                         </div>
@@ -412,9 +409,7 @@ const isSettled = computed(() => !['OPEN', 'IN_PROGRESS'].includes(props.record.
                                 type="button"
                                 class="rounded-md border border-line px-2 py-1 text-xs font-semibold text-ink-muted transition hover:border-critical hover:text-critical"
                                 @click="removeAttachment(file)"
-                            >
-                                Hapus
-                            </button>
+                            >{{ t('common.delete') }}</button>
                         </div>
                     </li>
                 </ul>
@@ -479,7 +474,7 @@ const isSettled = computed(() => !['OPEN', 'IN_PROGRESS'].includes(props.record.
             <TextareaInput
                 id="cancel_reason"
                 v-model="cancelForm.reason"
-                label="Alasan pembatalan"
+                :label="t('common.cancellation_reason')"
                 required
                 :error="cancelForm.errors.reason"
             />

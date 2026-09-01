@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
+import { useTranslate } from '@/Composables/useTranslate';
+
+const { t } = useTranslate();
 
 defineProps<{
     title: string;
@@ -24,9 +27,7 @@ defineEmits<{ submit: [] }>();
                 v-if="hasErrors"
                 class="rounded-lg bg-critical-ground px-4 py-3 text-sm text-critical ring-1 ring-critical/30"
                 role="alert"
-            >
-                Periksa kembali isian yang ditandai di bawah ini.
-            </div>
+            >{{ t('msg.check_marked_fields') }}</div>
 
             <section class="card p-5">
                 <div class="grid gap-4 sm:grid-cols-2">
@@ -38,9 +39,7 @@ defineEmits<{ submit: [] }>();
                 <Link
                     :href="backHref"
                     class="rounded-lg border border-line px-4 py-2 text-sm font-medium text-ink-muted transition hover:text-ink"
-                >
-                    Batal
-                </Link>
+                >{{ t('common.cancel') }}</Link>
                 <button
                     type="submit"
                     class="rounded-lg bg-brand px-5 py-2 text-sm font-semibold text-white transition hover:bg-brand-soft disabled:opacity-60"

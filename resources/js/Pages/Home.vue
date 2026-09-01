@@ -2,6 +2,9 @@
 import { Head, router, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import type { SharedPageProps } from '@/Types';
+import { useTranslate } from '@/Composables/useTranslate';
+
+const { t } = useTranslate();
 
 interface ModuleCard {
     key: string;
@@ -45,9 +48,7 @@ function logout(): void {
                         type="button"
                         class="rounded-lg border border-line px-3 py-1.5 text-xs font-semibold text-ink-muted transition hover:border-danger hover:text-danger"
                         @click="logout"
-                    >
-                        Keluar
-                    </button>
+                    >{{ t('auth.sign_out') }}</button>
                 </div>
             </div>
         </header>
@@ -71,7 +72,7 @@ function logout(): void {
             </section>
 
             <section class="mt-10">
-                <h2 class="field-label">Modul</h2>
+                <h2 class="field-label">{{ t('common.module') }}</h2>
 
                 <div v-if="modules.length" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     <article v-for="module in modules" :key="module.key" class="card p-5">

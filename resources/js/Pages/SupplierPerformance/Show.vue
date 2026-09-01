@@ -6,6 +6,9 @@ import EmptyState from '@/Components/EmptyState.vue';
 import ServiceRateChart from '@/Components/Charts/ServiceRateChart.vue';
 import StatusBadge from '@/Components/StatusBadge.vue';
 import type { DashboardFilters, SupplierScorecard } from '@/Types';
+import { useTranslate } from '@/Composables/useTranslate';
+
+const { t } = useTranslate();
 
 const props = defineProps<{
     scorecard: SupplierScorecard;
@@ -123,7 +126,7 @@ const problemTotal = computed(() =>
 
                     <EmptyState
                         v-if="scorecard.problem_breakdown.length === 0"
-                        title="Tidak ada problem"
+                        :title="t('msg.no_problem')"
                         message="Tidak ada masalah delivery yang tercatat untuk supplier ini pada periode terpilih."
                     />
 
@@ -150,7 +153,7 @@ const problemTotal = computed(() =>
 
                 <EmptyState
                     v-if="evaluations.length === 0"
-                    title="Belum ada evaluasi"
+                    :title="t('msg.no_evaluation')"
                     message="Evaluasi bulanan dihitung dari halaman Evaluasi Supplier."
                 />
 
@@ -158,11 +161,11 @@ const problemTotal = computed(() =>
                     <table class="w-full min-w-[34rem] text-sm">
                         <thead>
                             <tr class="border-b border-line text-[0.65rem] tracking-wider text-ink-subtle uppercase">
-                                <th scope="col" class="px-5 py-3 text-left font-semibold">Periode</th>
+                                <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('common.period') }}</th>
                                 <th scope="col" class="px-5 py-3 text-right font-semibold">Total Skor</th>
-                                <th scope="col" class="px-5 py-3 text-left font-semibold">Grade</th>
-                                <th scope="col" class="px-5 py-3 text-left font-semibold">Status</th>
-                                <th scope="col" class="px-5 py-3 text-left font-semibold">Disetujui oleh</th>
+                                <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('common.grade') }}</th>
+                                <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('common.status') }}</th>
+                                <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('common.approved_by') }}</th>
                             </tr>
                         </thead>
                         <tbody>

@@ -2,6 +2,9 @@
 import { computed } from 'vue';
 import AppIcon from '@/Components/AppIcon.vue';
 import type { PurchaseOrderFormOptions, PurchaseOrderLine, SelectOption } from '@/Types';
+import { useTranslate } from '@/Composables/useTranslate';
+
+const { t } = useTranslate();
 
 const props = defineProps<{
     options: PurchaseOrderFormOptions;
@@ -101,13 +104,13 @@ const receivedOn = (line: PurchaseOrderLine): number => Number(line.qty_received
                 <thead>
                     <tr class="border-b border-line text-[0.65rem] tracking-wider text-ink-subtle uppercase">
                         <th scope="col" class="px-4 py-3 text-left font-semibold">#</th>
-                        <th scope="col" class="px-4 py-3 text-left font-semibold">Material</th>
-                        <th scope="col" class="px-4 py-3 text-left font-semibold">Warehouse</th>
-                        <th scope="col" class="px-4 py-3 text-left font-semibold">Satuan</th>
-                        <th scope="col" class="px-4 py-3 text-left font-semibold">Schedule</th>
+                        <th scope="col" class="px-4 py-3 text-left font-semibold">{{ t('entity.material') }}</th>
+                        <th scope="col" class="px-4 py-3 text-left font-semibold">{{ t('entity.warehouse') }}</th>
+                        <th scope="col" class="px-4 py-3 text-left font-semibold">{{ t('common.unit') }}</th>
+                        <th scope="col" class="px-4 py-3 text-left font-semibold">{{ t('po.schedule') }}</th>
                         <th scope="col" class="px-4 py-3 text-right font-semibold">Qty</th>
                         <th scope="col" class="px-4 py-3 text-right font-semibold">Harga</th>
-                        <th scope="col" class="px-4 py-3 text-right font-semibold">Jumlah</th>
+                        <th scope="col" class="px-4 py-3 text-right font-semibold">{{ t('common.quantity') }}</th>
                         <th scope="col" class="px-4 py-3" />
                     </tr>
                 </thead>
@@ -218,9 +221,7 @@ const receivedOn = (line: PurchaseOrderLine): number => Number(line.qty_received
                                 :disabled="receivedOn(line) > 0"
                                 :title="receivedOn(line) > 0 ? 'Baris yang sudah menerima barang tidak dapat dihapus' : undefined"
                                 @click="removeLine(index)"
-                            >
-                                Hapus
-                            </button>
+                            >{{ t('common.delete') }}</button>
                         </td>
                     </tr>
                 </tbody>

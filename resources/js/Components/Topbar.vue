@@ -3,6 +3,9 @@ import { Link, router, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import AppIcon from '@/Components/AppIcon.vue';
 import type { SharedPageProps } from '@/Types';
+import { useTranslate } from '@/Composables/useTranslate';
+
+const { t } = useTranslate();
 
 const props = withDefaults(
     defineProps<{
@@ -107,7 +110,7 @@ function logout(): void {
                     <button
                         type="button"
                         class="rounded-lg border border-line p-2 text-ink-muted transition hover:border-critical hover:text-critical"
-                        aria-label="Keluar"
+                        :aria-label="t('auth.sign_out')"
                         @click="logout"
                     >
                         <AppIcon name="logout" :size="15" />

@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import StatusBadge from '@/Components/StatusBadge.vue';
 import type { MonitoringRow } from '@/Types';
+import { useTranslate } from '@/Composables/useTranslate';
+
+const { t } = useTranslate();
 
 defineProps<{ rows: MonitoringRow[] }>();
 
@@ -23,13 +26,13 @@ function formatDate(value: string | null): string {
                 <tr class="border-b border-line text-[0.65rem] tracking-wider text-ink-subtle uppercase">
                     <th scope="col" class="px-5 py-3 text-left font-semibold">No</th>
                     <th scope="col" class="px-5 py-3 text-left font-semibold">PO No</th>
-                    <th scope="col" class="px-5 py-3 text-left font-semibold">Supplier</th>
-                    <th scope="col" class="px-5 py-3 text-left font-semibold">Material</th>
-                    <th scope="col" class="px-5 py-3 text-left font-semibold">Schedule</th>
+                    <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('entity.supplier') }}</th>
+                    <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('entity.material') }}</th>
+                    <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('po.schedule') }}</th>
                     <th scope="col" class="px-5 py-3 text-left font-semibold">Actual</th>
-                    <th scope="col" class="px-5 py-3 text-right font-semibold">Qty PO</th>
+                    <th scope="col" class="px-5 py-3 text-right font-semibold">{{ t('po.qty') }}</th>
                     <th scope="col" class="px-5 py-3 text-right font-semibold">Qty Receive</th>
-                    <th scope="col" class="px-5 py-3 text-left font-semibold">Status</th>
+                    <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('common.status') }}</th>
                     <th scope="col" class="px-5 py-3 text-left font-semibold">Keterangan</th>
                 </tr>
             </thead>

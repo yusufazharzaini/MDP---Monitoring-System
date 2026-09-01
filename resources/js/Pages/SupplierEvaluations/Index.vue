@@ -6,6 +6,9 @@ import EmptyState from '@/Components/EmptyState.vue';
 import Pagination from '@/Components/Pagination.vue';
 import StatusBadge from '@/Components/StatusBadge.vue';
 import type { EvaluationSummary, Paginated, SelectOption } from '@/Types';
+import { useTranslate } from '@/Composables/useTranslate';
+
+const { t } = useTranslate();
 
 const props = defineProps<{
     records: Paginated<EvaluationSummary>;
@@ -70,13 +73,11 @@ watch([period, status, grade, supplierId], () => {
     >
         <section class="card">
             <header class="flex flex-wrap items-center gap-3 border-b border-line px-5 py-4">
-                <label class="flex items-center gap-2 text-sm text-ink-muted">
-                    Periode
-                    <input v-model="period" type="month" class="field-input w-auto" aria-label="Filter periode" />
+                <label class="flex items-center gap-2 text-sm text-ink-muted">{{ t('common.period') }}<input v-model="period" type="month" class="field-input w-auto" aria-label="Filter periode" />
                 </label>
 
-                <select v-model="status" class="field-input w-auto min-w-[9rem]" aria-label="Filter status">
-                    <option value="">Semua status</option>
+                <select v-model="status" class="field-input w-auto min-w-[9rem]" :aria-label="t('filter.status')">
+                    <option value="">{{ t('filter.all_status') }}</option>
                     <option v-for="option in options.statuses" :key="option.value" :value="option.value">
                         {{ option.label }}
                     </option>
@@ -89,8 +90,8 @@ watch([period, status, grade, supplierId], () => {
                     </option>
                 </select>
 
-                <select v-model="supplierId" class="field-input w-auto min-w-[11rem]" aria-label="Filter supplier">
-                    <option value="">Semua supplier</option>
+                <select v-model="supplierId" class="field-input w-auto min-w-[11rem]" :aria-label="t('filter.supplier')">
+                    <option value="">{{ t('filter.all_suppliers') }}</option>
                     <option v-for="option in options.suppliers" :key="option.value" :value="option.value">
                         {{ option.label }}
                     </option>
@@ -108,7 +109,7 @@ watch([period, status, grade, supplierId], () => {
 
             <EmptyState
                 v-if="records.data.length === 0"
-                title="Belum ada evaluasi"
+                :title="t('msg.no_evaluation')"
                 message="Hitung evaluasi untuk sebuah periode. Supplier tanpa penerimaan pada bulan itu dilewati."
             />
 
@@ -116,16 +117,16 @@ watch([period, status, grade, supplierId], () => {
                 <table class="w-full min-w-[58rem] text-sm">
                     <thead>
                         <tr class="border-b border-line text-[0.65rem] tracking-wider text-ink-subtle uppercase">
-                            <th scope="col" class="px-5 py-3 text-left font-semibold">Periode</th>
-                            <th scope="col" class="px-5 py-3 text-left font-semibold">Supplier</th>
-                            <th scope="col" class="px-5 py-3 text-right font-semibold">Delivery</th>
+                            <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('common.period') }}</th>
+                            <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('entity.supplier') }}</th>
+                            <th scope="col" class="px-5 py-3 text-right font-semibold">{{ t('entity.delivery') }}</th>
                             <th scope="col" class="px-5 py-3 text-right font-semibold">Quality</th>
                             <th scope="col" class="px-5 py-3 text-right font-semibold">Quantity</th>
                             <th scope="col" class="px-5 py-3 text-right font-semibold">Respons</th>
-                            <th scope="col" class="px-5 py-3 text-right font-semibold">Total</th>
-                            <th scope="col" class="px-5 py-3 text-left font-semibold">Grade</th>
-                            <th scope="col" class="px-5 py-3 text-left font-semibold">Status</th>
-                            <th scope="col" class="px-5 py-3 text-right font-semibold">Aksi</th>
+                            <th scope="col" class="px-5 py-3 text-right font-semibold">{{ t('common.total') }}</th>
+                            <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('common.grade') }}</th>
+                            <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('common.status') }}</th>
+                            <th scope="col" class="px-5 py-3 text-right font-semibold">{{ t('common.actions') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -154,9 +155,7 @@ watch([period, status, grade, supplierId], () => {
                                 <Link
                                     :href="route('supplier-evaluations.show', row.id)"
                                     class="rounded-md px-2 py-1 text-xs font-semibold text-ink-muted transition hover:text-info"
-                                >
-                                    Detail
-                                </Link>
+                                >{{ t('common.details') }}</Link>
                             </td>
                         </tr>
                     </tbody>
@@ -184,7 +183,7 @@ watch([period, status, grade, supplierId], () => {
 
                     <div class="mt-5 space-y-4">
                         <div>
-                            <label for="gen-period" class="field-label">Periode</label>
+                            <label for="gen-period" class="field-label">{{ t('common.period') }}</label>
                             <input
                                 id="gen-period"
                                 v-model="generateForm.period"
@@ -199,7 +198,7 @@ watch([period, status, grade, supplierId], () => {
                         </div>
 
                         <div>
-                            <label for="gen-supplier" class="field-label">Supplier</label>
+                            <label for="gen-supplier" class="field-label">{{ t('entity.supplier') }}</label>
                             <select id="gen-supplier" v-model="generateForm.supplier_id" class="field-input">
                                 <option value="">Semua supplier aktif pada periode itu</option>
                                 <option v-for="option in options.suppliers" :key="option.value" :value="option.value">
@@ -214,9 +213,7 @@ watch([period, status, grade, supplierId], () => {
                             type="button"
                             class="rounded-lg border border-line px-4 py-2 text-sm font-medium text-ink-muted transition hover:text-ink"
                             @click="generating = false"
-                        >
-                            Batal
-                        </button>
+                        >{{ t('common.cancel') }}</button>
                         <button
                             type="submit"
                             class="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-soft disabled:opacity-60"

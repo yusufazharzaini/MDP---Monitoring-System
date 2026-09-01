@@ -4,6 +4,9 @@ import { ref, watch } from 'vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import EmptyState from '@/Components/EmptyState.vue';
 import StatusBadge from '@/Components/StatusBadge.vue';
+import { useTranslate } from '@/Composables/useTranslate';
+
+const { t } = useTranslate();
 import type {
     DashboardFilters,
     SelectOption,
@@ -51,30 +54,28 @@ watch([period, plantId, categoryId], () => {
 </script>
 
 <template>
-    <Head title="Supplier Performance" />
+    <Head :title="t('entity.supplier_performance')" />
 
     <AppLayout
         current="supplier-performance"
-        title="Supplier Performance"
+        :title="t('entity.supplier_performance')"
         subtitle="Peringkat service rate seluruh supplier pada periode terpilih"
     >
         <div class="space-y-5">
             <section class="card">
                 <header class="flex flex-wrap items-center gap-3 border-b border-line px-5 py-4">
-                    <label class="flex items-center gap-2 text-sm text-ink-muted">
-                        Periode
-                        <input v-model="period" type="month" class="field-input w-auto" aria-label="Periode" />
+                    <label class="flex items-center gap-2 text-sm text-ink-muted">{{ t('common.period') }}<input v-model="period" type="month" class="field-input w-auto" :aria-label="t('common.period')" />
                     </label>
 
-                    <select v-model="plantId" class="field-input w-auto min-w-[10rem]" aria-label="Filter plant">
-                        <option value="">Semua plant</option>
+                    <select v-model="plantId" class="field-input w-auto min-w-[10rem]" :aria-label="t('filter.plant')">
+                        <option value="">{{ t('filter.all_plants') }}</option>
                         <option v-for="option in options.plants" :key="option.value" :value="option.value">
                             {{ option.label }}
                         </option>
                     </select>
 
-                    <select v-model="categoryId" class="field-input w-auto min-w-[11rem]" aria-label="Filter kategori material">
-                        <option value="">Semua kategori</option>
+                    <select v-model="categoryId" class="field-input w-auto min-w-[11rem]" :aria-label="t('filter.material_category')">
+                        <option value="">{{ t('filter.all_categories') }}</option>
                         <option v-for="option in options.materialCategories" :key="option.value" :value="option.value">
                             {{ option.label }}
                         </option>
@@ -103,15 +104,15 @@ watch([period, plantId, categoryId], () => {
                     <table class="w-full min-w-[52rem] text-sm">
                         <thead>
                             <tr class="border-b border-line text-[0.65rem] tracking-wider text-ink-subtle uppercase">
-                                <th scope="col" class="px-5 py-3 text-left font-semibold">Rank</th>
-                                <th scope="col" class="px-5 py-3 text-left font-semibold">Supplier</th>
-                                <th scope="col" class="px-5 py-3 text-right font-semibold">Delivery</th>
-                                <th scope="col" class="px-5 py-3 text-right font-semibold">On Time</th>
-                                <th scope="col" class="px-5 py-3 text-right font-semibold">Terlambat</th>
-                                <th scope="col" class="px-5 py-3 text-right font-semibold">Kurang</th>
-                                <th scope="col" class="px-5 py-3 text-right font-semibold">Service Rate</th>
-                                <th scope="col" class="px-5 py-3 text-left font-semibold">Grade</th>
-                                <th scope="col" class="px-5 py-3 text-right font-semibold">Aksi</th>
+                                <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('common.rank') }}</th>
+                                <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('entity.supplier') }}</th>
+                                <th scope="col" class="px-5 py-3 text-right font-semibold">{{ t('entity.delivery') }}</th>
+                                <th scope="col" class="px-5 py-3 text-right font-semibold">{{ t('state.on_time') }}</th>
+                                <th scope="col" class="px-5 py-3 text-right font-semibold">{{ t('state.late') }}</th>
+                                <th scope="col" class="px-5 py-3 text-right font-semibold">{{ t('state.short') }}</th>
+                                <th scope="col" class="px-5 py-3 text-right font-semibold">{{ t('metric.service_rate') }}</th>
+                                <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('common.grade') }}</th>
+                                <th scope="col" class="px-5 py-3 text-right font-semibold">{{ t('common.actions') }}</th>
                             </tr>
                         </thead>
                         <tbody>

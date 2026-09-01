@@ -6,6 +6,9 @@ import EmptyState from '@/Components/EmptyState.vue';
 import Pagination from '@/Components/Pagination.vue';
 import StatusBadge from '@/Components/StatusBadge.vue';
 import type { AuditLogRow, Paginated, SelectOption } from '@/Types';
+import { useTranslate } from '@/Composables/useTranslate';
+
+const { t } = useTranslate();
 
 const props = defineProps<{
     records: Paginated<AuditLogRow>;
@@ -98,9 +101,9 @@ watch([module, action, userId, dateFrom, dateTo], () => {
                     <thead>
                         <tr class="border-b border-line text-[0.65rem] tracking-wider text-ink-subtle uppercase">
                             <th scope="col" class="px-5 py-3 text-left font-semibold">Waktu</th>
-                            <th scope="col" class="px-5 py-3 text-left font-semibold">Pengguna</th>
-                            <th scope="col" class="px-5 py-3 text-left font-semibold">Aksi</th>
-                            <th scope="col" class="px-5 py-3 text-left font-semibold">Modul</th>
+                            <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('entity.user') }}</th>
+                            <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('common.actions') }}</th>
+                            <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('common.module') }}</th>
                             <th scope="col" class="px-5 py-3 text-left font-semibold">Perubahan</th>
                             <th scope="col" class="px-5 py-3 text-left font-semibold">IP</th>
                         </tr>

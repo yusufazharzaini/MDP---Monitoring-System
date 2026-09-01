@@ -5,6 +5,9 @@ import ResourceIndex, {
     type MasterDataRow,
 } from '@/Components/MasterData/ResourceIndex.vue';
 import type { Paginated, SelectOption } from '@/Types';
+import { useTranslate } from '@/Composables/useTranslate';
+
+const { t } = useTranslate();
 
 defineProps<{
     records: Paginated<MasterDataRow>;
@@ -72,9 +75,7 @@ const statusOptions: SelectOption[] = [
             <Link
                 :href="showHref(row)"
                 class="rounded-md px-2 py-1 text-xs font-semibold text-ink-muted transition hover:text-ink"
-            >
-                Detail
-            </Link>
+            >{{ t('common.details') }}</Link>
         </template>
     </ResourceIndex>
 </template>

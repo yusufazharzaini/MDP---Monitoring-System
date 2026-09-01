@@ -10,6 +10,9 @@ import StatusBadge from '@/Components/StatusBadge.vue';
 import TextInput from '@/Components/Form/TextInput.vue';
 import ToggleInput from '@/Components/Form/ToggleInput.vue';
 import type { BadgeVariant } from '@/Types';
+import { useTranslate } from '@/Composables/useTranslate';
+
+const { t } = useTranslate();
 
 interface Contact {
     id: number;
@@ -183,12 +186,12 @@ const details: Array<{ label: string; key: string }> = [
                     <table class="w-full min-w-[42rem] text-sm">
                         <thead>
                             <tr class="border-b border-line text-[0.65rem] tracking-wider text-ink-subtle uppercase">
-                                <th scope="col" class="px-5 py-3 text-left font-semibold">Nama</th>
+                                <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('common.name') }}</th>
                                 <th scope="col" class="px-5 py-3 text-left font-semibold">Posisi</th>
-                                <th scope="col" class="px-5 py-3 text-left font-semibold">Telepon</th>
-                                <th scope="col" class="px-5 py-3 text-left font-semibold">Email</th>
-                                <th scope="col" class="px-5 py-3 text-left font-semibold">Status</th>
-                                <th scope="col" class="px-5 py-3 text-right font-semibold">Aksi</th>
+                                <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('common.phone') }}</th>
+                                <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('common.email') }}</th>
+                                <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('common.status') }}</th>
+                                <th scope="col" class="px-5 py-3 text-right font-semibold">{{ t('common.actions') }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -217,17 +220,13 @@ const details: Array<{ label: string; key: string }> = [
                                             type="button"
                                             class="rounded-md px-2 py-1 text-xs font-semibold text-ink-muted transition hover:text-info"
                                             @click="openEdit(contact)"
-                                        >
-                                            Ubah
-                                        </button>
+                                        >{{ t('common.edit') }}</button>
                                         <button
                                             v-if="can.delete"
                                             type="button"
                                             class="rounded-md px-2 py-1 text-xs font-semibold text-ink-muted transition hover:text-critical"
                                             @click="pendingDelete = contact"
-                                        >
-                                            Hapus
-                                        </button>
+                                        >{{ t('common.delete') }}</button>
                                     </div>
                                 </td>
                             </tr>
@@ -252,11 +251,11 @@ const details: Array<{ label: string; key: string }> = [
                     </h2>
 
                     <div class="mt-5 grid gap-4 sm:grid-cols-2">
-                        <TextInput id="contact-name" v-model="form.name" label="Nama" required :error="form.errors.name" />
+                        <TextInput id="contact-name" v-model="form.name" :label="t('common.name')" required :error="form.errors.name" />
                         <TextInput id="contact-position" v-model="form.position" label="Posisi" :error="form.errors.position" />
-                        <TextInput id="contact-phone" v-model="form.phone" label="Telepon" :error="form.errors.phone" />
-                        <TextInput id="contact-email" v-model="form.email" type="email" label="Email" :error="form.errors.email" />
-                        <SelectInput id="contact-status" v-model="form.status" label="Status" required :options="statusOptions" :error="form.errors.status" />
+                        <TextInput id="contact-phone" v-model="form.phone" :label="t('common.phone')" :error="form.errors.phone" />
+                        <TextInput id="contact-email" v-model="form.email" type="email" :label="t('common.email')" :error="form.errors.email" />
+                        <SelectInput id="contact-status" v-model="form.status" :label="t('common.status')" required :options="statusOptions" :error="form.errors.status" />
                         <div class="sm:col-span-2">
                             <ToggleInput
                                 id="contact-primary"
@@ -272,9 +271,7 @@ const details: Array<{ label: string; key: string }> = [
                             type="button"
                             class="rounded-lg border border-line px-4 py-2 text-sm font-medium text-ink-muted transition hover:text-ink"
                             @click="showForm = false"
-                        >
-                            Batal
-                        </button>
+                        >{{ t('common.cancel') }}</button>
                         <button
                             type="submit"
                             class="rounded-lg bg-brand px-5 py-2 text-sm font-semibold text-white transition hover:bg-brand-soft disabled:opacity-60"

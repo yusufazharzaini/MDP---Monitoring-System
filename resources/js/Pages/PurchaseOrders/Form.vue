@@ -7,6 +7,9 @@ import SelectInput from '@/Components/Form/SelectInput.vue';
 import TextInput from '@/Components/Form/TextInput.vue';
 import TextareaInput from '@/Components/Form/TextareaInput.vue';
 import type { PurchaseOrderFormOptions, PurchaseOrderLine, PurchaseOrderRecord } from '@/Types';
+import { useTranslate } from '@/Composables/useTranslate';
+
+const { t } = useTranslate();
 
 const props = defineProps<{
     options: PurchaseOrderFormOptions;
@@ -65,9 +68,7 @@ function submit(): void {
                 v-if="Object.keys(form.errors).length > 0"
                 class="rounded-lg bg-critical-ground px-4 py-3 text-sm text-critical ring-1 ring-critical/30"
                 role="alert"
-            >
-                Periksa kembali isian yang ditandai di bawah ini.
-            </div>
+            >{{ t('msg.check_marked_fields') }}</div>
 
             <section class="card p-5">
                 <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -82,7 +83,7 @@ function submit(): void {
                     <SelectInput
                         id="supplier_id"
                         v-model="form.supplier_id"
-                        label="Supplier"
+                        :label="t('entity.supplier')"
                         required
                         numeric
                         placeholder="Pilih supplier"
@@ -92,10 +93,10 @@ function submit(): void {
                     <SelectInput
                         id="plant_id"
                         v-model="form.plant_id"
-                        label="Plant"
+                        :label="t('entity.plant')"
                         required
                         numeric
-                        placeholder="Pilih plant"
+                        :placeholder="t('select.plant')"
                         :options="options.plants"
                         :error="form.errors.plant_id"
                     />
@@ -109,14 +110,14 @@ function submit(): void {
                     <TextInput
                         id="payment_term"
                         v-model="form.payment_term"
-                        label="Payment Term"
+                        :label="t('po.payment_term')"
                         :error="form.errors.payment_term"
                     />
                     <div class="sm:col-span-2 lg:col-span-3">
                         <TextareaInput
                             id="remarks"
                             v-model="form.remarks"
-                            label="Catatan"
+                            :label="t('common.notes')"
                             :error="form.errors.remarks"
                         />
                     </div>
@@ -135,9 +136,7 @@ function submit(): void {
                 <Link
                     :href="backHref"
                     class="rounded-lg border border-line px-4 py-2 text-sm font-medium text-ink-muted transition hover:text-ink"
-                >
-                    Batal
-                </Link>
+                >{{ t('common.cancel') }}</Link>
                 <button
                     type="submit"
                     class="rounded-lg bg-brand px-5 py-2 text-sm font-semibold text-white transition hover:bg-brand-soft disabled:opacity-60"

@@ -8,6 +8,9 @@ import EmptyState from '@/Components/EmptyState.vue';
 import Pagination from '@/Components/Pagination.vue';
 import StatusBadge from '@/Components/StatusBadge.vue';
 import type { BadgeVariant, Paginated, SelectOption } from '@/Types';
+import { useTranslate } from '@/Composables/useTranslate';
+
+const { t } = useTranslate();
 
 export interface Column {
     key: string;
@@ -125,9 +128,9 @@ function cellValue(row: Row, column: Column): string {
                             v-if="statusOptions.length"
                             v-model="status"
                             class="field-input w-auto min-w-[9rem]"
-                            aria-label="Filter status"
+                            :aria-label="t('filter.status')"
                         >
-                            <option value="">Semua status</option>
+                            <option value="">{{ t('filter.all_status') }}</option>
                             <option v-for="option in statusOptions" :key="option.value" :value="option.value">
                                 {{ option.label }}
                             </option>
@@ -163,7 +166,7 @@ function cellValue(row: Row, column: Column): string {
                                 >
                                     {{ column.label }}
                                 </th>
-                                <th scope="col" class="px-5 py-3 text-right font-semibold">Aksi</th>
+                                <th scope="col" class="px-5 py-3 text-right font-semibold">{{ t('common.actions') }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -201,17 +204,13 @@ function cellValue(row: Row, column: Column): string {
                                             v-if="can.update"
                                             :href="route(`${routeName}.edit`, keyOf(row))"
                                             class="rounded-md px-2 py-1 text-xs font-semibold text-ink-muted transition hover:text-info"
-                                        >
-                                            Ubah
-                                        </Link>
+                                        >{{ t('common.edit') }}</Link>
                                         <button
                                             v-if="can.delete"
                                             type="button"
                                             class="rounded-md px-2 py-1 text-xs font-semibold text-ink-muted transition hover:text-critical"
                                             @click="pendingDelete = row"
-                                        >
-                                            Hapus
-                                        </button>
+                                        >{{ t('common.delete') }}</button>
                                     </div>
                                 </td>
                             </tr>

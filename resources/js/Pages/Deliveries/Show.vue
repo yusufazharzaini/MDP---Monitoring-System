@@ -5,6 +5,9 @@ import AppLayout from '@/Layouts/AppLayout.vue';
 import StatusBadge from '@/Components/StatusBadge.vue';
 import TextareaInput from '@/Components/Form/TextareaInput.vue';
 import type { DeliveryRecord } from '@/Types';
+import { useTranslate } from '@/Composables/useTranslate';
+
+const { t } = useTranslate();
 
 const props = defineProps<{
     record: DeliveryRecord;
@@ -85,9 +88,7 @@ const isCancelled = computed(() => props.record.status === 'CANCELLED');
                         type="button"
                         class="rounded-lg border border-line px-3.5 py-2 text-sm font-semibold text-ink-muted transition hover:border-critical hover:text-critical"
                         @click="cancelling = true"
-                    >
-                        Batalkan
-                    </button>
+                    >{{ t('common.cancel_record') }}</button>
                 </div>
             </div>
 
@@ -113,7 +114,7 @@ const isCancelled = computed(() => props.record.status === 'CANCELLED');
                         <dd class="mt-0.5 text-sm text-ink">{{ detail.value }}</dd>
                     </div>
                     <div v-if="record.remarks" class="sm:col-span-2 lg:col-span-4">
-                        <dt class="text-[0.65rem] font-semibold tracking-wider text-ink-subtle uppercase">Catatan</dt>
+                        <dt class="text-[0.65rem] font-semibold tracking-wider text-ink-subtle uppercase">{{ t('common.notes') }}</dt>
                         <dd class="mt-0.5 text-sm leading-relaxed text-ink-muted">{{ record.remarks }}</dd>
                     </div>
                 </dl>
@@ -132,12 +133,12 @@ const isCancelled = computed(() => props.record.status === 'CANCELLED');
                         <thead>
                             <tr class="border-b border-line text-[0.65rem] tracking-wider text-ink-subtle uppercase">
                                 <th scope="col" class="px-5 py-3 text-left font-semibold">#</th>
-                                <th scope="col" class="px-5 py-3 text-left font-semibold">Material</th>
-                                <th scope="col" class="px-5 py-3 text-left font-semibold">Schedule</th>
-                                <th scope="col" class="px-5 py-3 text-right font-semibold">Qty PO</th>
-                                <th scope="col" class="px-5 py-3 text-right font-semibold">Qty Terima</th>
-                                <th scope="col" class="px-5 py-3 text-left font-semibold">Kondisi</th>
-                                <th scope="col" class="px-5 py-3 text-left font-semibold">Status</th>
+                                <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('entity.material') }}</th>
+                                <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('po.schedule') }}</th>
+                                <th scope="col" class="px-5 py-3 text-right font-semibold">{{ t('po.qty') }}</th>
+                                <th scope="col" class="px-5 py-3 text-right font-semibold">{{ t('po.qty_received') }}</th>
+                                <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('common.condition') }}</th>
+                                <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('common.status') }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -194,7 +195,7 @@ const isCancelled = computed(() => props.record.status === 'CANCELLED');
                         <TextareaInput
                             id="delivery-cancel-reason"
                             v-model="cancelForm.reason"
-                            label="Alasan pembatalan"
+                            :label="t('common.cancellation_reason')"
                             :error="cancelForm.errors.reason"
                         />
                     </div>
@@ -204,9 +205,7 @@ const isCancelled = computed(() => props.record.status === 'CANCELLED');
                             type="button"
                             class="rounded-lg border border-line px-4 py-2 text-sm font-medium text-ink-muted transition hover:text-ink"
                             @click="cancelling = false"
-                        >
-                            Kembali
-                        </button>
+                        >{{ t('common.back') }}</button>
                         <button
                             type="submit"
                             class="rounded-lg bg-critical px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-60"

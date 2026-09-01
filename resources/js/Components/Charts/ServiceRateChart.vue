@@ -4,6 +4,9 @@ import type { EChartsCoreOption } from 'echarts/core';
 import BaseChart from '@/Components/Charts/BaseChart.vue';
 import { tooltipStyle, useChartTheme } from '@/Composables/useChartTheme';
 import type { TrendPoint } from '@/Types';
+import { useTranslate } from '@/Composables/useTranslate';
+
+const { t } = useTranslate();
 
 const props = defineProps<{ points: TrendPoint[]; target: number }>();
 
@@ -118,7 +121,7 @@ const option = computed<EChartsCoreOption>(() => {
         <table class="sr-only">
             <caption>Tren service rate bulanan</caption>
             <thead>
-                <tr><th>Periode</th><th>Total delivery</th><th>On time</th><th>Service rate</th><th>Target</th></tr>
+                <tr><th>{{ t('common.period') }}</th><th>Total delivery</th><th>On time</th><th>Service rate</th><th>{{ t('common.target') }}</th></tr>
             </thead>
             <tbody>
                 <tr v-for="point in points" :key="point.period">

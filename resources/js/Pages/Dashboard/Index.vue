@@ -13,6 +13,9 @@ import StatusBadge from '@/Components/StatusBadge.vue';
 import SupplierPerformanceTable from '@/Components/SupplierPerformanceTable.vue';
 import { useDashboard } from '@/Composables/useDashboard';
 import type { BadgeVariant, DashboardFilterOptions, DashboardPayload } from '@/Types';
+import { useTranslate } from '@/Composables/useTranslate';
+
+const { t } = useTranslate();
 
 /**
  * ECharts is by far the heaviest dependency on this page. Loading the charts
@@ -182,7 +185,7 @@ const periodLabel = computed(() =>
                     </PanelCard>
 
                     <PanelCard
-                        title="Supplier Performance"
+                        :title="t('entity.supplier_performance')"
                         subtitle="Peringkat berdasarkan on time delivery"
                         :loading="loading"
                         :empty="payload.supplier_performance.length === 0"
@@ -249,7 +252,7 @@ const periodLabel = computed(() =>
                     </PanelCard>
 
                     <PanelCard
-                        title="Critical Material"
+                        :title="t('entity.critical_material')"
                         subtitle="Material dengan risiko tertinggi pada periode ini"
                         :loading="loading"
                         :empty="payload.critical_materials.length === 0"

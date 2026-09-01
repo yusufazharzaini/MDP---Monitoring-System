@@ -6,6 +6,9 @@ import StatusBadge from '@/Components/StatusBadge.vue';
 import TextInput from '@/Components/Form/TextInput.vue';
 import TextareaInput from '@/Components/Form/TextareaInput.vue';
 import type { DeliveryRecord, ReceivingContext, SelectOption } from '@/Types';
+import { useTranslate } from '@/Composables/useTranslate';
+
+const { t } = useTranslate();
 
 const props = defineProps<{
     purchaseOrder: ReceivingContext;
@@ -92,9 +95,7 @@ function isOver(index: number): boolean {
                 v-if="Object.keys(form.errors).length > 0"
                 class="rounded-lg bg-critical-ground px-4 py-3 text-sm text-critical ring-1 ring-critical/30"
                 role="alert"
-            >
-                Periksa kembali isian yang ditandai di bawah ini.
-            </div>
+            >{{ t('msg.check_marked_fields') }}</div>
 
             <section class="card p-5">
                 <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -111,7 +112,7 @@ function isOver(index: number): boolean {
                     <TextInput id="vehicle_number" v-model="form.vehicle_number" label="No. Kendaraan" :error="form.errors.vehicle_number" />
                     <TextInput id="driver_name" v-model="form.driver_name" label="Nama Driver" :error="form.errors.driver_name" />
                     <div class="sm:col-span-2 lg:col-span-4">
-                        <TextareaInput id="remarks" v-model="form.remarks" label="Catatan" :error="form.errors.remarks" />
+                        <TextareaInput id="remarks" v-model="form.remarks" :label="t('common.notes')" :error="form.errors.remarks" />
                     </div>
                 </div>
             </section>
@@ -136,13 +137,13 @@ function isOver(index: number): boolean {
                         <thead>
                             <tr class="border-b border-line text-[0.65rem] tracking-wider text-ink-subtle uppercase">
                                 <th scope="col" class="px-4 py-3 text-left font-semibold">Terima</th>
-                                <th scope="col" class="px-4 py-3 text-left font-semibold">Material</th>
-                                <th scope="col" class="px-4 py-3 text-left font-semibold">Schedule</th>
-                                <th scope="col" class="px-4 py-3 text-right font-semibold">Qty PO</th>
+                                <th scope="col" class="px-4 py-3 text-left font-semibold">{{ t('entity.material') }}</th>
+                                <th scope="col" class="px-4 py-3 text-left font-semibold">{{ t('po.schedule') }}</th>
+                                <th scope="col" class="px-4 py-3 text-right font-semibold">{{ t('po.qty') }}</th>
                                 <th scope="col" class="px-4 py-3 text-right font-semibold">Sudah Diterima</th>
                                 <th scope="col" class="px-4 py-3 text-right font-semibold">Sisa</th>
-                                <th scope="col" class="px-4 py-3 text-right font-semibold">Qty Terima</th>
-                                <th scope="col" class="px-4 py-3 text-left font-semibold">Kondisi</th>
+                                <th scope="col" class="px-4 py-3 text-right font-semibold">{{ t('po.qty_received') }}</th>
+                                <th scope="col" class="px-4 py-3 text-left font-semibold">{{ t('common.condition') }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -223,9 +224,7 @@ function isOver(index: number): boolean {
                 <Link
                     :href="backHref"
                     class="rounded-lg border border-line px-4 py-2 text-sm font-medium text-ink-muted transition hover:text-ink"
-                >
-                    Batal
-                </Link>
+                >{{ t('common.cancel') }}</Link>
                 <button
                     type="submit"
                     class="rounded-lg bg-brand px-5 py-2 text-sm font-semibold text-white transition hover:bg-brand-soft disabled:opacity-60"

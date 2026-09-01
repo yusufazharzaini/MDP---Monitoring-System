@@ -6,6 +6,9 @@ import AppLayout from '@/Layouts/AppLayout.vue';
 import EmptyState from '@/Components/EmptyState.vue';
 import StatusBadge from '@/Components/StatusBadge.vue';
 import type { CriticalMaterialRow, DashboardFilters, SelectOption } from '@/Types';
+import { useTranslate } from '@/Composables/useTranslate';
+
+const { t } = useTranslate();
 
 const props = defineProps<{
     filters: DashboardFilters;
@@ -39,11 +42,11 @@ watch([period, plantId, categoryId], () => {
 </script>
 
 <template>
-    <Head title="Critical Material" />
+    <Head :title="t('entity.critical_material')" />
 
     <AppLayout
         current="critical-materials"
-        title="Critical Material"
+        :title="t('entity.critical_material')"
         subtitle="Material yang memicu aturan kritis pada periode terpilih"
     >
         <div class="space-y-5">
@@ -71,20 +74,18 @@ watch([period, plantId, categoryId], () => {
 
             <section class="card">
                 <header class="flex flex-wrap items-center gap-3 border-b border-line px-5 py-4">
-                    <label class="flex items-center gap-2 text-sm text-ink-muted">
-                        Periode
-                        <input v-model="period" type="month" class="field-input w-auto" aria-label="Periode" />
+                    <label class="flex items-center gap-2 text-sm text-ink-muted">{{ t('common.period') }}<input v-model="period" type="month" class="field-input w-auto" :aria-label="t('common.period')" />
                     </label>
 
-                    <select v-model="plantId" class="field-input w-auto min-w-[10rem]" aria-label="Filter plant">
-                        <option value="">Semua plant</option>
+                    <select v-model="plantId" class="field-input w-auto min-w-[10rem]" :aria-label="t('filter.plant')">
+                        <option value="">{{ t('filter.all_plants') }}</option>
                         <option v-for="option in options.plants" :key="option.value" :value="option.value">
                             {{ option.label }}
                         </option>
                     </select>
 
-                    <select v-model="categoryId" class="field-input w-auto min-w-[11rem]" aria-label="Filter kategori">
-                        <option value="">Semua kategori</option>
+                    <select v-model="categoryId" class="field-input w-auto min-w-[11rem]" :aria-label="t('filter.category')">
+                        <option value="">{{ t('filter.all_categories') }}</option>
                         <option v-for="option in options.materialCategories" :key="option.value" :value="option.value">
                             {{ option.label }}
                         </option>
@@ -101,13 +102,13 @@ watch([period, plantId, categoryId], () => {
                     <table class="w-full min-w-[62rem] text-sm">
                         <thead>
                             <tr class="border-b border-line text-[0.65rem] tracking-wider text-ink-subtle uppercase">
-                                <th scope="col" class="px-5 py-3 text-left font-semibold">Material</th>
-                                <th scope="col" class="px-5 py-3 text-left font-semibold">Kategori</th>
-                                <th scope="col" class="px-5 py-3 text-right font-semibold">Terlambat</th>
-                                <th scope="col" class="px-5 py-3 text-right font-semibold">Kurang</th>
+                                <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('entity.material') }}</th>
+                                <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('common.category') }}</th>
+                                <th scope="col" class="px-5 py-3 text-right font-semibold">{{ t('state.late') }}</th>
+                                <th scope="col" class="px-5 py-3 text-right font-semibold">{{ t('state.short') }}</th>
                                 <th scope="col" class="px-5 py-3 text-right font-semibold">Kekurangan Qty</th>
                                 <th scope="col" class="px-5 py-3 text-right font-semibold">Problem Critical</th>
-                                <th scope="col" class="px-5 py-3 text-left font-semibold">Alasan</th>
+                                <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('common.reason') }}</th>
                                 <th scope="col" class="px-5 py-3 text-left font-semibold">Risiko</th>
                             </tr>
                         </thead>

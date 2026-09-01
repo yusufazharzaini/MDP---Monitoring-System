@@ -6,6 +6,9 @@ import ConfirmDialog from '@/Components/ConfirmDialog.vue';
 import StatusBadge from '@/Components/StatusBadge.vue';
 import TextareaInput from '@/Components/Form/TextareaInput.vue';
 import type { EvaluationRecord } from '@/Types';
+import { useTranslate } from '@/Composables/useTranslate';
+
+const { t } = useTranslate();
 
 const props = defineProps<{
     record: EvaluationRecord;
@@ -87,9 +90,7 @@ const isApproved = computed(() => props.record.status === 'APPROVED');
                         type="button"
                         class="rounded-lg bg-brand px-3.5 py-2 text-sm font-semibold text-white transition hover:bg-brand-soft"
                         @click="approving = true"
-                    >
-                        Setujui
-                    </button>
+                    >{{ t('common.approve') }}</button>
                     <button
                         v-if="can.reopen"
                         type="button"
@@ -141,16 +142,14 @@ const isApproved = computed(() => props.record.status === 'APPROVED');
                             <dd class="mt-0.5 text-sm text-ink">{{ record.created_by ?? '—' }}</dd>
                         </div>
                         <div>
-                            <dt class="text-[0.65rem] font-semibold tracking-wider text-ink-subtle uppercase">
-                                Disetujui oleh
-                            </dt>
+                            <dt class="text-[0.65rem] font-semibold tracking-wider text-ink-subtle uppercase">{{ t('common.approved_by') }}</dt>
                             <dd class="mt-0.5 text-sm text-ink">{{ record.approved_by ?? '—' }}</dd>
                         </div>
                     </dl>
                 </div>
 
                 <div v-if="record.remarks" class="mt-4 border-t border-line pt-4">
-                    <p class="text-[0.65rem] font-semibold tracking-wider text-ink-subtle uppercase">Catatan</p>
+                    <p class="text-[0.65rem] font-semibold tracking-wider text-ink-subtle uppercase">{{ t('common.notes') }}</p>
                     <p class="mt-0.5 text-sm leading-relaxed text-ink-muted">{{ record.remarks }}</p>
                 </div>
             </section>
@@ -214,7 +213,7 @@ const isApproved = computed(() => props.record.status === 'APPROVED');
             <TextareaInput
                 id="reopen_reason"
                 v-model="reopenForm.reason"
-                label="Alasan"
+                :label="t('common.reason')"
                 required
                 :error="reopenForm.errors.reason"
             />
