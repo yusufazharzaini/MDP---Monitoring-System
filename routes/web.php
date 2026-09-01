@@ -2,6 +2,9 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Admin\AuditLogController;
+use App\Http\Controllers\Admin\RoleController;
+use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Dashboard\DashboardController;
 use App\Http\Controllers\Delivery\DeliveryController;
 use App\Http\Controllers\HomeController;
@@ -67,6 +70,31 @@ Route::middleware('auth')->group(function (): void {
     Route::middleware('permission:user.view')
         ->resource('departments', DepartmentController::class)
         ->except('show');
+
+    /*
+     * Administration.
+     *
+     * Users are retired rather than destroyed - their orders, receipts and
+     * audit entries still name them - so destroy() soft-deletes and restore()
+     * brings an account back. Roles are seeded job titles: their permissions
+     * are editable, the roles themselves are not.
+     */
+    Route::middleware('permission:user.view')->group(function (): void {
+        Route::resource('users', UserController::class)->except('show');
+        Route::post('users/{user}/restore', [UserController::class, 'restore'])
+            ->withTrashed()
+            ->name('users.restore');
+
+        Route::get('roles', [RoleController::class, 'index'])->name('roles.index');
+        Route::put('roles/{role}', [RoleController::class, 'update'])->name('roles.update');
+    });
+
+    /*
+     * The activity trail. Read-only: there is no route here that writes to it.
+     */
+    Route::middleware('permission:audit.view')
+        ->get('audit-logs', [AuditLogController::class, 'index'])
+        ->name('audit-logs.index');
 
     /*
      * Purchase orders.

@@ -30,6 +30,9 @@ const items: NavItem[] = [
     { key: 'supplier-evaluations', label: 'Evaluasi Supplier', icon: 'good', href: route('supplier-evaluations.index') },
     { key: 'critical-materials', label: 'Critical Material', icon: 'warning', href: route('critical-materials.index') },
     { key: 'reports', label: 'Report', icon: 'report', href: route('reports.index') },
+    { key: 'users', label: 'Pengguna', icon: 'supplier', href: route('users.index') },
+    { key: 'roles', label: 'Peran & Permission', icon: 'settings', href: route('roles.index') },
+    { key: 'audit-logs', label: 'Audit Log', icon: 'clock', href: route('audit-logs.index') },
 ];
 </script>
 

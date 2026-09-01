@@ -510,3 +510,64 @@ export interface ReportCatalogueEntry {
     /** Row-level reports stream a row per transaction; the rest are aggregates. */
     row_level: boolean;
 }
+
+/* --- Administration ----------------------------------------------------- */
+
+export interface UserRow {
+    id: number;
+    ulid: string;
+    name: string;
+    email: string;
+    employee_code: string | null;
+    position: string | null;
+    department_name: string | null;
+    plant_name: string | null;
+    roles: string[];
+    status: string;
+    status_label: string;
+    status_variant: BadgeVariant;
+    is_retired: boolean;
+    /** True for the signed-in user's own row: nobody retires their own account. */
+    is_self: boolean;
+    can: { update: boolean; delete: boolean; restore: boolean };
+}
+
+export interface UserRecord extends UserRow {
+    department_id: number | null;
+    plant_id: number | null;
+    phone: string | null;
+}
+
+export interface RoleRow {
+    id: number;
+    name: string;
+    users_count: number;
+    permissions: string[];
+    /** SUPER_ADMIN: the escape hatch, deliberately not editable. */
+    protected: boolean;
+}
+
+export interface PermissionGroup {
+    group: string;
+    permissions: Array<{ name: string; action: string }>;
+}
+
+export interface AuditLogRow {
+    id: number;
+    action: string;
+    action_label: string;
+    action_variant: BadgeVariant;
+    module: string;
+    record_id: number | null;
+    user_name: string;
+    ip_address: string | null;
+    created_at: string | null;
+    changes: Array<{
+        field: string;
+        from: string | null;
+        to: string | null;
+        /** A list field reports what moved, not both whole lists. */
+        added: string[];
+        removed: string[];
+    }>;
+}

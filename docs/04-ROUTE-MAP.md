@@ -59,8 +59,10 @@ All routes are behind `auth` + `verified`; each carries a `permission:` middlewa
 | POST | `/supplier-evaluations/{evaluation}/reopen` | `supplier-evaluations.reopen` | `evaluation.approve` |
 | GET | `/reports` | `reports.index` | `report.view` — catalogue with a live preview |
 | GET | `/reports/{type}/export` | `reports.export` | `report.export` — `format=xlsx\|csv\|pdf\|print` |
-| resource | `/users` | `users.*` | `user.*` |
-| resource | `/roles` | `roles.*` | `user.*` |
+| resource | `/users` | `users.*` | `user.*` — no `show`; retiring soft-deletes |
+| POST | `/users/{user}/restore` | `users.restore` | `user.update` |
+| GET | `/roles` | `roles.index` | `user.view` |
+| PUT | `/roles/{role}` | `roles.update` | `user.update` |
 | GET | `/notifications` | `notifications.index` | authenticated |
 | POST | `/notifications/{id}/read` | `notifications.read` | authenticated |
 | GET | `/audit-logs` | `audit-logs.index` | `audit.view` |
@@ -120,6 +122,8 @@ so the UI never maps status→colour by hand.
 | `SystemSettingService` | `Services\Setting` | Typed settings access with caching |
 | `SupplierEvaluationService` | `Services\Supplier` | Scorecard generation, sign-off and reopening |
 | `ReportService` | `Services\Report` | Assembles each report as columns plus a row generator |
+| `UserService` | `Services\Admin` | Accounts and role assignment, with the lock-out guards |
+| `RoleService` | `Services\Admin` | The permission matrix and its protected role |
 | `AuditLogService` | `Services\Audit` | Writes audit entries, diffing only what changed |
 | `NumberGeneratorService` | `Services\Support` | Sequential PO/DN/PRB numbers under row lock |
 | `ProblemService` | `Services\Problem` | The problem lifecycle, and the rule that closing needs a completed action |
@@ -332,6 +336,44 @@ leaves no entry - the trail records what happened, not what was blocked.
 measurement rather than an ordinal, so the precision travels with the column and
 the spreadsheet, the PDF and the preview all honour it.
 
+## 4.0.5 Administration (Phase 9)
+
+Users, the permission matrix and the activity trail.
+
+**Two rules keep the system reachable.** An administrator cannot retire or
+deactivate their own account, or strip every role from it - the mistake is
+silent until they next try to sign in. And the last *active* super
+administrator cannot be retired, deactivated or demoted by anybody, including
+themselves; the count is shown on the user list so the refusal is not a
+surprise. An inactive super administrator does not count as a way in.
+
+**Roles are seeded job titles.** They are neither created nor deleted from a
+screen; what an administrator edits is the permissions each one carries.
+`SUPER_ADMIN` is excluded even from that: it passes every gate through
+`AppServiceProvider` anyway, so editing its list would change nothing visible
+while removing the one role guaranteed to be able to put a mistake right.
+`POLICY_ALONE` covers `User::delete/restore` and `Role::update`, so the
+super-admin bypass defers to those rules rather than overruling them.
+
+`Gate::policy(Role::class, RolePolicy::class)` is registered explicitly:
+auto-discovery maps `App\Models\X` to `App\Policies\XPolicy` and cannot find
+a vendor model, so without it the policy never runs.
+
+**Users are retired, never destroyed.** Their orders, receipts and audit entries
+still name them, so `destroy` soft-deletes and the list keeps them behind a
+filter - a reader following a trail has to be able to find out who that was.
+
+**Roles never travel through mass assignment.** `roles` is not fillable and
+strict mode is on, so smuggling one into the attribute array throws rather than
+quietly doing nothing: an escalation attempt that silently no-ops is one nobody
+investigates. Role changes live in a pivot table the model diff never sees, so
+they are audited explicitly with both sides.
+
+**The trail is read-only by construction.** There is exactly one route under
+`audit-logs.` and it is the index; a trail somebody can edit answers no question
+worth asking. A list field renders as what moved (`+ delivery.create`,
+`- po.approve`) rather than two whole arrays.
+
 ## 4.1 Master-data deletion guards (Phase 2)
 
 Master data soft-deletes, so retiring a record never destroys history. What the
@@ -426,7 +468,7 @@ through the lifecycles: `NumberGeneratorTest`, `AuditLogServiceTest`,
 | **6** | Problem management, attachments, corrective action | Problem lifecycle tests green ✅ |
 | **7** | Supplier performance, scorecard, evaluation | Ranking tests green ✅ |
 | **8** | Reporting: Excel, PDF, print | Export tests green ✅ |
-| **9** | Roles, permissions, policies, audit log | Permission tests green ← next |
-| 10 | Caching, indexes, query tuning, queue, notifications | No N+1; dashboard aggregate-only |
+| **9** | Roles, permissions, policies, audit log | Permission tests green ✅ |
+| **10** | Caching, indexes, query tuning, queue, notifications | No N+1; dashboard aggregate-only ← next |
 
 Each phase must run without error and must not break the previous phase.

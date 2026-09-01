@@ -11,6 +11,7 @@ use App\Models\ProblemAttachment;
 use App\Models\PurchaseOrder;
 use App\Models\SupplierEvaluation;
 use App\Models\User;
+use App\Policies\RolePolicy;
 use App\Services\Delivery\DeliveryStatusCalculator;
 use App\Services\Setting\SystemSettingService;
 use Database\Seeders\RolesAndPermissionsSeeder;
@@ -19,6 +20,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
+use Spatie\Permission\Models\Role;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -40,6 +42,10 @@ class AppServiceProvider extends ServiceProvider
         CorrectiveAction::class => ['create', 'complete', 'delete'],
         ProblemAttachment::class => ['create', 'delete'],
         SupplierEvaluation::class => ['regenerate', 'approve', 'reopen', 'delete'],
+        // A super administrator retiring their own account, or editing the one
+        // role that can undo a mistake, is the bypass working against itself.
+        User::class => ['delete', 'restore'],
+        Role::class => ['update', 'create', 'delete'],
     ];
 
     /**
@@ -83,6 +89,13 @@ class AppServiceProvider extends ServiceProvider
         DB::prohibitDestructiveCommands($this->app->isProduction());
 
         Password::defaults(static fn (): Password => Password::min(8)->letters()->numbers());
+
+        /*
+         * Policy auto-discovery maps App\Models\X to App\Policies\XPolicy,
+         * which cannot find a vendor model - spatie's Role lives in its own
+         * namespace, so its policy is registered by hand or never runs.
+         */
+        Gate::policy(Role::class, RolePolicy::class);
 
         /*
          * The super administrator passes every gate.
