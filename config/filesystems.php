@@ -30,10 +30,16 @@ return [
 
     'disks' => [
 
+        /*
+         * `serve` is off: it registers unauthenticated GET and PUT routes at
+         * /storage/{path} over this disk's root. Nothing here uses them, and
+         * leaving them on made the confidentiality of every attachment rest on
+         * Laravel's default private visibility rather than on a decision.
+         */
         'local' => [
             'driver' => 'local',
             'root' => storage_path('app/private'),
-            'serve' => true,
+            'serve' => false,
             'throw' => false,
             'report' => false,
         ],
@@ -41,10 +47,15 @@ return [
         /*
          * Attachments for delivery problems. Never web accessible: files are
          * streamed through an authorised controller (requirement 8 and 35).
+         *
+         * Rooted outside `app/private` on purpose. Nesting it inside another
+         * disk means any future `serve` or `visibility` change on that disk
+         * silently republishes every file here, which is not a property worth
+         * depending on.
          */
         'private' => [
             'driver' => 'local',
-            'root' => storage_path('app/private/attachments'),
+            'root' => storage_path('app/attachments'),
             'serve' => false,
             'visibility' => 'private',
             'throw' => true,

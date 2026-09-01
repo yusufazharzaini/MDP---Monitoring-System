@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Database\Factories;
 
+use App\Enums\EvaluationStatus;
 use App\Enums\SupplierGrade;
 use App\Models\Supplier;
 use App\Models\SupplierEvaluation;
@@ -39,6 +40,18 @@ class SupplierEvaluationFactory extends Factory
                 $total >= 90 => SupplierGrade::AVERAGE,
                 default => SupplierGrade::POOR,
             },
+            'status' => EvaluationStatus::DRAFT,
         ];
+    }
+
+    /**
+     * A signed-off scorecard: frozen, and no longer recomputed.
+     */
+    public function approved(): static
+    {
+        return $this->state(fn (): array => [
+            'status' => EvaluationStatus::APPROVED,
+            'approved_at' => now(),
+        ]);
     }
 }

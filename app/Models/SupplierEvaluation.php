@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\EvaluationStatus;
 use App\Enums\SupplierGrade;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -21,7 +22,8 @@ class SupplierEvaluation extends Model
      * `total_score` and `grade` are absent: they are derived from the
      * components and the kpi_settings grade bands by SupplierEvaluationService,
      * so a scorecard can never claim a grade its scores do not support.
-     * `created_by` comes from the authenticated user.
+     * `created_by` comes from the authenticated user, and `status`,
+     * `approved_by` and `approved_at` move together when it is signed off.
      *
      * @var array<int, string>
      */
@@ -45,6 +47,8 @@ class SupplierEvaluation extends Model
             'responsiveness_score' => 'float',
             'total_score' => 'float',
             'grade' => SupplierGrade::class,
+            'status' => EvaluationStatus::class,
+            'approved_at' => 'datetime',
         ];
     }
 
@@ -55,6 +59,24 @@ class SupplierEvaluation extends Model
     public function scopeForPeriod(Builder $query, int $year, int $month): Builder
     {
         return $query->where('period_year', $year)->where('period_month', $month);
+    }
+
+    /**
+     * @param  Builder<static>  $query
+     * @return Builder<static>
+     */
+    public function scopeDraft(Builder $query): Builder
+    {
+        return $query->where('status', EvaluationStatus::DRAFT);
+    }
+
+    /**
+     * @param  Builder<static>  $query
+     * @return Builder<static>
+     */
+    public function scopeApproved(Builder $query): Builder
+    {
+        return $query->where('status', EvaluationStatus::APPROVED);
     }
 
     /**
@@ -84,7 +106,7 @@ class SupplierEvaluation extends Model
     public function scopeWithListRelations(Builder $query): Builder
     {
         return $query
-            ->with('supplier:id,ulid,code,name,short_name')
+            ->with(['supplier:id,ulid,code,name,short_name', 'approver:id,name'])
             ->withCount('items');
     }
 
@@ -101,6 +123,20 @@ class SupplierEvaluation extends Model
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function approver(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    /**
+     * A signed-off scorecard is frozen: it is no longer recomputed from
+     * transactions, so a later correction cannot rewrite what was approved.
+     */
+    public function isApproved(): bool
+    {
+        return $this->status->isApproved();
     }
 
     public function periodLabel(): string

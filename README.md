@@ -111,13 +111,13 @@ app/
 ├── Enums/          16 backed enums - no status is ever a magic string
 ├── DataTransferObjects/  DashboardFilter - one filter object for every panel
 ├── Models/         23 Eloquent models with their relationships
-├── Actions/        single-purpose units (order line sync, total recalculation)
-├── Events/         purchase order lifecycle events
+├── Actions/        single-purpose units (order and receipt line sync, totals)
+├── Events/         purchase order and delivery lifecycle events
 ├── Listeners/      audit trail for those events
 ├── Policies/       MasterDataPolicy + one subclass per master entity, PurchaseOrderPolicy
 ├── Repositories/   aggregate query objects (dashboard only)
 ├── Services/       business logic, one namespace per concern
-│   ├── Delivery/   DeliveryStatusCalculator (pure) + DeliveryStatusService
+│   ├── Delivery/   status calculator (pure), status service, receiving service
 │   ├── Performance/ delivery + supplier performance, service-rate strategies
 │   ├── Dashboard/  dashboard payload, Pareto, critical materials
 │   ├── MasterData/ shared CRUD flow + per-entity deletion guards
@@ -175,7 +175,7 @@ Vue layer hard-codes a threshold.
 | 1 | Setup, auth, schema, models, factories, seeders | **Complete** |
 | 2 | Master data CRUD | **Complete** |
 | 3 | Purchase Order module | **Complete** |
-| 4 | Delivery & receiving | Planned |
+| 4 | Delivery & receiving | **Complete** |
 | 5 | Dashboard | **Complete** |
 | 6 | Problem management | Planned |
 | 7 | Supplier performance | **Service layer complete**, UI pending |

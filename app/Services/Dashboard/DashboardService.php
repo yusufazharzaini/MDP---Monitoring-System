@@ -11,7 +11,6 @@ use App\Services\Performance\DeliveryPerformanceService;
 use App\Services\Performance\SupplierPerformanceService;
 use App\Services\Setting\KpiSettingService;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Cache;
 
 /**
  * Assembles the dashboard payload defined in requirement 32.
@@ -29,6 +28,7 @@ class DashboardService
         private readonly ParetoAnalysisService $pareto,
         private readonly CriticalMaterialService $criticalMaterials,
         private readonly KpiSettingService $kpi,
+        private readonly DashboardCache $cache,
     ) {}
 
     /**
@@ -206,22 +206,17 @@ class DashboardService
     }
 
     /**
-     * Cache an assembled payload when a TTL is configured. Any write through
-     * DeliveryStatusService flushes this by tag-free key expiry, so a stale
-     * dashboard is bounded by the TTL rather than indefinite.
+     * Cache an assembled payload when a TTL is configured.
+     *
+     * DashboardCache owns both halves of this: the key, and the version stamp
+     * that lets a write retire every cached payload at once.
      *
      * @param  callable():array<string, mixed>  $callback
      * @return array<string, mixed>
      */
     private function remember(DashboardFilter $filter, string $prefix, callable $callback): array
     {
-        $ttl = (int) config('mdp.dashboard.cache_ttl', 0);
-
-        if ($ttl <= 0) {
-            return $callback();
-        }
-
-        return Cache::remember($filter->cacheKey($prefix), $ttl, $callback);
+        return $this->cache->remember($filter, $prefix, $callback);
     }
 
     /**

@@ -4,9 +4,14 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Models\CorrectiveAction;
 use App\Models\Delivery;
+use App\Models\DeliveryProblem;
+use App\Models\ProblemAttachment;
 use App\Models\PurchaseOrder;
+use App\Models\SupplierEvaluation;
 use App\Models\User;
+use App\Policies\RolePolicy;
 use App\Services\Delivery\DeliveryStatusCalculator;
 use App\Services\Setting\SystemSettingService;
 use Database\Seeders\RolesAndPermissionsSeeder;
@@ -15,9 +20,53 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
+use RuntimeException;
+use Spatie\Permission\Models\Role;
 
 class AppServiceProvider extends ServiceProvider
 {
+    /**
+     * Abilities the policy decides alone, even for a super administrator.
+     *
+     * These are the ones whose answer comes from the record's own state rather
+     * than from what the user is permitted to do: a purchase order and a
+     * delivery are cancelled rather than deleted, and a closed or cancelled
+     * problem is shut to everybody. Letting the bypass overrule them would put
+     * buttons on screens that the service layer then refuses.
+     *
+     * @var array<class-string, array<int, string>>
+     */
+    private const POLICY_ALONE = [
+        PurchaseOrder::class => ['delete'],
+        Delivery::class => ['delete'],
+        DeliveryProblem::class => ['update', 'close', 'cancel', 'delete'],
+        CorrectiveAction::class => ['create', 'complete', 'delete'],
+        ProblemAttachment::class => ['create', 'delete'],
+        SupplierEvaluation::class => ['regenerate', 'approve', 'reopen', 'delete'],
+        // A super administrator retiring their own account, or editing the one
+        // role that can undo a mistake, is the bypass working against itself.
+        User::class => ['delete', 'restore', 'assignSuperAdmin'],
+        Role::class => ['update', 'create', 'delete'],
+    ];
+
+    /**
+     * Whether this ability is one the bypass must defer on.
+     *
+     * The subject arrives as a model for an ability about one record and as a
+     * class-string for an ability about the type (`create`), so both forms are
+     * resolved to the same key.
+     */
+    private static function policyAlone(string $ability, mixed $subject): bool
+    {
+        $key = match (true) {
+            is_object($subject) => $subject::class,
+            is_string($subject) => $subject,
+            default => null,
+        };
+
+        return $key !== null && in_array($ability, self::POLICY_ALONE[$key] ?? [], true);
+    }
+
     public function register(): void
     {
         $this->app->singleton(SystemSettingService::class);
@@ -32,8 +81,34 @@ class AppServiceProvider extends ServiceProvider
         });
     }
 
+    /**
+     * Debug mode in production publishes a stack trace, the loaded
+     * configuration and the database credentials to anyone who can provoke an
+     * error - and `composer setup` copies an .env.example that has it on.
+     *
+     * Refusing to boot is the right failure: an application that is down is
+     * recoverable in minutes, while one that has been handing out its
+     * credentials is not.
+     *
+     * @throws RuntimeException
+     */
+    public static function guardAgainstProductionDebug(string $environment, bool $debug): void
+    {
+        if ($environment === 'production' && $debug) {
+            throw new RuntimeException(
+                'APP_DEBUG must be false when APP_ENV=production: debug mode exposes '
+                .'stack traces, configuration and database credentials on every error page.'
+            );
+        }
+    }
+
     public function boot(): void
     {
+        self::guardAgainstProductionDebug(
+            (string) config('app.env'),
+            (bool) config('app.debug'),
+        );
+
         // Fail loudly on accidental mass assignment and on lazy loading that
         // would otherwise become an N+1 in production (requirement 33).
         Model::shouldBeStrict(! $this->app->isProduction());
@@ -41,6 +116,13 @@ class AppServiceProvider extends ServiceProvider
         DB::prohibitDestructiveCommands($this->app->isProduction());
 
         Password::defaults(static fn (): Password => Password::min(8)->letters()->numbers());
+
+        /*
+         * Policy auto-discovery maps App\Models\X to App\Policies\XPolicy,
+         * which cannot find a vendor model - spatie's Role lives in its own
+         * namespace, so its policy is registered by hand or never runs.
+         */
+        Gate::policy(Role::class, RolePolicy::class);
 
         /*
          * The super administrator passes every gate.
@@ -51,14 +133,7 @@ class AppServiceProvider extends ServiceProvider
          * otherwise find themselves locked out of a screen they own.
          */
         Gate::before(static function (User $user, string $ability, array $arguments = []): ?bool {
-            /*
-             * Deleting a purchase order or a delivery is not a permission
-             * anyone can be granted - those records are cancelled, never
-             * removed - so the bypass defers to the policy that says no.
-             */
-            $subject = $arguments[0] ?? null;
-
-            if ($ability === 'delete' && ($subject instanceof PurchaseOrder || $subject instanceof Delivery)) {
+            if (self::policyAlone($ability, $arguments[0] ?? null)) {
                 return null;
             }
 

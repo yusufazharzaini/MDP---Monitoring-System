@@ -178,9 +178,112 @@ with a `BusinessRuleException`.
 - `problem_number` is generated `PRB-YYYYMM-####`, `delivery_number` `DN-YYYYMM-####`,
   `po_number` `PO-YYYYMM-####`, each allocated inside a locked transaction.
 - Closing a problem requires at least one corrective action with status `DONE`.
-- Attachments go to the **private** `storage/app/private/problem-attachments` disk,
-  validated by MIME type and size; downloads stream through an authorized controller.
-- An overdue problem (`due_date < today`, status not CLOSED/CANCELLED) triggers a notification.
+- A problem's supplier comes from the receipt it was raised against, and a material it
+  names must be one that receipt actually carried.
+- `problem_date` is never in the future and never before the receipt's `delivery_date`.
+- An empty `due_date` defaults to the severity's resolution window: LOW 30, MEDIUM 14,
+  HIGH 7, CRITICAL 3 days.
+- Recording the first corrective action moves the problem `OPEN -> IN_PROGRESS`.
+  Completing one never closes the problem: closing carries `problem.close`.
+- A completed corrective action is neither editable nor removable; a closure may rest on it.
+- A settled problem (CLOSED or CANCELLED) is closed to everyone, super administrator
+  included - `Gate::before` defers on the abilities listed in `AppServiceProvider::POLICY_ALONE`.
+- Attachments go to the **private** disk (`storage/app/private/attachments`) under
+  `problem-attachments/{problem ulid}/`, with a generated filename. The type is validated
+  twice - extension in the form request, probed MIME in `AttachmentService` - and downloads
+  stream through an authorized controller.
+- Overdue problems (`due_date < today`, status not CLOSED/CANCELLED) are notified as one
+  daily digest per recipient, sent to everyone holding `problem.close`.
+
+## 11.1 Supplier evaluation lifecycle
+
+- A scorecard is generated per `(supplier, period_year, period_month)` and starts `DRAFT`.
+- A DRAFT is recomputed from transactions on demand; an `APPROVED` one is frozen and
+  refuses recomputation until it is reopened.
+- Approving stamps `approved_by` and `approved_at`; reopening clears both and requires a reason.
+- `generateForAllSuppliers` skips approved scorecards instead of failing the batch.
+- A supplier with no receipts in the period is not evaluated at all - scoring one would
+  publish 10/100 and grade POOR, which reads as bad performance rather than no activity.
+- Ranking order: service rate desc, then delivery count desc, then supplier name asc.
+  A supplier with no deliveries in the period does not appear.
+- Grade bands (`GRADE_EXCELLENT` / `GRADE_GOOD` / `GRADE_AVERAGE`) come from `kpi_settings`;
+  nothing in the UI restates them.
+
+## 11.2 Document numbering
+
+`PO-YYYYMM-####`, `DN-YYYYMM-####`, `PRB-YYYYMM-####`, allocated inside a
+transaction under `lockForUpdate()`, with the unique index as the final word.
+
+- The sequence restarts at `0001` each month, and is dated by the *document*
+  (a receipt booked today for July goods takes a July number), not by today.
+- A cancelled document never frees its number: reissuing it would give two
+  records the same identifier in the supplier's files.
+- The four-digit pad is a minimum, not a ceiling. Past 9,999 the number widens
+  to five digits and keeps counting; the read orders by length before value,
+  because a plain string sort ranks `9999` above `10000` and would mint 10000
+  twice.
+
+## 11.3 Monetary precision (characterised, not assumed)
+
+The schema holds money as `decimal(18,4)`; the arithmetic above it runs through
+PHP floats (`round((float) qty * (float) price, 4)`, and a float cast on the SQL
+`SUM`). `tests/Feature/PurchaseOrder/MonetaryPrecisionTest.php` records what
+that costs:
+
+- Exact for every magnitude this system handles - orders in the tens of billions
+  of rupiah to four decimal places, hundred-line orders, fractional quantities
+  and prices, and edits that re-derive the total.
+- The bound is the column's own maximum, `99,999,999,999,999.9999`: eighteen
+  significant digits against a float64's fifteen or sixteen. That is roughly
+  five orders of magnitude above the largest order Torica raises.
+- **Accepted**, not fixed. `bcmath` is not among the deployment's PHP
+  extensions, so honouring the rule literally would add a hard dependency to buy
+  precision the business does not use. Revisit if amounts ever approach 10^12.
+
+## 11.4 Security rules added after the audit
+
+- **Only a super administrator may grant the super administrator role, and never to
+  themselves.** The role passes `Gate::before` unconditionally, so it grants permissions
+  that do not exist yet and survives any later trimming of a role in the matrix; its
+  permissions cannot be edited and its last holder cannot be demoted. `UserService`
+  refuses the grant for callers with no screen, `UserPolicy::assignSuperAdmin` answers for
+  the UI, and the option is not rendered to anybody who would be refused.
+- **Production refuses to boot with `APP_DEBUG=true`.** `composer setup` copies an
+  `.env.example` that has it on, and debug mode publishes stack traces, configuration and
+  database credentials on every error page.
+- **The session cookie is Secure whenever `APP_ENV=production`**, without anyone having to
+  remember the key.
+- **A report covers at most two years** (`ReportRequest::MAX_SPAN_DAYS`), and exports are
+  limited to ten a minute, attachment downloads to sixty.
+- **No disk is served over HTTP.** Attachments live at `storage/app/attachments`, outside
+  every other disk's root, so no future `serve` or `visibility` change can republish them.
+- **No unescaped output anywhere**: no `v-html`, no `{!! !!}`. Pinned by a test that scans
+  the source rather than by review.
+
+## 11.5 Account recovery
+
+There is no self-service password reset, and that is deliberate: it removes the
+whole reset-token attack surface from an internal system whose accounts are
+provisioned by an administrator. The cost is that recovery is a human procedure,
+so it is written down here rather than improvised over the phone.
+
+**To reset a password:** an administrator opens the account in User Management
+and sets a new one. Leaving the field blank leaves the existing password alone.
+
+**Every password change ends that account's sessions.** `AuthenticateSession` is
+in the `web` middleware group, so anyone signed in as that user - including an
+attacker holding a stolen session cookie - is logged out on their next request.
+This is what makes the reset an actual compromise-recovery action rather than
+just a new credential alongside the old access.
+
+**To revoke access immediately**, retire the account instead. That soft-deletes
+it and sets it INACTIVE; the existing session stops working on the next request
+and the login screen refuses it by name. History is kept, and the account can be
+restored.
+
+**Verify identity out of band before resetting.** A caller who knows a colleague's
+name and department is not thereby that colleague; this is the step social
+engineering targets.
 
 ## 12. Import rules (§26)
 

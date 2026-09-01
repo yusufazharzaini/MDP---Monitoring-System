@@ -2,13 +2,18 @@
 import { onBeforeUnmount, onMounted } from 'vue';
 import AppIcon from '@/Components/AppIcon.vue';
 
-const props = defineProps<{
-    open: boolean;
-    title: string;
-    message: string;
-    confirmLabel?: string;
-    processing?: boolean;
-}>();
+const props = withDefaults(
+    defineProps<{
+        open: boolean;
+        title: string;
+        message: string;
+        confirmLabel?: string;
+        processing?: boolean;
+        /** Destructive by default; 'brand' for a confirmation that is not a loss. */
+        tone?: 'critical' | 'brand';
+    }>(),
+    { tone: 'critical' },
+);
 
 const emit = defineEmits<{ confirm: []; cancel: [] }>();
 
@@ -35,13 +40,21 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKeydown));
         >
             <div class="card w-full max-w-md p-6">
                 <div class="flex items-start gap-3">
-                    <span class="flex size-10 shrink-0 items-center justify-center rounded-full bg-critical/12 text-critical">
-                        <AppIcon name="warning" :size="20" />
+                    <span
+                        class="flex size-10 shrink-0 items-center justify-center rounded-full"
+                        :class="tone === 'brand' ? 'bg-brand/15 text-brand' : 'bg-critical/12 text-critical'"
+                    >
+                        <AppIcon :name="tone === 'brand' ? 'good' : 'warning'" :size="20" />
                     </span>
                     <div class="min-w-0">
                         <h2 class="text-base font-semibold text-ink">{{ title }}</h2>
                         <p class="mt-1.5 text-sm leading-relaxed text-ink-muted">{{ message }}</p>
                     </div>
+                </div>
+
+                <!-- Anything the confirmation needs to collect, such as a reason. -->
+                <div v-if="$slots.default" class="mt-5">
+                    <slot />
                 </div>
 
                 <div class="mt-6 flex justify-end gap-2">
@@ -55,7 +68,8 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKeydown));
                     </button>
                     <button
                         type="button"
-                        class="rounded-lg bg-critical px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-60"
+                        class="rounded-lg px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-60"
+                        :class="tone === 'brand' ? 'bg-brand' : 'bg-critical'"
                         :disabled="processing"
                         @click="$emit('confirm')"
                     >

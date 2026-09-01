@@ -9,6 +9,7 @@ use App\Models\Delivery;
 use App\Models\Plant;
 use App\Models\PurchaseOrder;
 use App\Models\Supplier;
+use Database\Factories\Concerns\GeneratesDocumentNumbers;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -16,12 +17,14 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class DeliveryFactory extends Factory
 {
+    use GeneratesDocumentNumbers;
+
     protected $model = Delivery::class;
 
     public function definition(): array
     {
         return [
-            'delivery_number' => 'DN-'.now()->format('Ym').'-'.$this->faker->unique()->numerify('####'),
+            'delivery_number' => $this->documentNumber('DN'),
             'purchase_order_id' => PurchaseOrder::factory(),
             'supplier_id' => Supplier::factory(),
             'plant_id' => Plant::factory(),

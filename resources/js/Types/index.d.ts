@@ -27,9 +27,21 @@ export interface FlashMessages {
     warning: string | null;
 }
 
+export interface NotificationRow {
+    id: string;
+    title: string;
+    message: string;
+    severity: BadgeVariant;
+    url: string | null;
+    read: boolean;
+    created_at: string | null;
+}
+
 export interface SharedPageProps {
     auth: { user: AuthUser | null };
     kpi: Record<string, KpiThreshold>;
+    /** The bell's badge; the list itself is only loaded on its own page. */
+    unreadNotifications: number;
     flash: FlashMessages;
     app: { name: string };
     errors: Record<string, string>;
@@ -257,4 +269,317 @@ export interface PurchaseOrderFormOptions {
     materials: Array<SelectOption & { uom_id: number }>;
     uoms: SelectOption[];
     warehouses: Array<SelectOption & { plant_id: number }>;
+}
+
+/* --- Delivery ----------------------------------------------------------- */
+
+export interface ReceivableLine {
+    purchase_order_item_id: number;
+    line_no: number;
+    material_code: string | null;
+    material_name: string | null;
+    warehouse_name: string | null;
+    uom_code: string | null;
+    schedule_delivery_date: string;
+    qty_ordered: number;
+    qty_received: number;
+    outstanding: number;
+    booked_here: number | null;
+    booked_condition: string | null;
+}
+
+export interface ReceivingContext {
+    id: number;
+    ulid: string;
+    po_number: string;
+    po_date: string;
+    supplier_name: string | null;
+    plant_name: string | null;
+    status: string;
+    status_label: string;
+    status_variant: BadgeVariant;
+    lines: ReceivableLine[];
+}
+
+export interface DeliveryLine {
+    id: number;
+    purchase_order_item_id: number;
+    line_no: number | null;
+    material_code: string | null;
+    material_name: string | null;
+    uom_code: string | null;
+    schedule_delivery_date: string | null;
+    qty_ordered: number;
+    qty_received: number;
+    condition: string;
+    condition_label: string;
+    condition_variant: BadgeVariant;
+    overall_status: string;
+    overall_status_label: string;
+    overall_status_variant: BadgeVariant;
+    days_late: number;
+    remarks: string | null;
+}
+
+export interface DeliveryRecord {
+    id: number;
+    ulid: string;
+    delivery_number: string;
+    delivery_date: string;
+    do_number: string | null;
+    vehicle_number: string | null;
+    driver_name: string | null;
+    po_number: string | null;
+    purchase_order_ulid: string | null;
+    supplier_name: string | null;
+    plant_name: string | null;
+    received_by_name: string | null;
+    remarks: string | null;
+    items_count: number;
+    problems_count: number;
+    status: string;
+    status_label: string;
+    status_variant: BadgeVariant;
+    items: DeliveryLine[];
+}
+
+/* --- Delivery problem --------------------------------------------------- */
+
+export interface ProblemAttachmentRow {
+    ulid: string;
+    file_name: string;
+    human_file_size: string;
+    mime_type: string;
+    is_image: boolean;
+    uploaded_by: string | null;
+    uploaded_at: string | null;
+}
+
+export interface CorrectiveActionRow {
+    id: number;
+    action_date: string | null;
+    due_date: string | null;
+    description: string;
+    action_by: string | null;
+    status: string;
+    status_label: string;
+    status_variant: BadgeVariant;
+    is_done: boolean;
+    is_overdue: boolean;
+    completed_at: string | null;
+}
+
+export interface ProblemSummary {
+    id: number;
+    ulid: string;
+    problem_number: string;
+    problem_date: string | null;
+    due_date: string | null;
+    supplier_name: string | null;
+    material_name: string | null;
+    category_name: string | null;
+    delivery_number: string | null;
+    delivery_ulid: string | null;
+    pic: string | null;
+    severity: string;
+    severity_label: string;
+    severity_variant: BadgeVariant;
+    status: string;
+    status_label: string;
+    status_variant: BadgeVariant;
+    /** Both computed server-side: the page never derives "late" from dates. */
+    is_overdue: boolean;
+    days_until_due: number | null;
+    attachments_count: number;
+    corrective_actions_count: number;
+}
+
+export interface ProblemRecord extends ProblemSummary {
+    description: string;
+    root_cause: string | null;
+    closed_at: string | null;
+    reported_by: string | null;
+    plant_name: string | null;
+    po_number: string | null;
+    po_ulid: string | null;
+    delivery_date: string | null;
+    attachments: ProblemAttachmentRow[];
+    corrective_actions: CorrectiveActionRow[];
+}
+
+/** The subset the edit form reads back; the rest of ProblemSummary comes along. */
+export interface ProblemFormRecord extends ProblemSummary {
+    material_id: number | null;
+    problem_category_id: number;
+    description: string;
+    root_cause: string | null;
+}
+
+export interface ProblemDeliveryContext {
+    ulid: string;
+    delivery_number: string;
+    delivery_date: string | null;
+    supplier_name: string | null;
+    plant_name: string | null;
+    /** Only the materials this receipt carried; the service refuses others. */
+    materials: SelectOption[];
+}
+
+export interface ProblemFormOptions {
+    severities: SelectOption[];
+    categories: SelectOption[];
+}
+
+export interface ProblemQueueSummary {
+    open: number;
+    overdue: number;
+    critical: number;
+}
+
+/* --- Supplier performance & evaluation ---------------------------------- */
+
+export interface SupplierGradeBand {
+    grade: string;
+    label: string;
+    variant: BadgeVariant;
+    floor: number;
+    /** Null on the top band: nothing sits above Excellent. */
+    ceiling: number | null;
+}
+
+export interface SupplierScorecard {
+    supplier: {
+        id: number;
+        ulid: string;
+        code: string;
+        name: string;
+        short_name: string | null;
+        supplier_type: string;
+        lead_time_days: number;
+    };
+    period: DashboardFilters;
+    metrics: DashboardSummary;
+    service_rate: number;
+    service_rate_target: number;
+    meets_target: boolean;
+    grade: string;
+    grade_label: string;
+    grade_variant: BadgeVariant;
+    trend: TrendPoint[];
+    problem_breakdown: Array<{ category: string; count: number }>;
+}
+
+export interface EvaluationSummary {
+    id: number;
+    period: string;
+    supplier_code: string | null;
+    supplier_name: string | null;
+    delivery_score: number;
+    quality_score: number;
+    quantity_score: number;
+    responsiveness_score: number;
+    total_score: number;
+    grade: string;
+    grade_label: string;
+    grade_variant: BadgeVariant;
+    status: string;
+    status_label: string;
+    status_variant: BadgeVariant;
+    approved_by: string | null;
+    criteria_count: number;
+}
+
+export interface EvaluationRecord extends EvaluationSummary {
+    supplier_id: number;
+    supplier_ulid: string | null;
+    remarks: string | null;
+    created_by: string | null;
+    approved_at: string | null;
+    criteria: Array<{
+        criteria_name: string;
+        weight: number;
+        score: number;
+        /** The contribution to the total, computed server-side. */
+        weighted: number;
+    }>;
+}
+
+/* --- Reporting ---------------------------------------------------------- */
+
+export interface ReportColumnMeta {
+    key: string;
+    label: string;
+    align: 'left' | 'right';
+    numeric: boolean;
+    /** 0 for counts and ranks, 2 for measured values. */
+    decimals: number;
+}
+
+export interface ReportCatalogueEntry {
+    value: string;
+    label: string;
+    description: string;
+    /** Row-level reports stream a row per transaction; the rest are aggregates. */
+    row_level: boolean;
+}
+
+/* --- Administration ----------------------------------------------------- */
+
+export interface UserRow {
+    id: number;
+    ulid: string;
+    name: string;
+    email: string;
+    employee_code: string | null;
+    position: string | null;
+    department_name: string | null;
+    plant_name: string | null;
+    roles: string[];
+    status: string;
+    status_label: string;
+    status_variant: BadgeVariant;
+    is_retired: boolean;
+    /** True for the signed-in user's own row: nobody retires their own account. */
+    is_self: boolean;
+    can: { update: boolean; delete: boolean; restore: boolean };
+}
+
+export interface UserRecord extends UserRow {
+    department_id: number | null;
+    plant_id: number | null;
+    phone: string | null;
+}
+
+export interface RoleRow {
+    id: number;
+    name: string;
+    users_count: number;
+    permissions: string[];
+    /** SUPER_ADMIN: the escape hatch, deliberately not editable. */
+    protected: boolean;
+}
+
+export interface PermissionGroup {
+    group: string;
+    permissions: Array<{ name: string; action: string }>;
+}
+
+export interface AuditLogRow {
+    id: number;
+    action: string;
+    action_label: string;
+    action_variant: BadgeVariant;
+    module: string;
+    record_id: number | null;
+    user_name: string;
+    ip_address: string | null;
+    created_at: string | null;
+    changes: Array<{
+        field: string;
+        from: string | null;
+        to: string | null;
+        /** A list field reports what moved, not both whole lists. */
+        added: string[];
+        removed: string[];
+    }>;
 }

@@ -126,17 +126,71 @@ return new class extends Migration
         });
 
         Schema::table('purchase_order_items', function (Blueprint $table): void {
-            $table->dropIndex('po_items_material_schedule_index');
             $table->dropIndex('po_items_fulfillment_schedule_index');
         });
 
-        Schema::table('supplier_evaluation_items', function (Blueprint $table): void {
-            $table->dropUnique('evaluation_items_criteria_unique');
+        /*
+         * These four all begin with a foreign key column, and InnoDB will have
+         * adopted each of them as that key's required index rather than
+         * creating one of its own - so dropping them straight off is refused
+         * with "needed in a foreign key constraint". The constraint steps
+         * aside, the index goes, and the constraint is put back; InnoDB then
+         * builds its own index for it.
+         */
+        $this->dropIndexAdoptedByForeignKey(
+            'purchase_order_items', 'po_items_material_schedule_index',
+            'material_id', 'materials', unique: false,
+        );
+
+        $this->dropIndexAdoptedByForeignKey(
+            'supplier_evaluation_items', 'evaluation_items_criteria_unique',
+            'supplier_evaluation_id', 'supplier_evaluations', unique: true, cascade: true,
+        );
+
+        $this->dropIndexAdoptedByForeignKey(
+            'delivery_items', 'delivery_items_delivery_status_index',
+            'delivery_id', 'deliveries', unique: false,
+        );
+
+        $this->dropIndexAdoptedByForeignKey(
+            'delivery_items', 'delivery_items_line_unique',
+            'delivery_id', 'deliveries', unique: true,
+        );
+    }
+
+    /**
+     * Drop an index whose leftmost column is a foreign key, working around the
+     * fact that the engine may be relying on it.
+     *
+     * SQLite has no such restriction and cannot drop a foreign key at all, so
+     * there the index simply goes.
+     */
+    private function dropIndexAdoptedByForeignKey(
+        string $table,
+        string $index,
+        string $column,
+        string $references,
+        bool $unique,
+        bool $cascade = false,
+    ): void {
+        $needsDance = $this->supportsCheckConstraints();
+
+        Schema::table($table, function (Blueprint $blueprint) use ($index, $column, $unique, $needsDance): void {
+            if ($needsDance) {
+                $blueprint->dropForeign([$column]);
+            }
+
+            $unique ? $blueprint->dropUnique($index) : $blueprint->dropIndex($index);
         });
 
-        Schema::table('delivery_items', function (Blueprint $table): void {
-            $table->dropIndex('delivery_items_delivery_status_index');
-            $table->dropUnique('delivery_items_line_unique');
+        if (! $needsDance) {
+            return;
+        }
+
+        Schema::table($table, function (Blueprint $blueprint) use ($column, $references, $cascade): void {
+            $foreign = $blueprint->foreign($column)->references('id')->on($references);
+
+            $cascade ? $foreign->cascadeOnDelete() : $foreign->restrictOnDelete();
         });
     }
 
@@ -164,14 +218,16 @@ return new class extends Migration
             return;
         }
 
-        $keyword = DB::getDriverName() === 'mysql' ? 'CHECK' : 'CONSTRAINT';
-
+        /*
+         * DROP CONSTRAINT rather than MySQL's DROP CHECK: MariaDB has never
+         * accepted DROP CHECK, and MySQL has accepted DROP CONSTRAINT since
+         * 8.0.19 - so one spelling covers both engines.
+         */
         foreach (self::CHECKS as $table => $constraints) {
             foreach (array_keys($constraints) as $name) {
                 DB::statement(sprintf(
-                    'ALTER TABLE %s DROP %s %s',
+                    'ALTER TABLE %s DROP CONSTRAINT %s',
                     $this->wrap($table),
-                    $keyword,
                     $this->wrap($name),
                 ));
             }

@@ -21,11 +21,19 @@ const items: NavItem[] = [
     { key: 'suppliers', label: 'Supplier', icon: 'supplier', href: route('suppliers.index') },
     { key: 'materials', label: 'Material', icon: 'material', href: route('materials.index') },
     { key: 'plants', label: 'Plant', icon: 'box', href: route('plants.index') },
-    { key: 'warehouses', label: 'Warehouse', icon: 'delivery', href: route('warehouses.index') },
+    { key: 'warehouses', label: 'Warehouse', icon: 'box', href: route('warehouses.index') },
     { key: 'departments', label: 'Department', icon: 'report', href: route('departments.index') },
     { key: 'purchase-orders', label: 'Purchase Order', icon: 'order', href: route('purchase-orders.index') },
-    { key: 'problems', label: 'Problem Analysis', icon: 'problem' },
-    { key: 'reports', label: 'Report', icon: 'report' },
+    { key: 'deliveries', label: 'Delivery', icon: 'delivery', href: route('deliveries.index') },
+    { key: 'problems', label: 'Problem Analysis', icon: 'problem', href: route('problems.index') },
+    { key: 'supplier-performance', label: 'Supplier Performance', icon: 'trend', href: route('supplier-performance.index') },
+    { key: 'supplier-evaluations', label: 'Evaluasi Supplier', icon: 'good', href: route('supplier-evaluations.index') },
+    { key: 'critical-materials', label: 'Critical Material', icon: 'warning', href: route('critical-materials.index') },
+    { key: 'reports', label: 'Report', icon: 'report', href: route('reports.index') },
+    { key: 'users', label: 'Pengguna', icon: 'supplier', href: route('users.index') },
+    { key: 'roles', label: 'Peran & Permission', icon: 'settings', href: route('roles.index') },
+    { key: 'audit-logs', label: 'Audit Log', icon: 'clock', href: route('audit-logs.index') },
+    { key: 'notifications', label: 'Notifikasi', icon: 'warning', href: route('notifications.index') },
 ];
 </script>
 

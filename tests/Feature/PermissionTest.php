@@ -91,11 +91,14 @@ final class PermissionTest extends TestCase
     }
 
     #[Test]
-    public function management_can_approve_orders_but_never_create_them(): void
+    public function management_can_approve_and_cancel_orders_but_never_create_them(): void
     {
         $user = $this->userWithRole('MANAGEMENT');
 
         $this->assertTrue($user->can('po.approve'));
+        // Approving without the power to cancel would leave a manager able to
+        // start work they cannot call off.
+        $this->assertTrue($user->can('po.cancel'));
         $this->assertTrue($user->can('audit.view'));
         $this->assertFalse($user->can('po.create'));
         $this->assertFalse($user->can('delivery.create'));

@@ -49,6 +49,13 @@ class HandleInertiaRequests extends Middleware
             // Resolved lazily: unauthenticated pages never touch the database for this.
             'kpi' => fn (): array => $user === null ? [] : app(KpiSettingService::class)->forFrontend(),
 
+            /*
+             * The bell's count, lazily too. One indexed count against
+             * notifications_unread_index, on every page - which is why it is a
+             * count and not the notifications themselves.
+             */
+            'unreadNotifications' => fn (): int => $user?->unreadNotifications()->count() ?? 0,
+
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),
                 'error' => fn () => $request->session()->get('error'),

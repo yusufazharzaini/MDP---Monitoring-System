@@ -5,6 +5,26 @@ import type { Paginated } from '@/Types';
 defineProps<{ meta: Paginated<unknown> }>();
 
 const number = new Intl.NumberFormat('id-ID');
+
+/**
+ * Laravel writes its previous/next labels as HTML entities. Decoding the two
+ * we actually use keeps them readable without v-html, which was the only
+ * unescaped sink in the application - harmless while the labels come from the
+ * framework, and stored XSS the day one carries data.
+ */
+const ENTITIES: Record<string, string> = {
+    '&laquo;': '\u00ab',
+    '&raquo;': '\u00bb',
+    '&amp;': '&',
+    '&hellip;': '\u2026',
+};
+
+function label(raw: string): string {
+    return Object.entries(ENTITIES).reduce(
+        (text, [entity, character]) => text.split(entity).join(character),
+        raw,
+    );
+}
 </script>
 
 <template>
@@ -35,13 +55,11 @@ const number = new Intl.NumberFormat('id-ID');
                             ? 'bg-brand text-white'
                             : 'text-ink-muted hover:bg-surface-hover hover:text-ink'
                     "
-                    v-html="link.label"
-                />
+                >{{ label(link.label) }}</Link>
                 <span
                     v-else
                     class="min-w-[2rem] px-2.5 py-1.5 text-center text-xs text-ink-subtle/50"
-                    v-html="link.label"
-                />
+                >{{ label(link.label) }}</span>
             </template>
         </div>
     </nav>

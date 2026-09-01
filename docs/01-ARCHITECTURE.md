@@ -57,7 +57,7 @@ app/
 ├── Console/Commands/   # scheduled maintenance commands
 ├── DataTransferObjects/# DashboardFilter and friends (immutable, readonly)
 ├── Enums/              # backed enums for every status/severity/type
-├── Events/             # DeliveryReceived, ProblemOpened, PurchaseOrderApproved...
+├── Events/             # DeliveryReceived, ProblemReported, PurchaseOrderApproved...
 ├── Exceptions/         # BusinessRuleException and domain errors
 ├── Exports/            # Laravel Excel export classes
 ├── Http/
@@ -105,3 +105,6 @@ implemented consistently across schema, services, tests and UI.
 | A10 | Delivery header `status` | Operational lifecycle (PENDING/RECEIVED/PARTIAL/COMPLETED/CANCELLED), recalculated from its lines. Performance status is *never* stored on the header. |
 | A11 | Currency | Stored per PO as ISO code; amounts are `decimal(18,4)`. No FX conversion in scope. |
 | A12 | Over-delivery tolerance | `system_settings.delivery.over_tolerance_percent` (default 0) — receipts within tolerance count as FULL, not OVER. |
+| A13 | Corrective action identifiers | Corrective actions have no `ulid`. They are only ever addressed inside a problem's own ULID URL, and the controller refuses an action belonging to another problem, so the numeric id reveals nothing reachable. |
+| A15 | Evaluation permissions | The specification's §22 permission list has no evaluation module. Approving a supplier's monthly grade is a management judgement rather than a reporting action, and `report.view` reaches every VIEWER, so `evaluation.view` / `.create` / `.approve` were added rather than conflating sign-off with report access. |
+| A14 | Overdue notification shape | The requirement says an overdue problem triggers a notification; it is delivered as one daily digest per recipient rather than one message per problem, because a supervisor with a backlog needs a queue to work, not a mailbox to clear. |

@@ -286,6 +286,7 @@ final class DemoDataIntegrityTest extends TestCase
     public function the_denormalised_rollup_agrees_with_the_delivery_lines(): void
     {
         $drifted = DB::table('purchase_order_items as poi')
+            ->select('poi.id', 'poi.qty_received')
             ->leftJoin('delivery_items as di', 'di.purchase_order_item_id', '=', 'poi.id')
             ->leftJoin('deliveries as d', 'd.id', '=', 'di.delivery_id')
             ->where(function ($query): void {
