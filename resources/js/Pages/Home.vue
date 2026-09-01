@@ -29,7 +29,7 @@ function logout(): void {
 </script>
 
 <template>
-    <Head title="Workspace" />
+    <Head :title="t('home.workspace')" />
 
     <div class="min-h-screen bg-canvas">
         <header class="border-b border-line bg-surface">
@@ -55,12 +55,10 @@ function logout(): void {
 
         <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6">
             <h1 class="text-xl font-semibold text-ink">Selamat datang, {{ user?.name }}</h1>
-            <p class="mt-1 text-sm text-ink-muted">
-                Ringkasan data sistem dan modul yang dapat Anda akses.
-            </p>
+            <p class="mt-1 text-sm text-ink-muted">{{ t('home.summary_hint') }}</p>
 
             <section class="mt-8">
-                <h2 class="field-label">Ringkasan data</h2>
+                <h2 class="field-label">{{ t('home.summary') }}</h2>
                 <dl class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
                     <div v-for="stat in stats" :key="stat.label" class="card p-4">
                         <dt class="text-xs font-medium text-ink-subtle">{{ stat.label }}</dt>

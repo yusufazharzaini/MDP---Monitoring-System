@@ -96,7 +96,7 @@ watch([period, plantId, categoryId], () => {
 
                 <EmptyState
                     v-if="ranking.length === 0"
-                    title="Tidak ada penerimaan pada periode ini"
+                    :title="t('performance.no_receipts')"
                     message="Supplier tanpa penerimaan tidak diperingkat, karena 0% berarti tidak ada data — bukan performa buruk."
                 />
 
@@ -148,9 +148,7 @@ watch([period, plantId, categoryId], () => {
                                     <Link
                                         :href="route('supplier-performance.show', row.supplier_ulid)"
                                         class="rounded-md px-2 py-1 text-xs font-semibold text-ink-muted transition hover:text-info"
-                                    >
-                                        Scorecard
-                                    </Link>
+                                    >{{ t('performance.scorecard') }}</Link>
                                 </td>
                             </tr>
                         </tbody>

@@ -31,17 +31,17 @@ defineProps<{
 </script>
 
 <template>
-    <TextInput id="code" v-model="form.code" label="Kode Supplier" required autofocus :error="form.errors.code" />
-    <TextInput id="name" v-model="form.name" label="Nama Supplier" required :error="form.errors.name" />
-    <TextInput id="short_name" v-model="form.short_name" label="Nama Singkat" :error="form.errors.short_name" hint="Dipakai pada tabel dashboard" />
+    <TextInput id="code" v-model="form.code" :label="t('supplier.code')" required autofocus :error="form.errors.code" />
+    <TextInput id="name" v-model="form.name" :label="t('supplier.name')" required :error="form.errors.name" />
+    <TextInput id="short_name" v-model="form.short_name" :label="t('supplier.short_name')" :error="form.errors.short_name" hint="Dipakai pada tabel dashboard" />
     <TextInput id="city" v-model="form.city" :label="t('common.city')" :error="form.errors.city" />
-    <TextInput id="country" v-model="form.country" label="Negara" required :error="form.errors.country" />
+    <TextInput id="country" v-model="form.country" :label="t('supplier.country')" required :error="form.errors.country" />
     <TextInput id="pic_name" v-model="form.pic_name" :label="t('po.pic_name')" :error="form.errors.pic_name" />
-    <TextInput id="pic_email" v-model="form.pic_email" type="email" label="Email PIC" :error="form.errors.pic_email" />
+    <TextInput id="pic_email" v-model="form.pic_email" type="email" :label="t('supplier.pic_email')" :error="form.errors.pic_email" />
     <TextInput id="pic_phone" v-model="form.pic_phone" :label="t('po.pic_phone')" :error="form.errors.pic_phone" />
     <TextInput id="lead_time_days" v-model="form.lead_time_days" type="number" :min="0" :label="t('po.lead_time_days')" required :error="form.errors.lead_time_days" />
     <TextInput id="payment_term" v-model="form.payment_term" :label="t('po.payment_term')" :error="form.errors.payment_term" />
-    <SelectInput id="supplier_type" v-model="form.supplier_type" label="Tipe Supplier" required :options="options.types" :error="form.errors.supplier_type" />
+    <SelectInput id="supplier_type" v-model="form.supplier_type" :label="t('supplier.type')" required :options="options.types" :error="form.errors.supplier_type" />
     <SelectInput id="status" v-model="form.status" :label="t('common.status')" required :options="options.statuses" :error="form.errors.status" />
     <div class="sm:col-span-2">
         <TextareaInput id="address" v-model="form.address" :label="t('common.address')" :error="form.errors.address" />

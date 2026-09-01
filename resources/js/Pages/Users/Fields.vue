@@ -44,7 +44,7 @@ defineProps<{
         id="password"
         v-model="form.password"
         type="password"
-        label="Kata Sandi"
+        :label="t('user.password')"
         :required="!isEdit"
         :error="form.errors.password"
         :hint="isEdit ? 'Kosongkan bila tidak ingin mengubah kata sandi.' : 'Minimal 8 karakter, mengandung huruf dan angka.'"
@@ -53,17 +53,17 @@ defineProps<{
         id="password_confirmation"
         v-model="form.password_confirmation"
         type="password"
-        label="Konfirmasi Kata Sandi"
+        :label="t('user.password_confirm')"
         :required="!isEdit"
     />
-    <TextInput id="employee_code" v-model="form.employee_code" label="Nomor Induk" :error="form.errors.employee_code" />
+    <TextInput id="employee_code" v-model="form.employee_code" :label="t('user.employee_code')" :error="form.errors.employee_code" />
     <TextInput id="position" v-model="form.position" :label="t('common.position')" :error="form.errors.position" />
     <SelectInput
         id="department_id"
         v-model="form.department_id"
         :label="t('common.department')"
         numeric
-        placeholder="Tidak ditentukan"
+        :placeholder="t('common.unspecified')"
         :options="options.departments"
         :error="form.errors.department_id"
     />
@@ -72,7 +72,7 @@ defineProps<{
         v-model="form.plant_id"
         :label="t('entity.plant')"
         numeric
-        placeholder="Tidak ditentukan"
+        :placeholder="t('common.unspecified')"
         :options="options.plants"
         :error="form.errors.plant_id"
     />

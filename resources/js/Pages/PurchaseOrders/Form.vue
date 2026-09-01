@@ -76,7 +76,7 @@ function submit(): void {
                         id="po_date"
                         v-model="form.po_date"
                         type="date"
-                        label="Tanggal PO"
+                        :label="t('po.date')"
                         required
                         :error="form.errors.po_date"
                     />
@@ -86,7 +86,7 @@ function submit(): void {
                         :label="t('entity.supplier')"
                         required
                         numeric
-                        placeholder="Pilih supplier"
+                        :placeholder="t('select.supplier')"
                         :options="options.suppliers"
                         :error="form.errors.supplier_id"
                     />
@@ -103,7 +103,7 @@ function submit(): void {
                     <TextInput
                         id="currency"
                         v-model="form.currency"
-                        label="Mata Uang"
+                        :label="t('po.currency')"
                         required
                         :error="form.errors.currency"
                     />

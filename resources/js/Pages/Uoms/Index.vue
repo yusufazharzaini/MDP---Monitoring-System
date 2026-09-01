@@ -4,6 +4,9 @@ import ResourceIndex, {
     type MasterDataRow,
 } from '@/Components/MasterData/ResourceIndex.vue';
 import type { Paginated, SelectOption } from '@/Types';
+import { useTranslate } from '@/Composables/useTranslate';
+
+const { t } = useTranslate();
 
 defineProps<{
     records: Paginated<MasterDataRow>;
@@ -45,7 +48,7 @@ const statusOptions: SelectOption[] = [
 
 <template>
     <ResourceIndex
-        title="Unit of Measure"
+        :title="t('master.uom_index')"
         subtitle="Satuan yang dipakai material dan baris purchase order"
         current="materials"
         route-name="uoms"

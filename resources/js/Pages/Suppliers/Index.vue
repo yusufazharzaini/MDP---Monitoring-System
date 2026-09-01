@@ -59,7 +59,7 @@ const statusOptions: SelectOption[] = [
 
 <template>
     <ResourceIndex
-        title="Master Supplier"
+        :title="t('supplier.index_title')"
         subtitle="Data supplier beserta lead time dan status kerja samanya"
         current="suppliers"
         route-name="suppliers"

@@ -58,7 +58,7 @@ const statusOptions: SelectOption[] = [
 
 <template>
     <ResourceIndex
-        title="Master Material"
+        :title="t('material.index_title')"
         subtitle="Katalog material beserta ambang stok dan penanda critical"
         current="materials"
         route-name="materials"

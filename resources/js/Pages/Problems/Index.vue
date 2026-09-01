@@ -65,22 +65,22 @@ watch([search, status, severity, supplierId, categoryId, overdueOnly], () => {
 </script>
 
 <template>
-    <Head title="Problem Analysis" />
+    <Head :title="t('nav.problem_analysis')" />
 
     <AppLayout
         current="problems"
-        title="Problem Analysis"
+        :title="t('nav.problem_analysis')"
         subtitle="Masalah delivery, root cause, dan corrective action"
     >
         <div class="space-y-5">
             <!-- Counted in the database, not derived from the page of rows below. -->
             <div class="grid gap-4 sm:grid-cols-3">
                 <article class="card p-4">
-                    <p class="text-[0.65rem] font-semibold tracking-wider text-ink-subtle uppercase">Problem terbuka</p>
+                    <p class="text-[0.65rem] font-semibold tracking-wider text-ink-subtle uppercase">{{ t('problem.open_count') }}</p>
                     <p class="mt-1 text-2xl font-semibold text-ink tabular-nums">{{ summary.open }}</p>
                 </article>
                 <article class="card p-4">
-                    <p class="text-[0.65rem] font-semibold tracking-wider text-ink-subtle uppercase">Melewati due date</p>
+                    <p class="text-[0.65rem] font-semibold tracking-wider text-ink-subtle uppercase">{{ t('problem.overdue') }}</p>
                     <p
                         class="mt-1 text-2xl font-semibold tabular-nums"
                         :class="summary.overdue > 0 ? 'text-critical' : 'text-ink'"
@@ -89,7 +89,7 @@ watch([search, status, severity, supplierId, categoryId, overdueOnly], () => {
                     </p>
                 </article>
                 <article class="card p-4">
-                    <p class="text-[0.65rem] font-semibold tracking-wider text-ink-subtle uppercase">Severity critical</p>
+                    <p class="text-[0.65rem] font-semibold tracking-wider text-ink-subtle uppercase">{{ t('problem.critical_severity') }}</p>
                     <p
                         class="mt-1 text-2xl font-semibold tabular-nums"
                         :class="summary.critical > 0 ? 'text-critical' : 'text-ink'"
@@ -106,8 +106,8 @@ watch([search, status, severity, supplierId, categoryId, overdueOnly], () => {
                             v-model="search"
                             type="search"
                             class="field-input pl-9"
-                            placeholder="Cari no. problem atau deskripsi…"
-                            aria-label="Cari problem"
+                            :placeholder="t('problem.search_placeholder')"
+                            :aria-label="t('problem.search')"
                         />
                         <AppIcon
                             name="filter"
@@ -123,8 +123,8 @@ watch([search, status, severity, supplierId, categoryId, overdueOnly], () => {
                         </option>
                     </select>
 
-                    <select v-model="severity" class="field-input w-auto min-w-[9rem]" aria-label="Filter severity">
-                        <option value="">Semua severity</option>
+                    <select v-model="severity" class="field-input w-auto min-w-[9rem]" :aria-label="t('filter.severity')">
+                        <option value="">{{ t('filter.all_severities') }}</option>
                         <option v-for="option in options.severities" :key="option.value" :value="option.value">
                             {{ option.label }}
                         </option>
@@ -145,9 +145,7 @@ watch([search, status, severity, supplierId, categoryId, overdueOnly], () => {
                     </select>
 
                     <label class="flex items-center gap-2 text-sm text-ink-muted">
-                        <input v-model="overdueOnly" type="checkbox" class="size-4 rounded border-line" />
-                        Terlambat saja
-                    </label>
+                        <input v-model="overdueOnly" type="checkbox" class="size-4 rounded border-line" />{{ t('problem.only_overdue') }}</label>
                 </header>
 
                 <EmptyState
@@ -160,13 +158,13 @@ watch([search, status, severity, supplierId, categoryId, overdueOnly], () => {
                     <table class="w-full min-w-[62rem] text-sm">
                         <thead>
                             <tr class="border-b border-line text-[0.65rem] tracking-wider text-ink-subtle uppercase">
-                                <th scope="col" class="px-5 py-3 text-left font-semibold">No Problem</th>
+                                <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('problem.number') }}</th>
                                 <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('common.date') }}</th>
                                 <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('entity.supplier') }}</th>
                                 <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('common.category') }}</th>
                                 <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('common.severity') }}</th>
                                 <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('common.target') }}</th>
-                                <th scope="col" class="px-5 py-3 text-right font-semibold">Tindakan</th>
+                                <th scope="col" class="px-5 py-3 text-right font-semibold">{{ t('problem.action_column') }}</th>
                                 <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('common.status') }}</th>
                                 <th scope="col" class="px-5 py-3 text-right font-semibold">{{ t('common.actions') }}</th>
                             </tr>

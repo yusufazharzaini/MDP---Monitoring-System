@@ -165,9 +165,7 @@ const isSettled = computed(() => !['OPEN', 'IN_PROGRESS'].includes(props.record.
                         v-if="record.delivery_ulid"
                         :href="route('deliveries.show', record.delivery_ulid)"
                         class="rounded-lg border border-line px-3.5 py-2 text-sm font-semibold text-ink-muted transition hover:border-info hover:text-info"
-                    >
-                        Lihat delivery
-                    </Link>
+                    >{{ t('problem.view_delivery') }}</Link>
                     <Link
                         v-if="can.update"
                         :href="route('problems.edit', record.ulid)"
@@ -189,9 +187,7 @@ const isSettled = computed(() => !['OPEN', 'IN_PROGRESS'].includes(props.record.
                                 : 'Butuh minimal satu corrective action berstatus Done sebelum problem dapat ditutup.'
                         "
                         @click="closing = true"
-                    >
-                        Tutup problem
-                    </button>
+                    >{{ t('problem.close') }}</button>
                     <button
                         v-if="can.cancel"
                         type="button"
@@ -228,7 +224,7 @@ const isSettled = computed(() => !['OPEN', 'IN_PROGRESS'].includes(props.record.
 
             <section class="card p-5">
                 <div class="flex flex-wrap items-center justify-between gap-3">
-                    <h2 class="text-sm font-semibold tracking-wide text-ink uppercase">Informasi Problem</h2>
+                    <h2 class="text-sm font-semibold tracking-wide text-ink uppercase">{{ t('problem.info') }}</h2>
                     <div class="flex items-center gap-2">
                         <StatusBadge :label="record.severity_label" :variant="record.severity_variant" />
                         <StatusBadge :label="record.status_label" :variant="record.status_variant" />
@@ -256,10 +252,8 @@ const isSettled = computed(() => !['OPEN', 'IN_PROGRESS'].includes(props.record.
             <section class="card">
                 <header class="flex flex-wrap items-center justify-between gap-3 border-b border-line px-5 py-4">
                     <div>
-                        <h2 class="text-sm font-semibold tracking-wide text-ink uppercase">Corrective Action</h2>
-                        <p class="mt-0.5 text-xs text-ink-muted">
-                            Problem hanya dapat ditutup bila minimal satu tindakan berstatus Done.
-                        </p>
+                        <h2 class="text-sm font-semibold tracking-wide text-ink uppercase">{{ t('problem.corrective_action') }}</h2>
+                        <p class="mt-0.5 text-xs text-ink-muted">{{ t('problem.close_requires_done') }}</p>
                     </div>
                     <StatusBadge
                         :label="closable ? 'Siap ditutup' : 'Belum ada tindakan selesai'"
@@ -269,7 +263,7 @@ const isSettled = computed(() => !['OPEN', 'IN_PROGRESS'].includes(props.record.
 
                 <EmptyState
                     v-if="record.corrective_actions.length === 0"
-                    title="Belum ada corrective action"
+                    :title="t('problem.no_actions')"
                     message="Catat tindakan yang sudah dilakukan terhadap problem ini."
                 />
 
@@ -298,16 +292,12 @@ const isSettled = computed(() => !['OPEN', 'IN_PROGRESS'].includes(props.record.
                                         type="button"
                                         class="rounded-md border border-line px-2 py-1 text-xs font-semibold text-ink-muted transition hover:text-ink"
                                         @click="startAction(action)"
-                                    >
-                                        Mulai
-                                    </button>
+                                    >{{ t('problem.start') }}</button>
                                     <button
                                         type="button"
                                         class="rounded-md border border-line px-2 py-1 text-xs font-semibold text-ink-muted transition hover:border-success hover:text-success"
                                         @click="completeAction(action)"
-                                    >
-                                        Selesai
-                                    </button>
+                                    >{{ t('common.done') }}</button>
                                     <button
                                         type="button"
                                         class="rounded-md border border-line px-2 py-1 text-xs font-semibold text-ink-muted transition hover:border-critical hover:text-critical"
@@ -325,7 +315,7 @@ const isSettled = computed(() => !['OPEN', 'IN_PROGRESS'].includes(props.record.
                             id="action_date"
                             v-model="actionForm.action_date"
                             type="date"
-                            label="Tanggal Tindakan"
+                            :label="t('problem.action_date')"
                             required
                             :error="actionForm.errors.action_date"
                         />
@@ -333,14 +323,14 @@ const isSettled = computed(() => !['OPEN', 'IN_PROGRESS'].includes(props.record.
                             id="action_due_date"
                             v-model="actionForm.due_date"
                             type="date"
-                            label="Target Selesai"
+                            :label="t('problem.target_date')"
                             :error="actionForm.errors.due_date"
                         />
                         <div class="sm:col-span-2">
                             <TextareaInput
                                 id="action_description"
                                 v-model="actionForm.description"
-                                label="Tindakan yang Dilakukan"
+                                :label="t('problem.action_taken')"
                                 required
                                 :error="actionForm.errors.description"
                             />
@@ -351,9 +341,7 @@ const isSettled = computed(() => !['OPEN', 'IN_PROGRESS'].includes(props.record.
                             type="submit"
                             class="rounded-lg bg-brand px-3.5 py-2 text-sm font-semibold text-white transition hover:bg-brand-soft disabled:opacity-60"
                             :disabled="actionForm.processing"
-                        >
-                            Tambah corrective action
-                        </button>
+                        >{{ t('problem.add_action') }}</button>
                     </div>
                 </form>
             </section>
@@ -361,7 +349,7 @@ const isSettled = computed(() => !['OPEN', 'IN_PROGRESS'].includes(props.record.
             <section class="card">
                 <header class="flex flex-wrap items-center justify-between gap-3 border-b border-line px-5 py-4">
                     <div>
-                        <h2 class="text-sm font-semibold tracking-wide text-ink uppercase">Lampiran</h2>
+                        <h2 class="text-sm font-semibold tracking-wide text-ink uppercase">{{ t('problem.attachments') }}</h2>
                         <p class="mt-0.5 text-xs text-ink-muted">
                             Disimpan pada penyimpanan privat. Maksimal {{ maxAttachmentMb }} MB per file.
                         </p>
@@ -370,7 +358,7 @@ const isSettled = computed(() => !['OPEN', 'IN_PROGRESS'].includes(props.record.
 
                 <EmptyState
                     v-if="record.attachments.length === 0"
-                    title="Belum ada lampiran"
+                    :title="t('problem.no_attachments')"
                     message="Unggah foto barang, berita acara, atau dokumen pendukung lain."
                 />
 
@@ -401,9 +389,7 @@ const isSettled = computed(() => !['OPEN', 'IN_PROGRESS'].includes(props.record.
                             <a
                                 :href="route('problem-attachments.download', [record.ulid, file.ulid])"
                                 class="rounded-md border border-line px-2 py-1 text-xs font-semibold text-ink-muted transition hover:border-info hover:text-info"
-                            >
-                                Unduh
-                            </a>
+                            >{{ t('common.download') }}</a>
                             <button
                                 v-if="can.addAttachment && !isSettled"
                                 type="button"
@@ -417,7 +403,7 @@ const isSettled = computed(() => !['OPEN', 'IN_PROGRESS'].includes(props.record.
                 <form v-if="can.addAttachment" class="border-t border-line px-5 py-4" @submit.prevent="upload">
                     <div class="flex flex-wrap items-end gap-3">
                         <div class="min-w-[16rem] flex-1">
-                            <label for="attachment" class="field-label">Pilih file</label>
+                            <label for="attachment" class="field-label">{{ t('common.choose_file') }}</label>
                             <input
                                 id="attachment"
                                 ref="fileInput"
@@ -434,9 +420,7 @@ const isSettled = computed(() => !['OPEN', 'IN_PROGRESS'].includes(props.record.
                             type="submit"
                             class="rounded-lg bg-brand px-3.5 py-2 text-sm font-semibold text-white transition hover:bg-brand-soft disabled:opacity-60"
                             :disabled="uploadForm.processing || !uploadForm.file"
-                        >
-                            Unggah
-                        </button>
+                        >{{ t('common.upload') }}</button>
                     </div>
                     <p v-if="uploadForm.progress" class="mt-2 text-xs text-ink-subtle">
                         Mengunggah {{ uploadForm.progress.percentage }}%
@@ -447,7 +431,7 @@ const isSettled = computed(() => !['OPEN', 'IN_PROGRESS'].includes(props.record.
 
         <ConfirmDialog
             :open="closing"
-            title="Tutup problem"
+            :title="t('problem.close')"
             message="Problem akan ditandai selesai. Catatan penutup akan menggantikan root cause bila diisi."
             confirm-label="Tutup problem"
             :processing="closeForm.processing"
@@ -457,14 +441,14 @@ const isSettled = computed(() => !['OPEN', 'IN_PROGRESS'].includes(props.record.
             <TextareaInput
                 id="close_note"
                 v-model="closeForm.note"
-                label="Catatan penutup"
+                :label="t('problem.closing_note')"
                 :error="closeForm.errors.note"
             />
         </ConfirmDialog>
 
         <ConfirmDialog
             :open="cancelling"
-            title="Batalkan problem"
+            :title="t('problem.cancel')"
             message="Problem tetap tercatat tetapi tidak lagi dihitung pada analisis. Sebutkan alasannya."
             confirm-label="Batalkan problem"
             :processing="cancelForm.processing"

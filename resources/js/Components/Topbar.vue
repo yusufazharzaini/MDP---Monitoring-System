@@ -55,7 +55,7 @@ function logout(): void {
             <button
                 type="button"
                 class="rounded-lg border border-line p-2 text-ink-muted transition hover:text-ink lg:hidden"
-                aria-label="Buka menu"
+                :aria-label="t('common.open_menu')"
                 @click="$emit('toggleSidebar')"
             >
                 <AppIcon name="menu" :size="18" />

@@ -117,11 +117,11 @@ const periodLabel = computed(() =>
 </script>
 
 <template>
-    <Head title="Dashboard" />
+    <Head :title="t('nav.dashboard')" />
 
     <AppLayout
         current="dashboard"
-        title="Service Rate Delivery Material"
+        :title="t('dashboard.material_service_rate')"
         :subtitle="`Monitor ketepatan delivery material dari supplier — periode ${periodLabel}`"
         :generated-at="generatedAt"
         :refreshing="loading"
@@ -143,7 +143,7 @@ const periodLabel = computed(() =>
 
             <template v-else>
                 <!-- KPI cards -->
-                <section aria-label="Ringkasan KPI">
+                <section :aria-label="t('dashboard.kpi_summary')">
                     <div v-if="loading" class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
                         <div v-for="n in 6" :key="n" class="card space-y-4 p-5">
                             <SkeletonBlock height="0.7rem" width="55%" />
@@ -172,7 +172,7 @@ const periodLabel = computed(() =>
                 <!-- Trend + supplier ranking -->
                 <div class="grid gap-5 xl:grid-cols-2">
                     <PanelCard
-                        title="Trend Service Rate"
+                        :title="t('dashboard.service_rate_trend')"
                         subtitle="Enam bulan terakhir terhadap target"
                         :loading="loading"
                         :empty="payload.trend.every((point) => point.total_delivery === 0)"
@@ -202,7 +202,7 @@ const periodLabel = computed(() =>
                 <!-- Pareto + critical materials -->
                 <div class="grid gap-5 xl:grid-cols-2">
                     <PanelCard
-                        title="Pareto Masalah Delivery"
+                        :title="t('dashboard.pareto')"
                         :subtitle="`${payload.pareto.total_problems} masalah — ${payload.pareto.vital_few_count} kategori menyumbang mayoritas`"
                         :loading="loading"
                         :empty="payload.pareto.categories.length === 0"
@@ -218,10 +218,10 @@ const periodLabel = computed(() =>
                                 <table class="w-full min-w-[30rem] text-sm">
                                     <thead>
                                         <tr class="border-b border-line text-[0.65rem] tracking-wider text-ink-subtle uppercase">
-                                            <th scope="col" class="py-2 pr-3 text-left font-semibold">Problem</th>
-                                            <th scope="col" class="px-3 py-2 text-right font-semibold">Count</th>
+                                            <th scope="col" class="py-2 pr-3 text-left font-semibold">{{ t('dashboard.problem') }}</th>
+                                            <th scope="col" class="px-3 py-2 text-right font-semibold">{{ t('dashboard.count') }}</th>
                                             <th scope="col" class="px-3 py-2 text-right font-semibold">%</th>
-                                            <th scope="col" class="py-2 pl-3 text-right font-semibold">Kumulatif</th>
+                                            <th scope="col" class="py-2 pl-3 text-right font-semibold">{{ t('dashboard.cumulative') }}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -235,7 +235,7 @@ const periodLabel = computed(() =>
                                                 <span
                                                     v-if="row.is_vital_few"
                                                     class="ml-2 rounded bg-info/12 px-1.5 py-0.5 text-[0.6rem] font-semibold tracking-wide text-info uppercase whitespace-nowrap"
-                                                >Vital few</span>
+                                                >{{ t('dashboard.vital_few') }}</span>
                                             </td>
                                             <td class="px-3 py-2 text-right text-ink tabular-nums">{{ row.count }}</td>
                                             <td class="px-3 py-2 text-right text-ink-muted tabular-nums">
@@ -286,7 +286,7 @@ const periodLabel = computed(() =>
 
                 <!-- PO monitoring -->
                 <PanelCard
-                    title="Detail Monitoring PO Delivery"
+                    :title="t('dashboard.po_monitoring')"
                     subtitle="Baris yang perlu perhatian ditampilkan lebih dahulu"
                     :loading="loading"
                     :empty="payload.recent_deliveries.length === 0"

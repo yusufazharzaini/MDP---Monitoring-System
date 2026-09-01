@@ -95,9 +95,7 @@ const details = computed(() => [
                         type="button"
                         class="rounded-lg bg-brand px-3.5 py-2 text-sm font-semibold text-white transition hover:bg-brand-soft"
                         @click="confirming = 'submit'"
-                    >
-                        Ajukan approval
-                    </button>
+                    >{{ t('po.submit_approval') }}</button>
                     <button
                         v-if="can.approve"
                         type="button"
@@ -141,12 +139,10 @@ const details = computed(() => [
                             />
                         </li>
                     </ol>
-                    <StatusBadge v-else label="Dibatalkan" variant="danger" />
+                    <StatusBadge v-else :label="t('po.cancelled')" variant="danger" />
 
                     <p class="text-right">
-                        <span class="block text-[0.65rem] font-semibold tracking-wider text-ink-subtle uppercase">
-                            Total nilai
-                        </span>
+                        <span class="block text-[0.65rem] font-semibold tracking-wider text-ink-subtle uppercase">{{ t('po.total_value') }}</span>
                         <span class="text-2xl font-semibold text-ink tabular-nums">
                             {{ record.currency }} {{ money.format(record.total_amount) }}
                         </span>
@@ -155,7 +151,7 @@ const details = computed(() => [
             </section>
 
             <section class="card p-5">
-                <h2 class="text-sm font-semibold tracking-wide text-ink uppercase">Informasi PO</h2>
+                <h2 class="text-sm font-semibold tracking-wide text-ink uppercase">{{ t('po.info') }}</h2>
                 <dl class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     <div v-for="detail in details" :key="detail.label">
                         <dt class="text-[0.65rem] font-semibold tracking-wider text-ink-subtle uppercase">
@@ -183,7 +179,7 @@ const details = computed(() => [
                                 <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('entity.warehouse') }}</th>
                                 <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('po.schedule') }}</th>
                                 <th scope="col" class="px-5 py-3 text-right font-semibold">{{ t('po.qty') }}</th>
-                                <th scope="col" class="px-5 py-3 text-right font-semibold">Diterima</th>
+                                <th scope="col" class="px-5 py-3 text-right font-semibold">{{ t('po.received') }}</th>
                                 <th scope="col" class="px-5 py-3 text-right font-semibold">{{ t('common.quantity') }}</th>
                                 <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('common.status') }}</th>
                             </tr>

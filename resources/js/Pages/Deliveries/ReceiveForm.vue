@@ -103,14 +103,14 @@ function isOver(index: number): boolean {
                         id="delivery_date"
                         v-model="form.delivery_date"
                         type="date"
-                        label="Tanggal Terima"
+                        :label="t('delivery.received_date')"
                         required
                         :error="form.errors.delivery_date"
                         hint="Tanggal barang benar-benar tiba"
                     />
-                    <TextInput id="do_number" v-model="form.do_number" label="No. Surat Jalan" :error="form.errors.do_number" />
-                    <TextInput id="vehicle_number" v-model="form.vehicle_number" label="No. Kendaraan" :error="form.errors.vehicle_number" />
-                    <TextInput id="driver_name" v-model="form.driver_name" label="Nama Driver" :error="form.errors.driver_name" />
+                    <TextInput id="do_number" v-model="form.do_number" :label="t('delivery.note_number')" :error="form.errors.do_number" />
+                    <TextInput id="vehicle_number" v-model="form.vehicle_number" :label="t('delivery.vehicle_number')" :error="form.errors.vehicle_number" />
+                    <TextInput id="driver_name" v-model="form.driver_name" :label="t('delivery.driver_name')" :error="form.errors.driver_name" />
                     <div class="sm:col-span-2 lg:col-span-4">
                         <TextareaInput id="remarks" v-model="form.remarks" :label="t('common.notes')" :error="form.errors.remarks" />
                     </div>
@@ -120,10 +120,8 @@ function isOver(index: number): boolean {
             <section class="card">
                 <header class="flex flex-wrap items-center justify-between gap-3 border-b border-line px-5 py-4">
                     <div>
-                        <h2 class="text-sm font-semibold tracking-wide text-ink uppercase">Baris Penerimaan</h2>
-                        <p class="mt-0.5 text-xs text-ink-muted">
-                            Centang baris yang benar-benar diterima pada pengiriman ini.
-                        </p>
+                        <h2 class="text-sm font-semibold tracking-wide text-ink uppercase">{{ t('delivery.receipt_lines') }}</h2>
+                        <p class="mt-0.5 text-xs text-ink-muted">{{ t('delivery.tick_received') }}</p>
                     </div>
                     <StatusBadge :label="`${includedCount} baris dipilih`" variant="info" :icon="false" />
                 </header>
@@ -136,12 +134,12 @@ function isOver(index: number): boolean {
                     <table class="w-full min-w-[62rem] text-sm">
                         <thead>
                             <tr class="border-b border-line text-[0.65rem] tracking-wider text-ink-subtle uppercase">
-                                <th scope="col" class="px-4 py-3 text-left font-semibold">Terima</th>
+                                <th scope="col" class="px-4 py-3 text-left font-semibold">{{ t('delivery.receive') }}</th>
                                 <th scope="col" class="px-4 py-3 text-left font-semibold">{{ t('entity.material') }}</th>
                                 <th scope="col" class="px-4 py-3 text-left font-semibold">{{ t('po.schedule') }}</th>
                                 <th scope="col" class="px-4 py-3 text-right font-semibold">{{ t('po.qty') }}</th>
-                                <th scope="col" class="px-4 py-3 text-right font-semibold">Sudah Diterima</th>
-                                <th scope="col" class="px-4 py-3 text-right font-semibold">Sisa</th>
+                                <th scope="col" class="px-4 py-3 text-right font-semibold">{{ t('delivery.already_received') }}</th>
+                                <th scope="col" class="px-4 py-3 text-right font-semibold">{{ t('delivery.remaining') }}</th>
                                 <th scope="col" class="px-4 py-3 text-right font-semibold">{{ t('po.qty_received') }}</th>
                                 <th scope="col" class="px-4 py-3 text-left font-semibold">{{ t('common.condition') }}</th>
                             </tr>
@@ -192,9 +190,7 @@ function isOver(index: number): boolean {
                                         :disabled="!lines[index].include"
                                         :aria-label="`Quantity diterima baris ${context.line_no}`"
                                     />
-                                    <p v-if="isOver(index)" class="mt-1 text-[0.65rem] text-warning">
-                                        Melebihi sisa PO
-                                    </p>
+                                    <p v-if="isOver(index)" class="mt-1 text-[0.65rem] text-warning">{{ t('delivery.exceeds_remaining') }}</p>
                                 </td>
                                 <td class="px-4 py-3">
                                     <select
@@ -213,10 +209,9 @@ function isOver(index: number): boolean {
                     </table>
                 </div>
 
-                <p class="border-t border-line px-5 py-3 text-xs leading-relaxed text-ink-muted">
-                    Barang berkondisi <strong>Rejected</strong> tetap tercatat tetapi tidak dihitung sebagai
+                <p class="border-t border-line px-5 py-3 text-xs leading-relaxed text-ink-muted">{{ t('delivery.goods_condition') }}<strong>{{ t('state.rejected') }}</strong> tetap tercatat tetapi tidak dihitung sebagai
                     pemenuhan PO. Penerimaan melebihi sisa PO diperbolehkan dan akan ditandai sebagai
-                    <strong>Over Delivery</strong>.
+                    <strong>{{ t('state.over_delivery') }}</strong>.
                 </p>
             </section>
 

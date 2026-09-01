@@ -50,49 +50,45 @@ watch([module, action, userId, dateFrom, dateTo], () => {
 </script>
 
 <template>
-    <Head title="Audit Log" />
+    <Head :title="t('nav.audit_log')" />
 
     <AppLayout
         current="audit-logs"
-        title="Audit Log"
+        :title="t('nav.audit_log')"
         subtitle="Jejak aktivitas sistem — hanya dapat dibaca"
     >
         <section class="card">
             <header class="flex flex-wrap items-center gap-3 border-b border-line px-5 py-4">
-                <select v-model="module" class="field-input w-auto min-w-[10rem]" aria-label="Filter modul">
-                    <option value="">Semua modul</option>
+                <select v-model="module" class="field-input w-auto min-w-[10rem]" :aria-label="t('filter.module')">
+                    <option value="">{{ t('filter.all_modules') }}</option>
                     <option v-for="option in options.modules" :key="option.value" :value="option.value">
                         {{ option.label }}
                     </option>
                 </select>
 
-                <select v-model="action" class="field-input w-auto min-w-[9rem]" aria-label="Filter aksi">
-                    <option value="">Semua aksi</option>
+                <select v-model="action" class="field-input w-auto min-w-[9rem]" :aria-label="t('filter.action')">
+                    <option value="">{{ t('filter.all_actions') }}</option>
                     <option v-for="option in options.actions" :key="option.value" :value="option.value">
                         {{ option.label }}
                     </option>
                 </select>
 
-                <select v-model="userId" class="field-input w-auto min-w-[11rem]" aria-label="Filter pengguna">
-                    <option value="">Semua pengguna</option>
+                <select v-model="userId" class="field-input w-auto min-w-[11rem]" :aria-label="t('filter.user')">
+                    <option value="">{{ t('filter.all_users') }}</option>
                     <option v-for="option in options.users" :key="option.value" :value="option.value">
                         {{ option.label }}
                     </option>
                 </select>
 
-                <label class="flex items-center gap-2 text-sm text-ink-muted">
-                    Dari
-                    <input v-model="dateFrom" type="date" class="field-input w-auto" aria-label="Tanggal awal" />
+                <label class="flex items-center gap-2 text-sm text-ink-muted">{{ t('common.from') }}<input v-model="dateFrom" type="date" class="field-input w-auto" :aria-label="t('common.start_date')" />
                 </label>
-                <label class="flex items-center gap-2 text-sm text-ink-muted">
-                    Sampai
-                    <input v-model="dateTo" type="date" class="field-input w-auto" aria-label="Tanggal akhir" />
+                <label class="flex items-center gap-2 text-sm text-ink-muted">{{ t('common.until') }}<input v-model="dateTo" type="date" class="field-input w-auto" :aria-label="t('common.end_date')" />
                 </label>
             </header>
 
             <EmptyState
                 v-if="records.data.length === 0"
-                title="Tidak ada aktivitas"
+                :title="t('audit.no_activity')"
                 message="Tidak ada catatan yang cocok dengan filter ini."
             />
 
@@ -100,11 +96,11 @@ watch([module, action, userId, dateFrom, dateTo], () => {
                 <table class="w-full min-w-[58rem] text-sm">
                     <thead>
                         <tr class="border-b border-line text-[0.65rem] tracking-wider text-ink-subtle uppercase">
-                            <th scope="col" class="px-5 py-3 text-left font-semibold">Waktu</th>
+                            <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('common.time') }}</th>
                             <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('entity.user') }}</th>
                             <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('common.actions') }}</th>
                             <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('common.module') }}</th>
-                            <th scope="col" class="px-5 py-3 text-left font-semibold">Perubahan</th>
+                            <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('audit.changes') }}</th>
                             <th scope="col" class="px-5 py-3 text-left font-semibold">IP</th>
                         </tr>
                     </thead>

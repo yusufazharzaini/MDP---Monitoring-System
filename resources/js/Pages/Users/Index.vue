@@ -72,8 +72,8 @@ watch([search, role, status, departmentId, trashed], () => {
                         v-model="search"
                         type="search"
                         class="field-input pl-9"
-                        placeholder="Cari nama, email, atau NIK…"
-                        aria-label="Cari pengguna"
+                        :placeholder="t('user.search_placeholder')"
+                        :aria-label="t('user.search')"
                     />
                     <AppIcon
                         name="filter"
@@ -82,8 +82,8 @@ watch([search, role, status, departmentId, trashed], () => {
                     />
                 </div>
 
-                <select v-model="role" class="field-input w-auto min-w-[9rem]" aria-label="Filter peran">
-                    <option value="">Semua peran</option>
+                <select v-model="role" class="field-input w-auto min-w-[9rem]" :aria-label="t('filter.role')">
+                    <option value="">{{ t('filter.all_roles') }}</option>
                     <option v-for="option in options.roles" :key="option.value" :value="option.value">
                         {{ option.label }}
                     </option>
@@ -96,25 +96,21 @@ watch([search, role, status, departmentId, trashed], () => {
                     </option>
                 </select>
 
-                <select v-model="departmentId" class="field-input w-auto min-w-[10rem]" aria-label="Filter departemen">
-                    <option value="">Semua departemen</option>
+                <select v-model="departmentId" class="field-input w-auto min-w-[10rem]" :aria-label="t('filter.department')">
+                    <option value="">{{ t('filter.all_departments') }}</option>
                     <option v-for="option in options.departments" :key="option.value" :value="option.value">
                         {{ option.label }}
                     </option>
                 </select>
 
                 <label class="flex items-center gap-2 text-sm text-ink-muted">
-                    <input v-model="trashed" type="checkbox" class="size-4 rounded border-line" />
-                    Akun dicabut
-                </label>
+                    <input v-model="trashed" type="checkbox" class="size-4 rounded border-line" />{{ t('user.revoked') }}</label>
 
                 <Link
                     v-if="can.create"
                     :href="route('users.create')"
                     class="ml-auto rounded-lg bg-brand px-3.5 py-2 text-sm font-semibold text-white transition hover:bg-brand-soft"
-                >
-                    Tambah pengguna
-                </Link>
+                >{{ t('user.add') }}</Link>
             </header>
 
             <p
@@ -129,7 +125,7 @@ watch([search, role, status, departmentId, trashed], () => {
 
             <EmptyState
                 v-if="records.data.length === 0"
-                title="Tidak ada pengguna"
+                :title="t('user.none')"
                 message="Tidak ada akun yang cocok dengan filter ini."
             />
 
@@ -189,17 +185,13 @@ watch([search, role, status, departmentId, trashed], () => {
                                         type="button"
                                         class="rounded-md px-2 py-1 text-xs font-semibold text-ink-muted transition hover:text-critical"
                                         @click="retiring = row"
-                                    >
-                                        Cabut akses
-                                    </button>
+                                    >{{ t('user.revoke') }}</button>
                                     <button
                                         v-if="row.can.restore"
                                         type="button"
                                         class="rounded-md px-2 py-1 text-xs font-semibold text-ink-muted transition hover:text-success"
                                         @click="restore(row)"
-                                    >
-                                        Pulihkan
-                                    </button>
+                                    >{{ t('common.restore') }}</button>
                                 </div>
                             </td>
                         </tr>
@@ -212,7 +204,7 @@ watch([search, role, status, departmentId, trashed], () => {
 
         <ConfirmDialog
             :open="retiring !== null"
-            title="Cabut akses pengguna"
+            :title="t('user.revoke_title')"
             :message="`Akun ${retiring?.name ?? ''} tidak lagi dapat masuk. Riwayatnya tetap tersimpan dan akses dapat dipulihkan kemudian.`"
             confirm-label="Cabut akses"
             @cancel="retiring = null"

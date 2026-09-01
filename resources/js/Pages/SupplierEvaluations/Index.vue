@@ -64,16 +64,16 @@ watch([period, status, grade, supplierId], () => {
 </script>
 
 <template>
-    <Head title="Evaluasi Supplier" />
+    <Head :title="t('evaluation.title')" />
 
     <AppLayout
         current="supplier-evaluations"
-        title="Evaluasi Supplier"
+        :title="t('evaluation.title')"
         subtitle="Scorecard bulanan: dihitung dari transaksi, dibekukan saat disetujui"
     >
         <section class="card">
             <header class="flex flex-wrap items-center gap-3 border-b border-line px-5 py-4">
-                <label class="flex items-center gap-2 text-sm text-ink-muted">{{ t('common.period') }}<input v-model="period" type="month" class="field-input w-auto" aria-label="Filter periode" />
+                <label class="flex items-center gap-2 text-sm text-ink-muted">{{ t('common.period') }}<input v-model="period" type="month" class="field-input w-auto" :aria-label="t('filter.period')" />
                 </label>
 
                 <select v-model="status" class="field-input w-auto min-w-[9rem]" :aria-label="t('filter.status')">
@@ -83,8 +83,8 @@ watch([period, status, grade, supplierId], () => {
                     </option>
                 </select>
 
-                <select v-model="grade" class="field-input w-auto min-w-[9rem]" aria-label="Filter grade">
-                    <option value="">Semua grade</option>
+                <select v-model="grade" class="field-input w-auto min-w-[9rem]" :aria-label="t('filter.grade')">
+                    <option value="">{{ t('filter.all_grades') }}</option>
                     <option v-for="option in options.grades" :key="option.value" :value="option.value">
                         {{ option.label }}
                     </option>
@@ -102,9 +102,7 @@ watch([period, status, grade, supplierId], () => {
                     type="button"
                     class="ml-auto rounded-lg bg-brand px-3.5 py-2 text-sm font-semibold text-white transition hover:bg-brand-soft"
                     @click="generating = true"
-                >
-                    Hitung evaluasi
-                </button>
+                >{{ t('evaluation.calculate') }}</button>
             </header>
 
             <EmptyState
@@ -120,9 +118,9 @@ watch([period, status, grade, supplierId], () => {
                             <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('common.period') }}</th>
                             <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('entity.supplier') }}</th>
                             <th scope="col" class="px-5 py-3 text-right font-semibold">{{ t('entity.delivery') }}</th>
-                            <th scope="col" class="px-5 py-3 text-right font-semibold">Quality</th>
-                            <th scope="col" class="px-5 py-3 text-right font-semibold">Quantity</th>
-                            <th scope="col" class="px-5 py-3 text-right font-semibold">Respons</th>
+                            <th scope="col" class="px-5 py-3 text-right font-semibold">{{ t('evaluation.quality') }}</th>
+                            <th scope="col" class="px-5 py-3 text-right font-semibold">{{ t('evaluation.quantity') }}</th>
+                            <th scope="col" class="px-5 py-3 text-right font-semibold">{{ t('evaluation.response') }}</th>
                             <th scope="col" class="px-5 py-3 text-right font-semibold">{{ t('common.total') }}</th>
                             <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('common.grade') }}</th>
                             <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('common.status') }}</th>
@@ -171,11 +169,11 @@ watch([period, status, grade, supplierId], () => {
                 class="fixed inset-0 z-50 flex items-center justify-center bg-canvas/80 p-4 backdrop-blur-sm"
                 role="dialog"
                 aria-modal="true"
-                aria-label="Hitung evaluasi"
+                :aria-label="t('evaluation.calculate')"
                 @click.self="generating = false"
             >
                 <form class="card w-full max-w-md p-6" @submit.prevent="generate">
-                    <h2 class="text-base font-semibold text-ink">Hitung evaluasi bulanan</h2>
+                    <h2 class="text-base font-semibold text-ink">{{ t('evaluation.calculate_monthly') }}</h2>
                     <p class="mt-1.5 text-sm leading-relaxed text-ink-muted">
                         Skor dihitung ulang dari transaksi periode tersebut. Evaluasi yang sudah
                         disetujui dilewati, begitu pula supplier tanpa penerimaan.
@@ -200,7 +198,7 @@ watch([period, status, grade, supplierId], () => {
                         <div>
                             <label for="gen-supplier" class="field-label">{{ t('entity.supplier') }}</label>
                             <select id="gen-supplier" v-model="generateForm.supplier_id" class="field-input">
-                                <option value="">Semua supplier aktif pada periode itu</option>
+                                <option value="">{{ t('evaluation.all_active_hint') }}</option>
                                 <option v-for="option in options.suppliers" :key="option.value" :value="option.value">
                                     {{ option.label }}
                                 </option>

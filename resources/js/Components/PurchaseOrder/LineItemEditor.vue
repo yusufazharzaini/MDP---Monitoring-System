@@ -76,10 +76,8 @@ const receivedOn = (line: PurchaseOrderLine): number => Number(line.qty_received
     <section class="card">
         <header class="flex flex-wrap items-center justify-between gap-3 border-b border-line px-5 py-4">
             <div>
-                <h2 class="text-sm font-semibold tracking-wide text-ink uppercase">Item Purchase Order</h2>
-                <p class="mt-0.5 text-xs text-ink-muted">
-                    Minimal satu baris. Warehouse dibatasi pada plant yang dipilih.
-                </p>
+                <h2 class="text-sm font-semibold tracking-wide text-ink uppercase">{{ t('po.items') }}</h2>
+                <p class="mt-0.5 text-xs text-ink-muted">{{ t('po.lines_hint') }}</p>
             </div>
             <button
                 type="button"
@@ -88,16 +86,12 @@ const receivedOn = (line: PurchaseOrderLine): number => Number(line.qty_received
                 :title="plantId === null ? 'Pilih plant terlebih dahulu' : undefined"
                 @click="addLine"
             >
-                <AppIcon name="box" :size="14" />
-                Tambah baris
-            </button>
+                <AppIcon name="box" :size="14" />{{ t('po.add_line') }}</button>
         </header>
 
         <p v-if="errors.items" class="px-5 pt-4 text-xs text-critical" role="alert">{{ errors.items }}</p>
 
-        <div v-if="lines.length === 0" class="px-5 py-10 text-center text-sm text-ink-muted">
-            Belum ada baris item.
-        </div>
+        <div v-if="lines.length === 0" class="px-5 py-10 text-center text-sm text-ink-muted">{{ t('po.no_lines') }}</div>
 
         <div v-else class="overflow-x-auto">
             <table class="w-full min-w-[64rem] text-sm">
@@ -108,8 +102,8 @@ const receivedOn = (line: PurchaseOrderLine): number => Number(line.qty_received
                         <th scope="col" class="px-4 py-3 text-left font-semibold">{{ t('entity.warehouse') }}</th>
                         <th scope="col" class="px-4 py-3 text-left font-semibold">{{ t('common.unit') }}</th>
                         <th scope="col" class="px-4 py-3 text-left font-semibold">{{ t('po.schedule') }}</th>
-                        <th scope="col" class="px-4 py-3 text-right font-semibold">Qty</th>
-                        <th scope="col" class="px-4 py-3 text-right font-semibold">Harga</th>
+                        <th scope="col" class="px-4 py-3 text-right font-semibold">{{ t('po.qty_short') }}</th>
+                        <th scope="col" class="px-4 py-3 text-right font-semibold">{{ t('po.price') }}</th>
                         <th scope="col" class="px-4 py-3 text-right font-semibold">{{ t('common.quantity') }}</th>
                         <th scope="col" class="px-4 py-3" />
                     </tr>
@@ -130,7 +124,7 @@ const receivedOn = (line: PurchaseOrderLine): number => Number(line.qty_received
                                 :aria-label="`Material baris ${index + 1}`"
                                 @change="onMaterialChange(line, ($event.target as HTMLSelectElement).value)"
                             >
-                                <option value="">Pilih material</option>
+                                <option value="">{{ t('select.material') }}</option>
                                 <option v-for="m in options.materials" :key="m.value" :value="m.value">
                                     {{ m.label }}
                                 </option>
@@ -147,7 +141,7 @@ const receivedOn = (line: PurchaseOrderLine): number => Number(line.qty_received
                                 :class="errorFor(index, 'warehouse_id') ? 'border-critical' : ''"
                                 :aria-label="`Warehouse baris ${index + 1}`"
                             >
-                                <option :value="null">Pilih warehouse</option>
+                                <option :value="null">{{ t('select.warehouse') }}</option>
                                 <option v-for="w in warehouseOptions" :key="w.value" :value="w.value">
                                     {{ w.label }}
                                 </option>
@@ -227,9 +221,7 @@ const receivedOn = (line: PurchaseOrderLine): number => Number(line.qty_received
                 </tbody>
                 <tfoot>
                     <tr class="border-t border-line">
-                        <td colspan="7" class="px-4 py-3 text-right text-xs font-semibold tracking-wide text-ink-muted uppercase">
-                            Total (perkiraan)
-                        </td>
+                        <td colspan="7" class="px-4 py-3 text-right text-xs font-semibold tracking-wide text-ink-muted uppercase">{{ t('po.estimated_total') }}</td>
                         <td class="px-4 py-3 text-right text-base font-semibold text-ink tabular-nums">
                             {{ currency.format(grandTotal) }}
                         </td>

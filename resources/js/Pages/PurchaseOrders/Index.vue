@@ -61,11 +61,11 @@ watch([search, status, supplierId, plantId], () => {
 </script>
 
 <template>
-    <Head title="Purchase Order" />
+    <Head :title="t('po.title')" />
 
     <AppLayout
         current="purchase-orders"
-        title="Purchase Order"
+        :title="t('po.title')"
         subtitle="Komitmen pembelian material dari supplier"
     >
         <section class="card">
@@ -76,8 +76,8 @@ watch([search, status, supplierId, plantId], () => {
                             v-model="search"
                             type="search"
                             class="field-input pl-9"
-                            placeholder="Cari nomor PO…"
-                            aria-label="Cari purchase order"
+                            :placeholder="t('po.search_placeholder')"
+                            :aria-label="t('po.search')"
                         />
                         <AppIcon
                             name="filter"
@@ -113,14 +113,12 @@ watch([search, status, supplierId, plantId], () => {
                     :href="route('purchase-orders.create')"
                     class="inline-flex items-center gap-2 rounded-lg bg-brand px-3.5 py-2 text-sm font-semibold text-white transition hover:bg-brand-soft"
                 >
-                    <AppIcon name="order" :size="15" />
-                    Buat PO
-                </Link>
+                    <AppIcon name="order" :size="15" />{{ t('po.create') }}</Link>
             </header>
 
             <EmptyState
                 v-if="records.data.length === 0"
-                title="Belum ada purchase order"
+                :title="t('po.none')"
                 message="Tidak ada PO yang cocok dengan filter Anda."
             />
 
@@ -133,7 +131,7 @@ watch([search, status, supplierId, plantId], () => {
                             <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('entity.supplier') }}</th>
                             <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('entity.plant') }}</th>
                             <th scope="col" class="px-5 py-3 text-right font-semibold">{{ t('common.item') }}</th>
-                            <th scope="col" class="px-5 py-3 text-right font-semibold">Nilai</th>
+                            <th scope="col" class="px-5 py-3 text-right font-semibold">{{ t('po.value') }}</th>
                             <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('common.status') }}</th>
                             <th scope="col" class="px-5 py-3 text-right font-semibold">{{ t('common.actions') }}</th>
                         </tr>

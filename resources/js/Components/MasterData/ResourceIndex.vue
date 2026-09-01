@@ -115,7 +115,7 @@ function cellValue(row: Row, column: Column): string {
                                 type="search"
                                 class="field-input pl-9"
                                 :placeholder="searchPlaceholder ?? 'Cari kode atau nama…'"
-                                aria-label="Cari"
+                                :aria-label="t('common.search')"
                             />
                             <AppIcon
                                 name="filter"
@@ -142,14 +142,12 @@ function cellValue(row: Row, column: Column): string {
                         :href="route(`${routeName}.create`)"
                         class="inline-flex items-center gap-2 rounded-lg bg-brand px-3.5 py-2 text-sm font-semibold text-white transition hover:bg-brand-soft"
                     >
-                        <AppIcon name="box" :size="15" />
-                        Tambah
-                    </Link>
+                        <AppIcon name="box" :size="15" />{{ t('common.add') }}</Link>
                 </header>
 
                 <EmptyState
                     v-if="records.data.length === 0"
-                    title="Belum ada data"
+                    :title="t('common.no_data')"
                     message="Tidak ada data yang cocok dengan pencarian atau filter Anda."
                 />
 
@@ -224,7 +222,7 @@ function cellValue(row: Row, column: Column): string {
 
         <ConfirmDialog
             :open="pendingDelete !== null"
-            title="Hapus data ini?"
+            :title="t('common.delete_confirm')"
             :message="`${pendingDelete?.code ?? pendingDelete?.name ?? ''} akan dihapus. Data yang masih dipakai transaksi berjalan akan ditolak oleh sistem.`"
             :processing="deleting"
             @confirm="confirmDelete"

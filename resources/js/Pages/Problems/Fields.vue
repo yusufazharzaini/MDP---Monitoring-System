@@ -30,7 +30,7 @@ defineProps<{
     <SelectInput
         id="problem_category_id"
         v-model="form.problem_category_id"
-        label="Kategori Problem"
+        :label="t('problem.category')"
         required
         numeric
         :placeholder="t('select.category')"
@@ -51,7 +51,7 @@ defineProps<{
         v-model="form.material_id"
         :label="t('entity.material')"
         numeric
-        placeholder="Tidak spesifik ke satu material"
+        :placeholder="t('problem.not_material_specific')"
         :options="delivery.materials"
         :error="form.errors.material_id"
         hint="Hanya material yang benar-benar diterima pada delivery ini."
@@ -59,7 +59,7 @@ defineProps<{
     <TextInput
         id="pic"
         v-model="form.pic"
-        label="PIC"
+        :label="t('problem.pic')"
         :error="form.errors.pic"
         hint="Penanggung jawab tindak lanjut."
     />
@@ -67,7 +67,7 @@ defineProps<{
         id="problem_date"
         v-model="form.problem_date"
         type="date"
-        label="Tanggal Problem"
+        :label="t('problem.date')"
         required
         :error="form.errors.problem_date"
     />
@@ -75,7 +75,7 @@ defineProps<{
         id="due_date"
         v-model="form.due_date"
         type="date"
-        label="Target Penyelesaian"
+        :label="t('problem.target_resolution')"
         :error="form.errors.due_date"
         hint="Kosongkan untuk mengikuti standar severity."
     />
@@ -83,7 +83,7 @@ defineProps<{
         <TextareaInput
             id="description"
             v-model="form.description"
-            label="Deskripsi Problem"
+            :label="t('problem.description')"
             required
             :error="form.errors.description"
         />

@@ -22,8 +22,8 @@ defineProps<{
 </script>
 
 <template>
-    <TextInput id="code" v-model="form.code" label="Kode Departemen" required autofocus :error="form.errors.code" />
-    <TextInput id="name" v-model="form.name" label="Nama Departemen" required :error="form.errors.name" />
+    <TextInput id="code" v-model="form.code" :label="t('master.department_code')" required autofocus :error="form.errors.code" />
+    <TextInput id="name" v-model="form.name" :label="t('master.department_name')" required :error="form.errors.name" />
     <SelectInput id="status" v-model="form.status" :label="t('common.status')" required :options="options.statuses" :error="form.errors.status" />
     <div class="sm:col-span-2">
         <TextareaInput id="description" v-model="form.description" :label="t('common.description')" :error="form.errors.description" />

@@ -25,8 +25,8 @@ defineProps<{
 </script>
 
 <template>
-    <TextInput id="code" v-model="form.code" label="Kode Plant" required autofocus :error="form.errors.code" />
-    <TextInput id="name" v-model="form.name" label="Nama Plant" required :error="form.errors.name" />
+    <TextInput id="code" v-model="form.code" :label="t('master.plant_code')" required autofocus :error="form.errors.code" />
+    <TextInput id="name" v-model="form.name" :label="t('master.plant_name')" required :error="form.errors.name" />
     <TextInput id="city" v-model="form.city" :label="t('common.city')" :error="form.errors.city" />
     <TextInput id="pic_name" v-model="form.pic_name" :label="t('po.pic_name')" :error="form.errors.pic_name" />
     <TextInput id="pic_phone" v-model="form.pic_phone" :label="t('po.pic_phone')" :error="form.errors.pic_phone" />

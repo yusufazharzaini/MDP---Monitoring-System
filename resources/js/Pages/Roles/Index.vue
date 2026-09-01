@@ -53,11 +53,11 @@ const dirty = computed(
 </script>
 
 <template>
-    <Head title="Peran & Permission" />
+    <Head :title="t('master.roles_index')" />
 
     <AppLayout
         current="roles"
-        title="Peran & Permission"
+        :title="t('master.roles_index')"
         subtitle="Apa yang boleh dilakukan setiap peran"
     >
         <div class="grid gap-5 lg:grid-cols-[16rem_1fr]">

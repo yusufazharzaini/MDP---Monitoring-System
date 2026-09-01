@@ -75,8 +75,8 @@ watch([search, status, supplierId, plantId], () => {
                             v-model="search"
                             type="search"
                             class="field-input pl-9"
-                            placeholder="Cari no. delivery atau surat jalan…"
-                            aria-label="Cari delivery"
+                            :placeholder="t('delivery.search_placeholder')"
+                            :aria-label="t('delivery.search')"
                         />
                         <AppIcon
                             name="filter"
@@ -117,7 +117,7 @@ watch([search, status, supplierId, plantId], () => {
 
             <EmptyState
                 v-if="records.data.length === 0"
-                title="Belum ada delivery"
+                :title="t('delivery.none')"
                 message="Penerimaan dicatat dari halaman purchase order yang sudah disetujui."
             />
 
@@ -125,12 +125,12 @@ watch([search, status, supplierId, plantId], () => {
                 <table class="w-full min-w-[56rem] text-sm">
                     <thead>
                         <tr class="border-b border-line text-[0.65rem] tracking-wider text-ink-subtle uppercase">
-                            <th scope="col" class="px-5 py-3 text-left font-semibold">No Delivery</th>
+                            <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('delivery.number') }}</th>
                             <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('common.date') }}</th>
                             <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('po.number') }}</th>
                             <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('entity.supplier') }}</th>
                             <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('entity.plant') }}</th>
-                            <th scope="col" class="px-5 py-3 text-right font-semibold">Baris</th>
+                            <th scope="col" class="px-5 py-3 text-right font-semibold">{{ t('delivery.lines') }}</th>
                             <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('common.status') }}</th>
                             <th scope="col" class="px-5 py-3 text-right font-semibold">{{ t('common.actions') }}</th>
                         </tr>

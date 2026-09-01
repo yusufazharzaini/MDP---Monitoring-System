@@ -113,15 +113,15 @@ const option = computed<EChartsCoreOption>(() => {
         <BaseChart
             :option="option"
             height="17rem"
-            aria-label="Tren service rate bulanan terhadap target"
+            :aria-label="t('chart.monthly_trend_vs_target')"
         />
 
         <!-- Table view: the same numbers, available to screen readers and to
              anyone who cannot read the chart. -->
         <table class="sr-only">
-            <caption>Tren service rate bulanan</caption>
+            <caption>{{ t('chart.monthly_trend') }}</caption>
             <thead>
-                <tr><th>{{ t('common.period') }}</th><th>Total delivery</th><th>On time</th><th>Service rate</th><th>{{ t('common.target') }}</th></tr>
+                <tr><th>{{ t('common.period') }}</th><th>{{ t('chart.total_delivery') }}</th><th>{{ t('chart.on_time') }}</th><th>{{ t('chart.service_rate') }}</th><th>{{ t('common.target') }}</th></tr>
             </thead>
             <tbody>
                 <tr v-for="point in points" :key="point.period">

@@ -52,11 +52,11 @@ watch([period, plantId, categoryId], () => {
         <div class="space-y-5">
             <div class="grid gap-4 sm:grid-cols-3">
                 <article class="card p-4">
-                    <p class="text-[0.65rem] font-semibold tracking-wider text-ink-subtle uppercase">Total critical</p>
+                    <p class="text-[0.65rem] font-semibold tracking-wider text-ink-subtle uppercase">{{ t('critical.total') }}</p>
                     <p class="mt-1 text-2xl font-semibold text-ink tabular-nums">{{ summary.total }}</p>
                 </article>
                 <article class="card p-4">
-                    <p class="text-[0.65rem] font-semibold tracking-wider text-ink-subtle uppercase">Risiko tinggi</p>
+                    <p class="text-[0.65rem] font-semibold tracking-wider text-ink-subtle uppercase">{{ t('critical.high_risk') }}</p>
                     <p
                         class="mt-1 text-2xl font-semibold tabular-nums"
                         :class="summary.high_risk > 0 ? 'text-critical' : 'text-ink'"
@@ -65,9 +65,7 @@ watch([period, plantId, categoryId], () => {
                     </p>
                 </article>
                 <article class="card p-4">
-                    <p class="text-[0.65rem] font-semibold tracking-wider text-ink-subtle uppercase">
-                        Ditandai critical di master
-                    </p>
+                    <p class="text-[0.65rem] font-semibold tracking-wider text-ink-subtle uppercase">{{ t('critical.flagged_in_master') }}</p>
                     <p class="mt-1 text-2xl font-semibold text-ink tabular-nums">{{ summary.flagged }}</p>
                 </article>
             </div>
@@ -94,7 +92,7 @@ watch([period, plantId, categoryId], () => {
 
                 <EmptyState
                     v-if="materials.length === 0"
-                    title="Tidak ada material critical"
+                    :title="t('critical.none')"
                     message="Tidak ada material yang memicu aturan critical pada periode ini."
                 />
 
@@ -106,10 +104,10 @@ watch([period, plantId, categoryId], () => {
                                 <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('common.category') }}</th>
                                 <th scope="col" class="px-5 py-3 text-right font-semibold">{{ t('state.late') }}</th>
                                 <th scope="col" class="px-5 py-3 text-right font-semibold">{{ t('state.short') }}</th>
-                                <th scope="col" class="px-5 py-3 text-right font-semibold">Kekurangan Qty</th>
-                                <th scope="col" class="px-5 py-3 text-right font-semibold">Problem Critical</th>
+                                <th scope="col" class="px-5 py-3 text-right font-semibold">{{ t('critical.shortage') }}</th>
+                                <th scope="col" class="px-5 py-3 text-right font-semibold">{{ t('critical.problems') }}</th>
                                 <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('common.reason') }}</th>
-                                <th scope="col" class="px-5 py-3 text-left font-semibold">Risiko</th>
+                                <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('critical.risk') }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -128,9 +126,7 @@ watch([period, plantId, categoryId], () => {
                                     <p class="flex items-center gap-1.5 text-xs text-ink-subtle">
                                         {{ row.material_code }}
                                         <span v-if="row.is_flagged_critical" class="inline-flex items-center gap-1 text-warning">
-                                            <AppIcon name="warning" :size="11" />
-                                            master critical
-                                        </span>
+                                            <AppIcon name="warning" :size="11" />{{ t('critical.master_flag') }}</span>
                                     </p>
                                 </td>
                                 <td class="px-5 py-3 text-ink-muted">{{ row.category }}</td>

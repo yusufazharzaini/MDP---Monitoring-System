@@ -66,23 +66,17 @@ const isCancelled = computed(() => props.record.status === 'CANCELLED');
                         v-if="record.purchase_order_ulid"
                         :href="route('purchase-orders.show', record.purchase_order_ulid)"
                         class="rounded-lg border border-line px-3.5 py-2 text-sm font-semibold text-ink-muted transition hover:border-info hover:text-info"
-                    >
-                        Lihat PO
-                    </Link>
+                    >{{ t('delivery.view_po') }}</Link>
                     <Link
                         v-if="can.reportProblem"
                         :href="route('problems.create', record.ulid)"
                         class="rounded-lg border border-line px-3.5 py-2 text-sm font-semibold text-ink-muted transition hover:border-warning hover:text-warning"
-                    >
-                        Laporkan problem
-                    </Link>
+                    >{{ t('problem.report') }}</Link>
                     <Link
                         v-if="can.update"
                         :href="route('deliveries.edit', record.ulid)"
                         class="rounded-lg border border-line px-3.5 py-2 text-sm font-semibold text-ink-muted transition hover:border-info hover:text-info"
-                    >
-                        Koreksi
-                    </Link>
+                    >{{ t('delivery.correct') }}</Link>
                     <button
                         v-if="can.cancel"
                         type="button"
@@ -103,7 +97,7 @@ const isCancelled = computed(() => props.record.status === 'CANCELLED');
 
             <section class="card p-5">
                 <div class="flex flex-wrap items-center justify-between gap-3">
-                    <h2 class="text-sm font-semibold tracking-wide text-ink uppercase">Informasi Delivery</h2>
+                    <h2 class="text-sm font-semibold tracking-wide text-ink uppercase">{{ t('delivery.info') }}</h2>
                     <StatusBadge :label="record.status_label" :variant="record.status_variant" />
                 </div>
                 <dl class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -122,7 +116,7 @@ const isCancelled = computed(() => props.record.status === 'CANCELLED');
 
             <section class="card">
                 <header class="border-b border-line px-5 py-4">
-                    <h2 class="text-sm font-semibold tracking-wide text-ink uppercase">Baris Diterima</h2>
+                    <h2 class="text-sm font-semibold tracking-wide text-ink uppercase">{{ t('delivery.lines_received') }}</h2>
                     <p class="mt-0.5 text-xs text-ink-muted">
                         Status dihitung otomatis dari tanggal terima terhadap schedule, dan dari kumulatif
                         quantity terhadap PO.

@@ -25,15 +25,15 @@ function formatDate(value: string | null): string {
             <thead>
                 <tr class="border-b border-line text-[0.65rem] tracking-wider text-ink-subtle uppercase">
                     <th scope="col" class="px-5 py-3 text-left font-semibold">No</th>
-                    <th scope="col" class="px-5 py-3 text-left font-semibold">PO No</th>
+                    <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('po.number_short') }}</th>
                     <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('entity.supplier') }}</th>
                     <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('entity.material') }}</th>
                     <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('po.schedule') }}</th>
-                    <th scope="col" class="px-5 py-3 text-left font-semibold">Actual</th>
+                    <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('po.actual') }}</th>
                     <th scope="col" class="px-5 py-3 text-right font-semibold">{{ t('po.qty') }}</th>
-                    <th scope="col" class="px-5 py-3 text-right font-semibold">Qty Receive</th>
+                    <th scope="col" class="px-5 py-3 text-right font-semibold">{{ t('po.qty_receive') }}</th>
                     <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('common.status') }}</th>
-                    <th scope="col" class="px-5 py-3 text-left font-semibold">Keterangan</th>
+                    <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('po.remark') }}</th>
                 </tr>
             </thead>
             <tbody>

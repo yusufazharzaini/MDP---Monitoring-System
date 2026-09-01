@@ -71,7 +71,7 @@ const items: NavItem[] = [
             </button>
         </div>
 
-        <nav class="flex-1 space-y-1 overflow-y-auto p-3" aria-label="Navigasi utama">
+        <nav class="flex-1 space-y-1 overflow-y-auto p-3" :aria-label="t('common.main_nav')">
             <template v-for="item in items" :key="item.key">
                 <Link
                     v-if="item.href"

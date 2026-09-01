@@ -3,6 +3,9 @@ import { usePage } from '@inertiajs/vue3';
 import { computed, ref, watch } from 'vue';
 import AppIcon from '@/Components/AppIcon.vue';
 import type { SharedPageProps } from '@/Types';
+import { useTranslate } from '@/Composables/useTranslate';
+
+const { t } = useTranslate();
 
 /**
  * Surfaces the flash messages the controllers set, including the ones a
@@ -49,7 +52,7 @@ const tone = {
             <button
                 type="button"
                 class="shrink-0 opacity-70 transition hover:opacity-100"
-                aria-label="Tutup notifikasi"
+                :aria-label="t('notification.dismiss')"
                 @click="dismissed = true"
             >
                 <AppIcon name="close" :size="14" />
