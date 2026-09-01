@@ -57,15 +57,45 @@ final class EnvironmentHardeningTest extends TestCase
     }
 
     #[Test]
-    public function the_session_cookie_is_secure_by_default_in_production(): void
+    public function the_session_cookie_rule_is_the_one_the_config_declares(): void
     {
-        // env() reads the process environment, so the default is exercised by
-        // resolving the config expression the same way config/session.php does.
-        $secure = fn (string $environment): bool => (bool) (
-            env('SESSION_SECURE_COOKIE', $environment === 'production')
-        );
+        $source = (string) file_get_contents(config_path('session.php'));
 
-        $this->assertTrue($secure('production'));
+        /*
+         * Asserted against the source rather than by mutating APP_ENV at
+         * runtime: CSRF enforcement is gated on the application environment,
+         * so a test that swapped it mid-suite left a later request failing
+         * with a 419. The expression is the rule; these two lines are it.
+         */
+        $this->assertStringContainsString(
+            "env('SESSION_SECURE_COOKIE', env('APP_ENV') === 'production')",
+            $source,
+        );
+    }
+
+    #[Test]
+    public function the_running_configuration_follows_that_rule(): void
+    {
+        $expected = env('SESSION_SECURE_COOKIE', config('app.env') === 'production');
+
+        $this->assertSame((bool) $expected, (bool) config('session.secure'));
+    }
+
+    #[Test]
+    public function the_example_env_does_not_ship_a_value_that_would_override_it(): void
+    {
+        $example = (string) file_get_contents(base_path('.env.example'));
+
+        /*
+         * composer setup copies this file, so an uncommented
+         * SESSION_SECURE_COOKIE=false lands in a deployment and silently beats
+         * the secure-by-default rule - which is exactly what happened, and
+         * what CI caught.
+         */
+        $this->assertDoesNotMatchRegularExpression(
+            '/^\s*SESSION_SECURE_COOKIE\s*=\s*\S+/m',
+            $example,
+        );
     }
 
     #[Test]

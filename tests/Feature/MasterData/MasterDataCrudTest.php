@@ -58,8 +58,10 @@ final class MasterDataCrudTest extends TestCase
      */
     #[Test]
     #[DataProvider('entities')]
-    public function the_index_lists_records_for_a_permitted_user(string $route, string $model, string $page): void
+    public function the_index_lists_records_for_a_permitted_user(string $route, string $model, string $page, string $permission): void
     {
+        unset($permission);
+
         // Reference data is already seeded, so the created rows are isolated by
         // a search token rather than by asserting on the grand total.
         $model::factory()->count(3)->create(['name' => fn (): string => 'Zeta Uji '.uniqid()]);
@@ -76,15 +78,19 @@ final class MasterDataCrudTest extends TestCase
 
     #[Test]
     #[DataProvider('entities')]
-    public function guests_are_redirected_to_login(string $route): void
+    public function guests_are_redirected_to_login(string $route, string $model, string $page, string $permission): void
     {
+        unset($model, $page, $permission);
+
         $this->get(route("{$route}.index"))->assertRedirect(route('login'));
     }
 
     #[Test]
     #[DataProvider('entities')]
-    public function a_user_without_the_view_permission_is_refused(string $route): void
+    public function a_user_without_the_view_permission_is_refused(string $route, string $model, string $page, string $permission): void
     {
+        unset($model, $page, $permission);
+
         $this->actingAs(User::factory()->create())
             ->get(route("{$route}.index"))
             ->assertForbidden();
@@ -119,15 +125,20 @@ final class MasterDataCrudTest extends TestCase
 
     #[Test]
     #[DataProvider('entities')]
-    public function search_narrows_the_listing(string $route, string $model): void
+    public function search_narrows_the_listing(string $route, string $model, string $page, string $permission): void
     {
+        unset($permission);
+
         $model::factory()->create(['name' => 'Kandidat Unik Sekali']);
         $model::factory()->count(2)->create();
 
         $this->actingAs($this->userWithRole('ADMIN'))
             ->get(route("{$route}.index", ['search' => 'Kandidat Unik']))
             ->assertOk()
-            ->assertInertia(fn ($p) => $p->has('records.data', 1));
+            ->assertInertia(fn ($p) => $p
+                ->component("{$page}/Index")
+                ->has('records.data', 1)
+            );
     }
 
     #[Test]
