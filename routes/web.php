@@ -186,7 +186,10 @@ Route::middleware('auth')->group(function (): void {
             ->group(function (): void {
                 Route::post('/', 'store')->name('store');
                 // The only route to the bytes: the private disk is not served.
-                Route::get('{attachment}', 'download')->name('download');
+                // Throttled because each hit streams a file off disk.
+                Route::get('{attachment}', 'download')
+                    ->middleware('throttle:60,1')
+                    ->name('download');
                 Route::delete('{attachment}', 'destroy')->name('destroy');
             });
     });
@@ -223,8 +226,15 @@ Route::middleware('auth')->group(function (): void {
      */
     Route::middleware('permission:report.view')->group(function (): void {
         Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
+
+        /*
+         * Throttled: an export opens a cursor over every row in the period and
+         * streams a spreadsheet, so a loop of them saturates the connection
+         * pool. Ten a minute is far more than anybody reads and far less than
+         * it takes to hurt the database.
+         */
         Route::get('reports/{type}/export', [ReportController::class, 'export'])
-            ->middleware('permission:report.export')
+            ->middleware(['permission:report.export', 'throttle:10,1'])
             ->name('reports.export');
     });
 

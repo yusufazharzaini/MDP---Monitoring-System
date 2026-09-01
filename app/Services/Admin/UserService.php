@@ -32,6 +32,8 @@ class UserService
      */
     public function create(array $attributes, array $roles, ?User $actor = null): User
     {
+        $this->guardSuperAdminGrant(null, $roles, $actor);
+
         return DB::transaction(function () use ($attributes, $roles): User {
             $user = new User;
             $user->fill($attributes);
@@ -59,6 +61,7 @@ class UserService
     {
         $this->guardKeepsASuperAdministrator($user, $roles, $attributes['status'] ?? null);
         $this->guardNotLockingSelfOut($user, $roles, $attributes['status'] ?? null, $actor);
+        $this->guardSuperAdminGrant($user, $roles, $actor);
 
         return DB::transaction(function () use ($user, $attributes, $roles): User {
             // A blank password field means "leave it alone", not "set it blank".
@@ -132,6 +135,47 @@ class UserService
             ->active()
             ->when($excluding !== null, fn ($query) => $query->whereKeyNot($excluding->getKey()))
             ->count();
+    }
+
+    /**
+     * Only an existing super administrator may create another one, and never
+     * for themselves.
+     *
+     * The role is not just "every permission": it passes Gate::before
+     * unconditionally, so it also grants permissions that do not exist yet and
+     * survives any later trimming of a role in the permission matrix. It is
+     * self-protecting too - its permissions cannot be edited and its last
+     * holder cannot be demoted. Without this guard anyone holding
+     * `user.update` could turn their own revocable account into an
+     * irrevocable superuser by ticking a box on their own profile.
+     *
+     * @param  User|null  $user  the account being written; null when creating
+     * @param  array<int, string>  $roles
+     */
+    private function guardSuperAdminGrant(?User $user, array $roles, ?User $actor): void
+    {
+        $super = RolesAndPermissionsSeeder::SUPER_ADMIN;
+
+        // Only a *new* grant is guarded: a super administrator editing their
+        // own profile keeps the role they already hold.
+        $granting = in_array($super, $roles, true)
+            && ! ($user?->hasRole($super) ?? false);
+
+        if (! $granting) {
+            return;
+        }
+
+        if ($actor === null || ! $actor->hasRole($super)) {
+            throw new BusinessRuleException(
+                'Hanya super administrator yang dapat memberikan peran super administrator.'
+            );
+        }
+
+        if ($user !== null && $actor->getKey() === $user->getKey()) {
+            throw new BusinessRuleException(
+                'Anda tidak dapat memberikan peran super administrator kepada akun Anda sendiri.'
+            );
+        }
     }
 
     /**

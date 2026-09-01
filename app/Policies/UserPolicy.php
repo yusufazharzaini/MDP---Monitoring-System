@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Policies;
 
 use App\Models\User;
+use Database\Seeders\RolesAndPermissionsSeeder;
 
 /**
  * User administration.
@@ -59,5 +60,20 @@ class UserPolicy
     public function assignRoles(User $user, User $subject): bool
     {
         return $user->can('user.update');
+    }
+
+    /**
+     * Granting the super administrator role is its own act.
+     *
+     * It is not a permission anybody can be given: the role passes every gate
+     * unconditionally, cannot have its permissions edited, and its last holder
+     * cannot be demoted. Only somebody who already holds it may hand it out,
+     * and never to themselves - UserService enforces the same rule for callers
+     * that never touch a screen.
+     */
+    public function assignSuperAdmin(User $user, User $subject): bool
+    {
+        return $user->hasRole(RolesAndPermissionsSeeder::SUPER_ADMIN)
+            && $user->getKey() !== $subject->getKey();
     }
 }

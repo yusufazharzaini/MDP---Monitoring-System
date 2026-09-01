@@ -11,6 +11,7 @@ use App\Models\Department;
 use App\Models\Plant;
 use App\Models\User;
 use App\Services\Admin\UserService;
+use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -99,7 +100,7 @@ class UserController extends Controller
                 'plant_id' => $user->plant_id,
                 'phone' => $user->phone,
             ],
-            'options' => $this->options(),
+            'options' => $this->options($user),
             // Editing yourself is allowed; removing your own way back in is not.
             'isSelf' => $request->user()?->getKey() === $user->getKey(),
         ]);
@@ -137,10 +138,16 @@ class UserController extends Controller
     /**
      * @return array<string, mixed>
      */
-    private function options(): array
+    private function options(?User $subject = null): array
     {
         return [
+            // The super administrator role is not offered to someone who
+            // cannot grant it. UserService refuses it regardless, so this is
+            // the screen telling the truth rather than the control itself.
             'roles' => Role::query()->orderBy('name')->pluck('name')
+                ->reject(fn (string $name): bool => $name === RolesAndPermissionsSeeder::SUPER_ADMIN
+                    && ! $this->mayAssignSuperAdmin($subject))
+                ->values()
                 ->map(fn (string $name): array => ['value' => $name, 'label' => $name])->all(),
             'statuses' => RecordStatus::options(),
             'departments' => Department::query()->orderBy('name')->get(['id', 'code', 'name'])
@@ -148,6 +155,23 @@ class UserController extends Controller
             'plants' => Plant::query()->orderBy('code')->get(['id', 'code', 'name'])
                 ->map(fn (Plant $p): array => ['value' => $p->id, 'label' => $p->code.' - '.$p->name])->all(),
         ];
+    }
+
+    /**
+     * Whether the signed-in user may hand the super administrator role to this
+     * subject - or, when creating, to the account about to exist.
+     */
+    private function mayAssignSuperAdmin(?User $subject): bool
+    {
+        $actor = request()->user();
+
+        if ($actor === null) {
+            return false;
+        }
+
+        return $subject === null
+            ? $actor->hasRole(RolesAndPermissionsSeeder::SUPER_ADMIN)
+            : $actor->can('assignSuperAdmin', $subject);
     }
 
     /**

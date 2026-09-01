@@ -240,6 +240,26 @@ that costs:
   extensions, so honouring the rule literally would add a hard dependency to buy
   precision the business does not use. Revisit if amounts ever approach 10^12.
 
+## 11.4 Security rules added after the audit
+
+- **Only a super administrator may grant the super administrator role, and never to
+  themselves.** The role passes `Gate::before` unconditionally, so it grants permissions
+  that do not exist yet and survives any later trimming of a role in the matrix; its
+  permissions cannot be edited and its last holder cannot be demoted. `UserService`
+  refuses the grant for callers with no screen, `UserPolicy::assignSuperAdmin` answers for
+  the UI, and the option is not rendered to anybody who would be refused.
+- **Production refuses to boot with `APP_DEBUG=true`.** `composer setup` copies an
+  `.env.example` that has it on, and debug mode publishes stack traces, configuration and
+  database credentials on every error page.
+- **The session cookie is Secure whenever `APP_ENV=production`**, without anyone having to
+  remember the key.
+- **A report covers at most two years** (`ReportRequest::MAX_SPAN_DAYS`), and exports are
+  limited to ten a minute, attachment downloads to sixty.
+- **No disk is served over HTTP.** Attachments live at `storage/app/attachments`, outside
+  every other disk's root, so no future `serve` or `visibility` change can republish them.
+- **No unescaped output anywhere**: no `v-html`, no `{!! !!}`. Pinned by a test that scans
+  the source rather than by review.
+
 ## 12. Import rules (§26)
 
 Upload → validate → preview → confirm → transactional import.

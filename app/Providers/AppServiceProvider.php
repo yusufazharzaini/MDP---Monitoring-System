@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
+use RuntimeException;
 use Spatie\Permission\Models\Role;
 
 class AppServiceProvider extends ServiceProvider
@@ -44,7 +45,7 @@ class AppServiceProvider extends ServiceProvider
         SupplierEvaluation::class => ['regenerate', 'approve', 'reopen', 'delete'],
         // A super administrator retiring their own account, or editing the one
         // role that can undo a mistake, is the bypass working against itself.
-        User::class => ['delete', 'restore'],
+        User::class => ['delete', 'restore', 'assignSuperAdmin'],
         Role::class => ['update', 'create', 'delete'],
     ];
 
@@ -80,8 +81,34 @@ class AppServiceProvider extends ServiceProvider
         });
     }
 
+    /**
+     * Debug mode in production publishes a stack trace, the loaded
+     * configuration and the database credentials to anyone who can provoke an
+     * error - and `composer setup` copies an .env.example that has it on.
+     *
+     * Refusing to boot is the right failure: an application that is down is
+     * recoverable in minutes, while one that has been handing out its
+     * credentials is not.
+     *
+     * @throws RuntimeException
+     */
+    public static function guardAgainstProductionDebug(string $environment, bool $debug): void
+    {
+        if ($environment === 'production' && $debug) {
+            throw new RuntimeException(
+                'APP_DEBUG must be false when APP_ENV=production: debug mode exposes '
+                .'stack traces, configuration and database credentials on every error page.'
+            );
+        }
+    }
+
     public function boot(): void
     {
+        self::guardAgainstProductionDebug(
+            (string) config('app.env'),
+            (bool) config('app.debug'),
+        );
+
         // Fail loudly on accidental mass assignment and on lazy loading that
         // would otherwise become an N+1 in production (requirement 33).
         Model::shouldBeStrict(! $this->app->isProduction());
