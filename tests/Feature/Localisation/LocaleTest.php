@@ -247,6 +247,59 @@ final class LocaleTest extends TestCase
     }
 
     /**
+     * Validation messages are the text an operator meets most often, and they
+     * are rendered by the server rather than by Vue.
+     */
+    #[Test]
+    public function a_validation_message_arrives_in_the_readers_language(): void
+    {
+        $admin = $this->userWithRole('ADMIN');
+        $admin->locale = 'id';
+        $admin->save();
+
+        $this->actingAs($admin)
+            ->from(route('suppliers.create'))
+            ->post(route('suppliers.store'), ['code' => '', 'name' => ''])
+            ->assertSessionHasErrors('name');
+
+        $errors = session('errors')->getBag('default');
+
+        $this->assertStringContainsString('wajib diisi', $errors->first('name'));
+    }
+
+    #[Test]
+    public function the_message_names_the_field_the_way_the_form_does(): void
+    {
+        // Without translated attributes the sentence is translated but still
+        // says "critical_stock", which is not what the form calls it.
+        $admin = $this->userWithRole('ADMIN');
+        $admin->locale = 'ja';
+        $admin->save();
+
+        $this->actingAs($admin)
+            ->from(route('suppliers.create'))
+            ->post(route('suppliers.store'), ['code' => '', 'name' => ''])
+            ->assertSessionHasErrors('name');
+
+        $message = session('errors')->getBag('default')->first('name');
+
+        $this->assertStringContainsString('必須', $message);
+        $this->assertStringContainsString('名称', $message);
+        $this->assertStringNotContainsString('name field', $message);
+    }
+
+    #[Test]
+    public function an_untranslated_rule_still_reads_as_english_rather_than_a_key(): void
+    {
+        App::setLocale('ja');
+
+        $message = (string) trans('validation.uuid', ['attribute' => 'id']);
+
+        // Falls through to English; never renders "validation.uuid".
+        $this->assertStringNotContainsString('validation.', $message);
+    }
+
+    /**
      * @param  array<string, mixed>  $values
      * @return array<string, string>
      */

@@ -40,9 +40,9 @@ class DeliveryRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'items.required' => 'Delivery harus memiliki minimal satu baris penerimaan.',
-            'items.min' => 'Delivery harus memiliki minimal satu baris penerimaan.',
-            'delivery_date.before_or_equal' => 'Tanggal delivery tidak boleh berada di masa depan.',
+            'items.required' => __('requests.delivery_needs_lines'),
+            'items.min' => __('requests.delivery_needs_lines'),
+            'delivery_date.before_or_equal' => __('requests.delivery_date_future'),
         ];
     }
 }

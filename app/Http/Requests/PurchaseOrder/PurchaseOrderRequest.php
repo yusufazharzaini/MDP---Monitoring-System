@@ -49,10 +49,10 @@ class PurchaseOrderRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'items.required' => 'Purchase order harus memiliki minimal satu baris item.',
-            'items.min' => 'Purchase order harus memiliki minimal satu baris item.',
-            'items.*.qty_ordered.gt' => 'Quantity harus lebih besar dari 0.',
-            'items.*.schedule_delivery_date.after_or_equal' => 'Schedule delivery tidak boleh mendahului tanggal PO.',
+            'items.required' => __('requests.po_needs_lines'),
+            'items.min' => __('requests.po_needs_lines'),
+            'items.*.qty_ordered.gt' => __('requests.po_qty_positive'),
+            'items.*.schedule_delivery_date.after_or_equal' => __('requests.po_schedule_before_date'),
         ];
     }
 

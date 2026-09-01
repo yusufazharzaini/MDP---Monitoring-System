@@ -44,20 +44,4 @@ abstract class MasterDataRequest extends FormRequest
 
         return $record === null ? $rule : $rule->ignore($record->getKey());
     }
-
-    /**
-     * @return array<string, string>
-     */
-    public function attributes(): array
-    {
-        return [
-            'code' => 'kode',
-            'name' => 'nama',
-            'status' => 'status',
-            'plant_id' => 'plant',
-            'supplier_id' => 'supplier',
-            'category_id' => 'kategori',
-            'uom_id' => 'satuan',
-        ];
-    }
 }

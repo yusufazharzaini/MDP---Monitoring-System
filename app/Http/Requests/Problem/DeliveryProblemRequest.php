@@ -39,9 +39,9 @@ class DeliveryProblemRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'problem_date.before_or_equal' => 'Tanggal problem tidak boleh berada di masa depan.',
-            'due_date.after_or_equal' => 'Target penyelesaian tidak boleh mendahului tanggal problem.',
-            'description.min' => 'Deskripsi problem harus menjelaskan kejadian, minimal 10 karakter.',
+            'problem_date.before_or_equal' => __('requests.problem_date_future'),
+            'due_date.after_or_equal' => __('requests.problem_due_before_date'),
+            'description.min' => __('requests.problem_description_min'),
         ];
     }
 }

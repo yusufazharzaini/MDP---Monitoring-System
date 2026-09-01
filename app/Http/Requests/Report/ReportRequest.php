@@ -81,11 +81,10 @@ class ReportRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'date_to.before_or_equal' => 'Rentang laporan maksimal '
-                .(int) round(self::MAX_SPAN_DAYS / 365).' tahun. Persempit periodenya atau unduh per tahun.',
-            'type.Illuminate\Validation\Rules\Enum' => 'Jenis laporan tidak dikenal.',
-            'format.in' => 'Format laporan harus salah satu dari: '.implode(', ', self::FORMATS).'.',
-            'date_to.after_or_equal' => 'Tanggal akhir tidak boleh mendahului tanggal awal.',
+            'date_to.before_or_equal' => __('requests.report_span_too_wide', ['years' => (int) round(self::MAX_SPAN_DAYS / 365)]),
+            'type.Illuminate\Validation\Rules\Enum' => __('requests.report_type_unknown'),
+            'format.in' => __('requests.report_format_invalid', ['values' => implode(', ', self::FORMATS)]),
+            'date_to.after_or_equal' => __('requests.date_to_before_from'),
         ];
     }
 

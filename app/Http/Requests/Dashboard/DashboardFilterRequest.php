@@ -42,8 +42,8 @@ class DashboardFilterRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'period.date_format' => 'Periode harus dalam format YYYY-MM.',
-            'date_to.after_or_equal' => 'Tanggal akhir tidak boleh mendahului tanggal awal.',
+            'period.date_format' => __('requests.period_format'),
+            'date_to.after_or_equal' => __('requests.date_to_before_from'),
         ];
     }
 

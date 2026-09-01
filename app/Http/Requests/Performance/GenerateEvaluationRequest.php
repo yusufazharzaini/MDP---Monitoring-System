@@ -30,9 +30,9 @@ class GenerateEvaluationRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'period.required' => 'Periode evaluasi wajib diisi.',
-            'period.date_format' => 'Periode harus dalam format YYYY-MM.',
-            'period.before_or_equal' => 'Evaluasi hanya dapat dibuat untuk bulan yang sudah berjalan.',
+            'period.required' => __('requests.evaluation_period_req'),
+            'period.date_format' => __('requests.period_format'),
+            'period.before_or_equal' => __('requests.evaluation_period_future'),
         ];
     }
 

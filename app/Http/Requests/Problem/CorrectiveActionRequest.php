@@ -29,9 +29,9 @@ class CorrectiveActionRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'action_date.before_or_equal' => 'Tanggal corrective action tidak boleh berada di masa depan.',
-            'due_date.after_or_equal' => 'Target penyelesaian tidak boleh mendahului tanggal corrective action.',
-            'description.min' => 'Corrective action harus dijelaskan, minimal 10 karakter.',
+            'action_date.before_or_equal' => __('requests.action_date_future'),
+            'due_date.after_or_equal' => __('requests.action_due_before_date'),
+            'description.min' => __('requests.action_description_min'),
         ];
     }
 }
