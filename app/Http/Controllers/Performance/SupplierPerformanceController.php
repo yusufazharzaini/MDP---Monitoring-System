@@ -53,31 +53,48 @@ class SupplierPerformanceController extends Controller
     {
         $filter = $request->toFilter();
 
+        $mayReadEvaluations = $request->user()?->can('evaluation.view') ?? false;
+
         return Inertia::render('SupplierPerformance/Show', [
             'scorecard' => $this->performance->getSupplierScorecard($supplier, $filter),
             'filters' => $filter->toArray(),
-            // The signed-off history beside the live figures, so a reader can
-            // see where today's numbers differ from what was approved.
-            'evaluations' => SupplierEvaluation::query()
-                ->where('supplier_id', $supplier->getKey())
-                ->with('approver:id,name')
-                ->latestPeriodFirst()
-                ->limit(12)
-                ->get()
-                ->map(fn (SupplierEvaluation $evaluation): array => [
-                    'id' => $evaluation->getKey(),
-                    'period' => $evaluation->periodLabel(),
-                    'total_score' => $evaluation->total_score,
-                    'grade_label' => $evaluation->grade->label(),
-                    'grade_variant' => $evaluation->grade->badgeVariant(),
-                    'status_label' => $evaluation->status->label(),
-                    'status_variant' => $evaluation->status->badgeVariant(),
-                    'approved_by' => $evaluation->approver?->name,
-                ])->all(),
-            'can' => [
-                'viewEvaluations' => $request->user()?->can('evaluation.view') ?? false,
-            ],
+            /*
+             * The signed-off history beside the live figures, so a reader can
+             * see where today's numbers differ from what was approved - but
+             * only for a reader entitled to it. Hiding this client-side still
+             * shipped every score, grade and approver name in the payload to a
+             * WAREHOUSE user, who holds report.view and not evaluation.view.
+             */
+            'evaluations' => $mayReadEvaluations
+                ? $this->evaluationHistory($supplier)
+                : [],
+            'can' => ['viewEvaluations' => $mayReadEvaluations],
         ]);
+    }
+
+    /**
+     * The last year of signed-off scorecards for one supplier.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function evaluationHistory(Supplier $supplier): array
+    {
+        return SupplierEvaluation::query()
+            ->where('supplier_id', $supplier->getKey())
+            ->with('approver:id,name')
+            ->latestPeriodFirst()
+            ->limit(12)
+            ->get()
+            ->map(fn (SupplierEvaluation $evaluation): array => [
+                'id' => $evaluation->getKey(),
+                'period' => $evaluation->periodLabel(),
+                'total_score' => $evaluation->total_score,
+                'grade_label' => $evaluation->grade->label(),
+                'grade_variant' => $evaluation->grade->badgeVariant(),
+                'status_label' => $evaluation->status->label(),
+                'status_variant' => $evaluation->status->badgeVariant(),
+                'approved_by' => $evaluation->approver?->name,
+            ])->all();
     }
 
     /**

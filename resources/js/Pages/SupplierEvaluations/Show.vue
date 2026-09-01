@@ -37,9 +37,11 @@ function reopen(): void {
 }
 
 function regenerate(): void {
+    // This supplier only. Posting without one takes the batch branch and
+    // recomputes every supplier's scorecard for the period.
     router.post(
         route('supplier-evaluations.store'),
-        { period: props.record.period, supplier_id: undefined },
+        { period: props.record.period, supplier_id: props.record.supplier_id },
         { preserveScroll: true },
     );
 }

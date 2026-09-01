@@ -139,6 +139,9 @@ class SupplierEvaluationController extends Controller
         return Inertia::render('SupplierEvaluations/Show', [
             'record' => [
                 ...$this->summarise($evaluation),
+                // The regenerate button needs it: without a supplier the store
+                // action takes its batch branch and recomputes the whole month.
+                'supplier_id' => $evaluation->supplier_id,
                 'supplier_ulid' => $evaluation->supplier?->ulid,
                 'remarks' => $evaluation->remarks,
                 'created_by' => $evaluation->creator?->name,

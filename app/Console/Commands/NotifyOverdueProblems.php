@@ -86,6 +86,13 @@ class NotifyOverdueProblems extends Command
         return (clone $overdue)
             ->with('supplier:id,code,name,short_name')
             ->orderBy('due_date')
+            /*
+             * Severity breaks the tie, so a CRITICAL problem is never the one
+             * the ten-row limit drops in favour of a LOW sharing its due date.
+             * Ordered by weight rather than by the enum's value, which sorts
+             * alphabetically and would put CRITICAL after HIGH.
+             */
+            ->orderByRaw($this->severityOrdering())
             ->limit(self::WORST_LIMIT)
             ->get(['id', 'ulid', 'problem_number', 'supplier_id', 'severity', 'due_date'])
             ->map(fn (DeliveryProblem $problem): array => [
@@ -97,6 +104,27 @@ class NotifyOverdueProblems extends Command
                 'days_overdue' => (int) $problem->due_date?->copy()->startOfDay()->diffInDays($today),
             ])
             ->all();
+    }
+
+    /**
+     * `CASE severity WHEN 'CRITICAL' THEN 1 ... END` - most severe first.
+     *
+     * Built from the enum's own weights so a new severity orders correctly
+     * without anyone remembering to edit a string here.
+     */
+    private function severityOrdering(): string
+    {
+        $cases = collect(ProblemSeverity::cases())
+            ->sortByDesc(fn (ProblemSeverity $severity): int => $severity->weight())
+            ->values()
+            ->map(fn (ProblemSeverity $severity, int $rank): string => sprintf(
+                "when '%s' then %d",
+                $severity->value,
+                $rank,
+            ))
+            ->implode(' ');
+
+        return "case severity {$cases} else 99 end";
     }
 
     /**

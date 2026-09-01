@@ -478,6 +478,7 @@ export interface EvaluationSummary {
 }
 
 export interface EvaluationRecord extends EvaluationSummary {
+    supplier_id: number;
     supplier_ulid: string | null;
     remarks: string | null;
     created_by: string | null;

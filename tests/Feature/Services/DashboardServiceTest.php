@@ -86,7 +86,10 @@ final class DashboardServiceTest extends TestCase
             [97.2, 96.5, 98.1, 95.8, 97.0, 96.8],
             array_map(static fn (array $point): float => round($point['service_rate'], 1), $trend),
         );
-        $this->assertSame('2026-08', $trend[5]['period'] ?? null);
+        // The window ends at the month the seed is anchored to. Hard-coding
+        // '2026-08' made this test fail on the 1st of September for no reason
+        // any reader could act on - the demo data is seeded relative to today.
+        $this->assertSame(now()->format('Y-m'), $trend[5]['period'] ?? null);
     }
 
     #[Test]

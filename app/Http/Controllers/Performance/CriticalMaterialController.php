@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Performance;
 
+use App\Enums\RiskLevel;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Performance\PerformanceFilterRequest;
 use App\Models\MaterialCategory;
@@ -38,7 +39,12 @@ class CriticalMaterialController extends Controller
             // headline and the table can never disagree.
             'summary' => [
                 'total' => $materials->count(),
-                'high_risk' => $materials->where('risk_level', 'HIGH')->count(),
+                // HIGH *and* CRITICAL: counting the string 'HIGH' alone left the
+                // tile reading zero while the table below was all Critical
+                // badges - the worst band excluded from the count of the worst.
+                'high_risk' => $materials
+                    ->filter(fn (array $row): bool => RiskLevel::from($row['risk_level'])->isElevated())
+                    ->count(),
                 'flagged' => $materials->where('is_flagged_critical', true)->count(),
             ],
             'options' => [

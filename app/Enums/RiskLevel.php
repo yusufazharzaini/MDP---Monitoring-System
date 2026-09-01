@@ -44,6 +44,18 @@ enum RiskLevel: string
     /**
      * Band a risk score (0 and up) into a level.
      */
+    /**
+     * Whether this level is one somebody has to act on.
+     *
+     * A caller that spells out its own list of levels drifts the moment a case
+     * is added - which is exactly how the critical-material screen came to
+     * count HIGH while ignoring CRITICAL, the worse of the two.
+     */
+    public function isElevated(): bool
+    {
+        return in_array($this, [self::HIGH, self::CRITICAL], true);
+    }
+
     public static function fromScore(int $score): self
     {
         return match (true) {

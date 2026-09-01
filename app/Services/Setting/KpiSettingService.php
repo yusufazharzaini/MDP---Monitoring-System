@@ -69,17 +69,27 @@ class KpiSettingService
     public function gradeFor(float $serviceRate): SupplierGrade
     {
         foreach ([SupplierGrade::EXCELLENT, SupplierGrade::GOOD, SupplierGrade::AVERAGE] as $grade) {
-            $threshold = $this->target(
-                (string) $grade->thresholdCode(),
-                self::GRADE_FALLBACKS[$grade->value],
-            );
-
-            if ($serviceRate >= $threshold) {
+            if ($serviceRate >= $this->gradeFloor($grade)) {
                 return $grade;
             }
         }
 
         return SupplierGrade::POOR;
+    }
+
+    /**
+     * The service rate at which a grade starts.
+     *
+     * The grader and the legend that explains it must read this same method:
+     * defaulting a missing threshold to 0 in one place and to 98 in the other
+     * put "Excellent >= 0%" on screen while grading still required 98.
+     */
+    public function gradeFloor(SupplierGrade $grade): float
+    {
+        return $this->target(
+            (string) $grade->thresholdCode(),
+            self::GRADE_FALLBACKS[$grade->value] ?? 0.0,
+        );
     }
 
     /**

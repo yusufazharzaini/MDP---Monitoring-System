@@ -192,7 +192,7 @@ class SupplierPerformanceService
         $previous = null;
 
         foreach ([SupplierGrade::EXCELLENT, SupplierGrade::GOOD, SupplierGrade::AVERAGE] as $grade) {
-            $floor = $this->kpi->target((string) $grade->thresholdCode(), 0.0);
+            $floor = $this->kpi->gradeFloor($grade);
 
             $bands[] = [
                 'grade' => $grade->value,
