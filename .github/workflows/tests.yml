@@ -1,9 +1,17 @@
 name: CI
 
 on:
+  # Only main is built on push. Feature branches are covered by pull_request,
+  # and listing them here too made every pushed commit on an open PR start two
+  # independent runs - which is why the PR showed 8 checks for 4 jobs.
   push:
-    branches: [main, 'claude/**']
+    branches: [main]
   pull_request:
+
+# A newer commit makes an in-flight run for the same ref obsolete.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read

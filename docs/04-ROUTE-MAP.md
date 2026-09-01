@@ -490,7 +490,7 @@ The suite runs on two engines because they prove different things.
 
 | Job | Engine | Proves |
 |---|---|---|
-| `backend` | SQLite in memory, PHP 8.3 + 8.4 | Fast feedback on every push |
+| `backend` | SQLite in memory, PHP 8.4 | Fast feedback on every push |
 | `mysql` | MySQL 8 | The 26 CHECK constraints, `ONLY_FULL_GROUP_BY`, `FOR UPDATE`, real index behaviour |
 | `rollback` | MySQL 8 | `migrate:fresh --seed` then `migrate:reset`, asserting an empty schema |
 | `frontend` | - | `vue-tsc` and a production build |

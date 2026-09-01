@@ -26,7 +26,7 @@ Laravel Excel · DomPDF · PHPUnit 12
 
 ## Requirements
 
-- PHP >= 8.3 with `pdo_mysql`, `mbstring`, `intl`, `gd`, `zip`
+- PHP >= 8.4.1 with `pdo_mysql`, `mbstring`, `intl`, `gd`, `zip`
 - Composer 2
 - Node 20+ and npm
 - MySQL 8 (SQLite is used for the test suite)
