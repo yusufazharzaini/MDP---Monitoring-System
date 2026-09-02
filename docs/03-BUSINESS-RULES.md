@@ -235,7 +235,7 @@ that costs:
   and prices, and edits that re-derive the total.
 - The bound is the column's own maximum, `99,999,999,999,999.9999`: eighteen
   significant digits against a float64's fifteen or sixteen. That is roughly
-  five orders of magnitude above the largest order Torica raises.
+  five orders of magnitude above the largest order PT. Yusuf Azhar Zaini raises.
 - **Accepted**, not fixed. `bcmath` is not among the deployment's PHP
   extensions, so honouring the rule literally would add a hard dependency to buy
   precision the business does not use. Revisit if amounts ever approach 10^12.

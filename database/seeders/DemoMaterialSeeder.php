@@ -9,6 +9,7 @@ use App\Models\Material;
 use App\Models\MaterialCategory;
 use App\Models\Uom;
 use Database\Seeders\Support\DemoBlueprint;
+use Database\Seeders\Support\RefusesToRunInProduction;
 use Illuminate\Database\Seeder;
 
 /**
@@ -20,6 +21,8 @@ use Illuminate\Database\Seeder;
  */
 class DemoMaterialSeeder extends Seeder
 {
+    use RefusesToRunInProduction;
+
     /**
      * @var array<int, array{name: string, category: string, uom: string}>
      */
@@ -48,6 +51,8 @@ class DemoMaterialSeeder extends Seeder
 
     public function run(): void
     {
+        $this->guardAgainstProduction();
+
         $categories = MaterialCategory::query()->pluck('id', 'code');
         $uoms = Uom::query()->pluck('id', 'code');
 

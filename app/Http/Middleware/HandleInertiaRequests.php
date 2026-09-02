@@ -65,6 +65,28 @@ class HandleInertiaRequests extends Middleware
             'app' => [
                 'name' => config('app.name'),
             ],
+
+            /*
+             * Language. `translations` carries only the active locale's strings
+             * - one language over the wire, not four - and is resolved lazily so
+             * an Inertia partial reload does not re-send the whole dictionary.
+             *
+             * Enum labels are not here: the server renders those through
+             * HasEnumMetadata::label() before they ever reach a prop, so a badge
+             * arrives already in the reader's language.
+             */
+            'locale' => [
+                'current' => app()->getLocale(),
+                'supported' => collect((array) config('locales.supported'))
+                    ->map(static fn (array $meta, string $code): array => [
+                        'code' => $code,
+                        'native' => $meta['native'],
+                    ])
+                    ->values()
+                    ->all(),
+            ],
+
+            'translations' => fn (): array => (array) trans('ui'),
         ];
     }
 }

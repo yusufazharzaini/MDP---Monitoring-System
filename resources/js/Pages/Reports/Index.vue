@@ -4,6 +4,9 @@ import { computed, ref, watch } from 'vue';
 import AppIcon from '@/Components/AppIcon.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import EmptyState from '@/Components/EmptyState.vue';
+import { useTranslate } from '@/Composables/useTranslate';
+
+const { t } = useTranslate();
 import type {
     DashboardFilters,
     ReportCatalogueEntry,
@@ -73,11 +76,11 @@ watch([type, period, supplierId, plantId, categoryId], () => {
 </script>
 
 <template>
-    <Head title="Report" />
+    <Head :title="t('report.title')" />
 
     <AppLayout
         current="reports"
-        title="Report"
+        :title="t('report.title')"
         subtitle="Laporan delivery, purchase order, supplier, problem, dan material"
     >
         <div class="space-y-5">
@@ -102,27 +105,25 @@ watch([type, period, supplierId, plantId, categoryId], () => {
 
             <section class="card">
                 <header class="flex flex-wrap items-center gap-3 border-b border-line px-5 py-4">
-                    <label class="flex items-center gap-2 text-sm text-ink-muted">
-                        Periode
-                        <input v-model="period" type="month" class="field-input w-auto" aria-label="Periode laporan" />
+                    <label class="flex items-center gap-2 text-sm text-ink-muted">{{ t('common.period') }}<input v-model="period" type="month" class="field-input w-auto" :aria-label="t('report.period')" />
                     </label>
 
-                    <select v-model="supplierId" class="field-input w-auto min-w-[11rem]" aria-label="Filter supplier">
-                        <option value="">Semua supplier</option>
+                    <select v-model="supplierId" class="field-input w-auto min-w-[11rem]" :aria-label="t('filter.supplier')">
+                        <option value="">{{ t('filter.all_suppliers') }}</option>
                         <option v-for="option in options.suppliers" :key="option.value" :value="option.value">
                             {{ option.label }}
                         </option>
                     </select>
 
-                    <select v-model="plantId" class="field-input w-auto min-w-[10rem]" aria-label="Filter plant">
-                        <option value="">Semua plant</option>
+                    <select v-model="plantId" class="field-input w-auto min-w-[10rem]" :aria-label="t('filter.plant')">
+                        <option value="">{{ t('filter.all_plants') }}</option>
                         <option v-for="option in options.plants" :key="option.value" :value="option.value">
                             {{ option.label }}
                         </option>
                     </select>
 
-                    <select v-model="categoryId" class="field-input w-auto min-w-[11rem]" aria-label="Filter kategori material">
-                        <option value="">Semua kategori</option>
+                    <select v-model="categoryId" class="field-input w-auto min-w-[11rem]" :aria-label="t('filter.material_category')">
+                        <option value="">{{ t('filter.all_categories') }}</option>
                         <option v-for="option in options.materialCategories" :key="option.value" :value="option.value">
                             {{ option.label }}
                         </option>
@@ -144,9 +145,7 @@ watch([type, period, supplierId, plantId, categoryId], () => {
                             {{ formatLabels[format] ?? format }}
                         </a>
                     </div>
-                    <p v-else class="ml-auto text-xs text-ink-subtle">
-                        Akun Anda dapat melihat laporan tetapi tidak mengunduhnya.
-                    </p>
+                    <p v-else class="ml-auto text-xs text-ink-subtle">{{ t('report.view_only') }}</p>
                 </header>
 
                 <div class="border-b border-line px-5 py-3">
@@ -162,7 +161,7 @@ watch([type, period, supplierId, plantId, categoryId], () => {
 
                 <EmptyState
                     v-if="preview.length === 0"
-                    title="Tidak ada data"
+                    :title="t('common.no_data_short')"
                     message="Tidak ada baris pada periode dan filter yang dipilih."
                 />
 

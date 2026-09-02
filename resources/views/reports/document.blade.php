@@ -7,7 +7,7 @@
     document rather than two that drift apart.
 --}}
 <!DOCTYPE html>
-<html lang="id">
+<html lang="{{ app()->getLocale() }}">
 <head>
     <meta charset="utf-8">
     <title>{{ $dataset->title() }} — {{ $dataset->periodLabel() }}</title>
@@ -46,7 +46,7 @@
 </head>
 <body>
     <div class="masthead">
-        <div class="org">PT. TORICA INDONESIA</div>
+        <div class="org">PT. YUSUF AZHAR ZAINI</div>
         <div class="system">Material Delivery Performance Monitoring System</div>
     </div>
 

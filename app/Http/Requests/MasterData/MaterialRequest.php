@@ -36,7 +36,7 @@ class MaterialRequest extends MasterDataRequest
     public function messages(): array
     {
         return [
-            'critical_stock.lte' => 'Critical stock harus lebih kecil atau sama dengan minimum stock.',
+            'critical_stock.lte' => __('requests.critical_stock_vs_min'),
         ];
     }
 }

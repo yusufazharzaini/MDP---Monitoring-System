@@ -3,6 +3,9 @@ import { useForm } from '@inertiajs/vue3';
 import ResourceForm from '@/Components/MasterData/ResourceForm.vue';
 import Fields, { type FormData } from './Fields.vue';
 import type { SelectOption } from '@/Types';
+import { useTranslate } from '@/Composables/useTranslate';
+
+const { t } = useTranslate();
 
 defineProps<{
     options: {
@@ -34,7 +37,7 @@ function submit(): void {
 
 <template>
     <ResourceForm
-        title="Tambah Pengguna"
+        :title="t('user.add_title')"
         subtitle="Buat akun dan tentukan perannya."
         current="users"
         :back-href="route('users.index')"

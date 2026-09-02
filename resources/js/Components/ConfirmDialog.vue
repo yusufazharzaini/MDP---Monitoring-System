@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted } from 'vue';
 import AppIcon from '@/Components/AppIcon.vue';
+import { useTranslate } from '@/Composables/useTranslate';
+
+const { t } = useTranslate();
 
 const props = withDefaults(
     defineProps<{
@@ -63,9 +66,7 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKeydown));
                         class="rounded-lg border border-line px-4 py-2 text-sm font-medium text-ink-muted transition hover:text-ink"
                         :disabled="processing"
                         @click="$emit('cancel')"
-                    >
-                        Batal
-                    </button>
+                    >{{ t('common.cancel') }}</button>
                     <button
                         type="button"
                         class="rounded-lg px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-60"

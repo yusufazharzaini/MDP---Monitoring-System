@@ -5,6 +5,9 @@ import BaseChart from '@/Components/Charts/BaseChart.vue';
 import { tooltipStyle, useChartTheme } from '@/Composables/useChartTheme';
 import { useIsNarrow } from '@/Composables/useIsNarrow';
 import type { ParetoDataset } from '@/Types';
+import { useTranslate } from '@/Composables/useTranslate';
+
+const { t } = useTranslate();
 
 const props = defineProps<{ dataset: ParetoDataset }>();
 
@@ -131,6 +134,6 @@ const option = computed<EChartsCoreOption>(() => {
     <BaseChart
         :option="option"
         height="17rem"
-        aria-label="Analisa Pareto masalah delivery: porsi dan kumulatif per kategori"
+        :aria-label="t('chart.pareto_desc')"
     />
 </template>

@@ -39,7 +39,7 @@ final class AdminScreenTest extends TestCase
     {
         return [
             'name' => 'Budi Santoso',
-            'email' => 'budi@torica.test',
+            'email' => 'budi@yusufazharzaini.test',
             'password' => 'RahasiaSekali123',
             'password_confirmation' => 'RahasiaSekali123',
             'status' => RecordStatus::ACTIVE->value,
@@ -86,7 +86,7 @@ final class AdminScreenTest extends TestCase
             ->post(route('users.store'), $this->payload())
             ->assertRedirect(route('users.index'));
 
-        $user = User::query()->where('email', 'budi@torica.test')->firstOrFail();
+        $user = User::query()->where('email', 'budi@yusufazharzaini.test')->firstOrFail();
 
         $this->assertTrue($user->hasRole('PURCHASING'));
     }
@@ -98,7 +98,7 @@ final class AdminScreenTest extends TestCase
             ->post(route('users.store'), $this->payload(['roles' => []]))
             ->assertSessionHasErrors('roles');
 
-        $this->assertDatabaseMissing('users', ['email' => 'budi@torica.test']);
+        $this->assertDatabaseMissing('users', ['email' => 'budi@yusufazharzaini.test']);
     }
 
     #[Test]
@@ -116,7 +116,7 @@ final class AdminScreenTest extends TestCase
     public function an_email_already_used_by_a_retired_account_is_refused(): void
     {
         $admin = $this->userWithRole('ADMIN');
-        $existing = User::factory()->create(['email' => 'budi@torica.test']);
+        $existing = User::factory()->create(['email' => 'budi@yusufazharzaini.test']);
         $existing->assignRole('VIEWER');
 
         $this->actingAs($admin)->delete(route('users.destroy', $existing->ulid))->assertRedirect();

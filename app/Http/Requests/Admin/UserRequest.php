@@ -49,10 +49,10 @@ class UserRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'email.unique' => 'Alamat email ini sudah terdaftar, termasuk pada akun yang dinonaktifkan.',
-            'roles.required' => 'Pengguna harus memiliki minimal satu peran.',
-            'roles.min' => 'Pengguna harus memiliki minimal satu peran.',
-            'password.confirmed' => 'Konfirmasi kata sandi tidak cocok.',
+            'email.unique' => __('requests.user_email_taken'),
+            'roles.required' => __('requests.user_needs_role'),
+            'roles.min' => __('requests.user_needs_role'),
+            'password.confirmed' => __('requests.password_mismatch'),
         ];
     }
 

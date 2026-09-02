@@ -129,11 +129,34 @@ final class ReportScreenTest extends TestCase
             ->get(route('reports.export', ['type' => 'supplier-performance', 'format' => 'print']));
 
         $response->assertOk();
-        $response->assertSee('PT. TORICA INDONESIA');
-        $response->assertSee('Laporan Performa Supplier');
+        $response->assertSee('PT. YUSUF AZHAR ZAINI');
+        $response->assertSee('Supplier Performance Report');
         // The same data the PDF carries, in a page the browser can print.
         $response->assertSee('Supplier A');
         $response->assertSee('Service Rate (%)');
+    }
+
+    /**
+     * A filed document must not depend on who exported it.
+     *
+     * DomPDF renders with DejaVu Sans, which has no CJK glyphs, so a Japanese
+     * PDF would come out as empty boxes rather than as an error. Printed output
+     * is therefore pinned to config('locales.documents') while the interface
+     * stays in the reader's own language.
+     */
+    #[Test]
+    public function a_printed_document_stays_in_the_document_language(): void
+    {
+        $reader = $this->userWithRole('MANAGEMENT');
+        $reader->locale = 'ja';
+        $reader->save();
+
+        $response = $this->actingAs($reader)
+            ->get(route('reports.export', ['type' => 'supplier-performance', 'format' => 'print']));
+
+        $response->assertOk();
+        $response->assertSee('Supplier Performance Report');
+        $response->assertDontSee('仕入先パフォーマンスレポート');
     }
 
     #[Test]
@@ -148,7 +171,7 @@ final class ReportScreenTest extends TestCase
                 'date_from' => '2026-08-01',
                 'date_to' => '2026-08-31',
             ]))
-            ->assertSee('2026-08-01 s/d 2026-08-31')
+            ->assertSee('2026-08-01 to 2026-08-31')
             ->assertSee($user->name);
     }
 

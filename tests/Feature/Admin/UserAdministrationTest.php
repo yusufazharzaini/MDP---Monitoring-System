@@ -45,7 +45,7 @@ final class UserAdministrationTest extends TestCase
     {
         return [
             'name' => 'Budi Santoso',
-            'email' => 'budi@torica.test',
+            'email' => 'budi@yusufazharzaini.test',
             'password' => 'RahasiaSekali123',
             'password_confirmation' => 'RahasiaSekali123',
             'position' => 'Purchasing Officer',
@@ -80,7 +80,7 @@ final class UserAdministrationTest extends TestCase
         $this->expectException(MassAssignmentException::class);
 
         $this->users->create(
-            ['name' => 'Curang', 'email' => 'curang@torica.test', 'password' => 'RahasiaSekali123',
+            ['name' => 'Curang', 'email' => 'curang@yusufazharzaini.test', 'password' => 'RahasiaSekali123',
                 'status' => RecordStatus::ACTIVE->value, 'roles' => [RolesAndPermissionsSeeder::SUPER_ADMIN]],
             ['VIEWER'],
         );

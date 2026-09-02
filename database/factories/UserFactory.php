@@ -34,6 +34,9 @@ class UserFactory extends Factory
             'employee_code' => strtoupper($this->faker->unique()->bothify('EMP####')),
             'position' => $this->faker->jobTitle(),
             'phone' => $this->faker->numerify('08##########'),
+            // Null means "follow the application default", which is what an
+            // account that never opened the language switcher looks like.
+            'locale' => null,
             'status' => RecordStatus::ACTIVE,
         ];
     }

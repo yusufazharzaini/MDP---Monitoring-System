@@ -59,8 +59,31 @@ final class ExportAbuseTest extends TestCase
 
         $errors = session('errors')->get('date_to');
 
-        $this->assertStringContainsString('maksimal', $errors[0]);
-        $this->assertStringContainsString('per tahun', $errors[0]);
+        // The bound and the way out of it, in the application's own language.
+        $this->assertStringContainsString('at most', $errors[0]);
+        $this->assertStringContainsString('a year at a time', $errors[0]);
+    }
+
+    /**
+     * The refusal has to be readable, or the reader cannot act on it.
+     */
+    #[Test]
+    public function the_message_reaches_the_reader_in_their_own_language(): void
+    {
+        $reader = $this->userWithRole('MANAGEMENT');
+        $reader->locale = 'id';
+        $reader->save();
+
+        $this->actingAs($reader)
+            ->get(route('reports.export', [
+                'type' => 'delivery',
+                'format' => 'xlsx',
+                'date_from' => '2020-01-01',
+                'date_to' => '2030-01-01',
+            ]))
+            ->assertSessionHasErrorsIn('default', ['date_to']);
+
+        $this->assertStringContainsString('maksimal', session('errors')->get('date_to')[0]);
     }
 
     #[Test]

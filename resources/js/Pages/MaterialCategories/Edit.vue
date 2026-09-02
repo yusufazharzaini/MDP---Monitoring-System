@@ -3,6 +3,9 @@ import { useForm } from '@inertiajs/vue3';
 import ResourceForm from '@/Components/MasterData/ResourceForm.vue';
 import Fields, { type FormData } from './Fields.vue';
 import type { SelectOption } from '@/Types';
+import { useTranslate } from '@/Composables/useTranslate';
+
+const { t } = useTranslate();
 
 const props = defineProps<{
     record: FormData & { id: number; ulid?: string };
@@ -20,7 +23,7 @@ function submit(): void {
 
 <template>
     <ResourceForm
-        title="Ubah Kategori material"
+        :title="t('master.category_edit')"
         :subtitle="`Memperbarui ${record.code} — ${record.name}`"
         current="materials"
         :back-href="backHref"

@@ -4,6 +4,9 @@ import ResourceIndex, {
     type MasterDataRow,
 } from '@/Components/MasterData/ResourceIndex.vue';
 import type { Paginated, SelectOption } from '@/Types';
+import { useTranslate } from '@/Composables/useTranslate';
+
+const { t } = useTranslate();
 
 defineProps<{
     records: Paginated<MasterDataRow>;
@@ -49,7 +52,7 @@ const statusOptions: SelectOption[] = [
 
 <template>
     <ResourceIndex
-        title="Master Plant"
+        :title="t('master.plant_index')"
         subtitle="Lokasi pabrik penerima material"
         current="plants"
         route-name="plants"

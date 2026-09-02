@@ -3,6 +3,9 @@ import { useForm } from '@inertiajs/vue3';
 import ResourceForm from '@/Components/MasterData/ResourceForm.vue';
 import Fields, { type FormData } from './Fields.vue';
 import type { SelectOption } from '@/Types';
+import { useTranslate } from '@/Composables/useTranslate';
+
+const { t } = useTranslate();
 
 defineProps<{ options: { statuses: SelectOption[]; categories: SelectOption[]; uoms: SelectOption[] } }>();
 
@@ -28,7 +31,7 @@ function submit(): void {
 
 <template>
     <ResourceForm
-        title="Tambah Material"
+        :title="t('material.add_title')"
         subtitle="Lengkapi data berikut lalu simpan."
         current="materials"
         :back-href="backHref"

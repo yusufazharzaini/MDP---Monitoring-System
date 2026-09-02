@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import StatusBadge from '@/Components/StatusBadge.vue';
 import type { SupplierPerformanceRow } from '@/Types';
+import { useTranslate } from '@/Composables/useTranslate';
+
+const { t } = useTranslate();
 
 defineProps<{ rows: SupplierPerformanceRow[]; target: number }>();
 
@@ -12,12 +15,12 @@ const number = new Intl.NumberFormat('id-ID');
         <table class="w-full min-w-[34rem] text-sm">
             <thead>
                 <tr class="border-b border-line text-[0.65rem] tracking-wider text-ink-subtle uppercase">
-                    <th scope="col" class="px-5 py-3 text-left font-semibold">Rank</th>
-                    <th scope="col" class="px-5 py-3 text-left font-semibold">Supplier</th>
-                    <th scope="col" class="px-5 py-3 text-right font-semibold">Total</th>
-                    <th scope="col" class="px-5 py-3 text-right font-semibold">On Time</th>
-                    <th scope="col" class="px-5 py-3 text-right font-semibold">Service Rate</th>
-                    <th scope="col" class="px-5 py-3 text-left font-semibold">Status</th>
+                    <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('common.rank') }}</th>
+                    <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('entity.supplier') }}</th>
+                    <th scope="col" class="px-5 py-3 text-right font-semibold">{{ t('common.total') }}</th>
+                    <th scope="col" class="px-5 py-3 text-right font-semibold">{{ t('state.on_time') }}</th>
+                    <th scope="col" class="px-5 py-3 text-right font-semibold">{{ t('metric.service_rate') }}</th>
+                    <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('common.status') }}</th>
                 </tr>
             </thead>
             <tbody>

@@ -43,6 +43,7 @@ class User extends Authenticatable
         'employee_code',
         'position',
         'phone',
+        'locale',
         'status',
     ];
 

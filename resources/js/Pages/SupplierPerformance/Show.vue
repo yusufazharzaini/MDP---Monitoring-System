@@ -6,6 +6,9 @@ import EmptyState from '@/Components/EmptyState.vue';
 import ServiceRateChart from '@/Components/Charts/ServiceRateChart.vue';
 import StatusBadge from '@/Components/StatusBadge.vue';
 import type { DashboardFilters, SupplierScorecard } from '@/Types';
+import { useTranslate } from '@/Composables/useTranslate';
+
+const { t } = useTranslate();
 
 const props = defineProps<{
     scorecard: SupplierScorecard;
@@ -59,9 +62,7 @@ const problemTotal = computed(() =>
                 <Link
                     :href="route('suppliers.show', scorecard.supplier.ulid)"
                     class="rounded-lg border border-line px-3.5 py-2 text-sm font-semibold text-ink-muted transition hover:border-info hover:text-info"
-                >
-                    Data supplier
-                </Link>
+                >{{ t('performance.supplier_data') }}</Link>
             </div>
 
             <section class="card p-5">
@@ -105,10 +106,8 @@ const problemTotal = computed(() =>
             <div class="grid gap-5 lg:grid-cols-3">
                 <section class="card lg:col-span-2">
                     <header class="border-b border-line px-5 py-4">
-                        <h2 class="text-sm font-semibold tracking-wide text-ink uppercase">Tren Service Rate</h2>
-                        <p class="mt-0.5 text-xs text-ink-muted">
-                            Enam bulan terakhir. Bulan tanpa penerimaan tidak digambar sebagai 0%.
-                        </p>
+                        <h2 class="text-sm font-semibold tracking-wide text-ink uppercase">{{ t('performance.service_rate_trend') }}</h2>
+                        <p class="mt-0.5 text-xs text-ink-muted">{{ t('performance.six_month_hint') }}</p>
                     </header>
                     <div class="p-4">
                         <ServiceRateChart :points="scorecard.trend" :target="scorecard.service_rate_target" />
@@ -117,13 +116,13 @@ const problemTotal = computed(() =>
 
                 <section class="card">
                     <header class="border-b border-line px-5 py-4">
-                        <h2 class="text-sm font-semibold tracking-wide text-ink uppercase">Problem per Kategori</h2>
+                        <h2 class="text-sm font-semibold tracking-wide text-ink uppercase">{{ t('performance.problems_by_category') }}</h2>
                         <p class="mt-0.5 text-xs text-ink-muted">{{ problemTotal }} problem pada periode ini</p>
                     </header>
 
                     <EmptyState
                         v-if="scorecard.problem_breakdown.length === 0"
-                        title="Tidak ada problem"
+                        :title="t('msg.no_problem')"
                         message="Tidak ada masalah delivery yang tercatat untuk supplier ini pada periode terpilih."
                     />
 
@@ -142,7 +141,7 @@ const problemTotal = computed(() =>
 
             <section v-if="can.viewEvaluations" class="card">
                 <header class="border-b border-line px-5 py-4">
-                    <h2 class="text-sm font-semibold tracking-wide text-ink uppercase">Riwayat Evaluasi Bulanan</h2>
+                    <h2 class="text-sm font-semibold tracking-wide text-ink uppercase">{{ t('performance.evaluation_history') }}</h2>
                     <p class="mt-0.5 text-xs text-ink-muted">
                         Skor yang sudah disetujui bersifat beku &mdash; koreksi data setelahnya tidak mengubahnya.
                     </p>
@@ -150,7 +149,7 @@ const problemTotal = computed(() =>
 
                 <EmptyState
                     v-if="evaluations.length === 0"
-                    title="Belum ada evaluasi"
+                    :title="t('msg.no_evaluation')"
                     message="Evaluasi bulanan dihitung dari halaman Evaluasi Supplier."
                 />
 
@@ -158,11 +157,11 @@ const problemTotal = computed(() =>
                     <table class="w-full min-w-[34rem] text-sm">
                         <thead>
                             <tr class="border-b border-line text-[0.65rem] tracking-wider text-ink-subtle uppercase">
-                                <th scope="col" class="px-5 py-3 text-left font-semibold">Periode</th>
-                                <th scope="col" class="px-5 py-3 text-right font-semibold">Total Skor</th>
-                                <th scope="col" class="px-5 py-3 text-left font-semibold">Grade</th>
-                                <th scope="col" class="px-5 py-3 text-left font-semibold">Status</th>
-                                <th scope="col" class="px-5 py-3 text-left font-semibold">Disetujui oleh</th>
+                                <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('common.period') }}</th>
+                                <th scope="col" class="px-5 py-3 text-right font-semibold">{{ t('performance.total_score') }}</th>
+                                <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('common.grade') }}</th>
+                                <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('common.status') }}</th>
+                                <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('common.approved_by') }}</th>
                             </tr>
                         </thead>
                         <tbody>

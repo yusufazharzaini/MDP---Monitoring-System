@@ -46,7 +46,7 @@ final class PrivilegeEscalationTest extends TestCase
     {
         return [
             'name' => 'Budi Santoso',
-            'email' => 'budi@torica.test',
+            'email' => 'budi@yusufazharzaini.test',
             'password' => 'RahasiaSekali123',
             'password_confirmation' => 'RahasiaSekali123',
             'status' => 'ACTIVE',
@@ -231,7 +231,7 @@ final class PrivilegeEscalationTest extends TestCase
     #[Test]
     public function the_original_exploit_no_longer_reproduces(): void
     {
-        $admin = User::query()->where('email', 'admin@torica.test')->first()
+        $admin = User::query()->where('email', 'admin@yusufazharzaini.test')->first()
             ?? $this->userWithRole('ADMIN');
 
         if (! $admin->hasRole('ADMIN')) {

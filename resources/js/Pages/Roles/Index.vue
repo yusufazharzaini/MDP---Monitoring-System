@@ -4,6 +4,9 @@ import { computed, ref } from 'vue';
 import AppIcon from '@/Components/AppIcon.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import type { PermissionGroup, RoleRow } from '@/Types';
+import { useTranslate } from '@/Composables/useTranslate';
+
+const { t } = useTranslate();
 
 const props = defineProps<{
     roles: RoleRow[];
@@ -50,17 +53,17 @@ const dirty = computed(
 </script>
 
 <template>
-    <Head title="Peran & Permission" />
+    <Head :title="t('master.roles_index')" />
 
     <AppLayout
         current="roles"
-        title="Peran & Permission"
+        :title="t('master.roles_index')"
         subtitle="Apa yang boleh dilakukan setiap peran"
     >
         <div class="grid gap-5 lg:grid-cols-[16rem_1fr]">
             <section class="card overflow-hidden">
                 <header class="border-b border-line px-4 py-3">
-                    <h2 class="text-sm font-semibold tracking-wide text-ink uppercase">Peran</h2>
+                    <h2 class="text-sm font-semibold tracking-wide text-ink uppercase">{{ t('common.role') }}</h2>
                     <p class="mt-0.5 text-xs text-ink-muted">
                         Peran adalah jabatan organisasi &mdash; ditetapkan bersama sistem.
                     </p>

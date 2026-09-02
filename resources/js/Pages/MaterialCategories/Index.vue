@@ -4,6 +4,9 @@ import ResourceIndex, {
     type MasterDataRow,
 } from '@/Components/MasterData/ResourceIndex.vue';
 import type { Paginated, SelectOption } from '@/Types';
+import { useTranslate } from '@/Composables/useTranslate';
+
+const { t } = useTranslate();
 
 defineProps<{
     records: Paginated<MasterDataRow>;
@@ -41,7 +44,7 @@ const statusOptions: SelectOption[] = [
 
 <template>
     <ResourceIndex
-        title="Kategori Material"
+        :title="t('master.category_index')"
         subtitle="Pengelompokan material untuk analisa dan filter dashboard"
         current="materials"
         route-name="material-categories"

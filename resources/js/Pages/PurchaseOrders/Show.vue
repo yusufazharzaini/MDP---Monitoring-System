@@ -7,6 +7,9 @@ import ConfirmDialog from '@/Components/ConfirmDialog.vue';
 import StatusBadge from '@/Components/StatusBadge.vue';
 import TextareaInput from '@/Components/Form/TextareaInput.vue';
 import type { PurchaseOrderRecord } from '@/Types';
+import { useTranslate } from '@/Composables/useTranslate';
+
+const { t } = useTranslate();
 
 const props = defineProps<{
     record: PurchaseOrderRecord;
@@ -86,40 +89,30 @@ const details = computed(() => [
                         v-if="can.update"
                         :href="route('purchase-orders.edit', record.ulid)"
                         class="rounded-lg border border-line px-3.5 py-2 text-sm font-semibold text-ink-muted transition hover:border-info hover:text-info"
-                    >
-                        Ubah
-                    </Link>
+                    >{{ t('common.edit') }}</Link>
                     <button
                         v-if="can.submit"
                         type="button"
                         class="rounded-lg bg-brand px-3.5 py-2 text-sm font-semibold text-white transition hover:bg-brand-soft"
                         @click="confirming = 'submit'"
-                    >
-                        Ajukan approval
-                    </button>
+                    >{{ t('po.submit_approval') }}</button>
                     <button
                         v-if="can.approve"
                         type="button"
                         class="rounded-lg bg-good px-3.5 py-2 text-sm font-semibold text-white transition hover:opacity-90"
                         @click="confirming = 'approve'"
-                    >
-                        Setujui
-                    </button>
+                    >{{ t('common.approve') }}</button>
                     <Link
                         v-if="record.status === 'APPROVED' || record.status === 'PARTIAL'"
                         :href="route('deliveries.create', record.ulid)"
                         class="rounded-lg bg-good px-3.5 py-2 text-sm font-semibold text-white transition hover:opacity-90"
-                    >
-                        Terima barang
-                    </Link>
+                    >{{ t('action.receive_goods') }}</Link>
                     <button
                         v-if="can.cancel"
                         type="button"
                         class="rounded-lg border border-line px-3.5 py-2 text-sm font-semibold text-ink-muted transition hover:border-critical hover:text-critical"
                         @click="cancelling = true"
-                    >
-                        Batalkan
-                    </button>
+                    >{{ t('common.cancel_record') }}</button>
                 </div>
             </div>
 
@@ -146,12 +139,10 @@ const details = computed(() => [
                             />
                         </li>
                     </ol>
-                    <StatusBadge v-else label="Dibatalkan" variant="danger" />
+                    <StatusBadge v-else :label="t('po.cancelled')" variant="danger" />
 
                     <p class="text-right">
-                        <span class="block text-[0.65rem] font-semibold tracking-wider text-ink-subtle uppercase">
-                            Total nilai
-                        </span>
+                        <span class="block text-[0.65rem] font-semibold tracking-wider text-ink-subtle uppercase">{{ t('po.total_value') }}</span>
                         <span class="text-2xl font-semibold text-ink tabular-nums">
                             {{ record.currency }} {{ money.format(record.total_amount) }}
                         </span>
@@ -160,7 +151,7 @@ const details = computed(() => [
             </section>
 
             <section class="card p-5">
-                <h2 class="text-sm font-semibold tracking-wide text-ink uppercase">Informasi PO</h2>
+                <h2 class="text-sm font-semibold tracking-wide text-ink uppercase">{{ t('po.info') }}</h2>
                 <dl class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     <div v-for="detail in details" :key="detail.label">
                         <dt class="text-[0.65rem] font-semibold tracking-wider text-ink-subtle uppercase">
@@ -169,7 +160,7 @@ const details = computed(() => [
                         <dd class="mt-0.5 text-sm text-ink">{{ detail.value }}</dd>
                     </div>
                     <div v-if="record.remarks" class="sm:col-span-2 lg:col-span-3">
-                        <dt class="text-[0.65rem] font-semibold tracking-wider text-ink-subtle uppercase">Catatan</dt>
+                        <dt class="text-[0.65rem] font-semibold tracking-wider text-ink-subtle uppercase">{{ t('common.notes') }}</dt>
                         <dd class="mt-0.5 text-sm leading-relaxed text-ink-muted">{{ record.remarks }}</dd>
                     </div>
                 </dl>
@@ -177,20 +168,20 @@ const details = computed(() => [
 
             <section class="card">
                 <header class="border-b border-line px-5 py-4">
-                    <h2 class="text-sm font-semibold tracking-wide text-ink uppercase">Item</h2>
+                    <h2 class="text-sm font-semibold tracking-wide text-ink uppercase">{{ t('common.item') }}</h2>
                 </header>
                 <div class="overflow-x-auto">
                     <table class="w-full min-w-[54rem] text-sm">
                         <thead>
                             <tr class="border-b border-line text-[0.65rem] tracking-wider text-ink-subtle uppercase">
                                 <th scope="col" class="px-5 py-3 text-left font-semibold">#</th>
-                                <th scope="col" class="px-5 py-3 text-left font-semibold">Material</th>
-                                <th scope="col" class="px-5 py-3 text-left font-semibold">Warehouse</th>
-                                <th scope="col" class="px-5 py-3 text-left font-semibold">Schedule</th>
-                                <th scope="col" class="px-5 py-3 text-right font-semibold">Qty PO</th>
-                                <th scope="col" class="px-5 py-3 text-right font-semibold">Diterima</th>
-                                <th scope="col" class="px-5 py-3 text-right font-semibold">Jumlah</th>
-                                <th scope="col" class="px-5 py-3 text-left font-semibold">Status</th>
+                                <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('entity.material') }}</th>
+                                <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('entity.warehouse') }}</th>
+                                <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('po.schedule') }}</th>
+                                <th scope="col" class="px-5 py-3 text-right font-semibold">{{ t('po.qty') }}</th>
+                                <th scope="col" class="px-5 py-3 text-right font-semibold">{{ t('po.received') }}</th>
+                                <th scope="col" class="px-5 py-3 text-right font-semibold">{{ t('common.quantity') }}</th>
+                                <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('common.status') }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -232,7 +223,7 @@ const details = computed(() => [
 
             <section v-if="record.deliveries.length > 0" class="card">
                 <header class="border-b border-line px-5 py-4">
-                    <h2 class="text-sm font-semibold tracking-wide text-ink uppercase">Delivery</h2>
+                    <h2 class="text-sm font-semibold tracking-wide text-ink uppercase">{{ t('entity.delivery') }}</h2>
                 </header>
                 <ul class="divide-y divide-line/60">
                     <li
@@ -286,7 +277,7 @@ const details = computed(() => [
                         <TextareaInput
                             id="cancel-reason"
                             v-model="cancelForm.reason"
-                            label="Alasan pembatalan"
+                            :label="t('common.cancellation_reason')"
                             :error="cancelForm.errors.reason"
                         />
                     </div>
@@ -296,9 +287,7 @@ const details = computed(() => [
                             type="button"
                             class="rounded-lg border border-line px-4 py-2 text-sm font-medium text-ink-muted transition hover:text-ink"
                             @click="cancelling = false"
-                        >
-                            Kembali
-                        </button>
+                        >{{ t('common.back') }}</button>
                         <button
                             type="submit"
                             class="rounded-lg bg-critical px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-60"

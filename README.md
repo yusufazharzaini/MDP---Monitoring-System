@@ -11,7 +11,7 @@ Built for PT. *****.
 ## Stack
 
 Laravel 13 · PHP 8.4 · MySQL 8 · Inertia.js · Vue 3 (TypeScript) · Pinia ·
-Tailwind CSS 4 · Apache ECharts · Laravel Sanctum · spatie/laravel-permission ·
+Tailwind CSS 4 · Apache ECharts · spatie/laravel-permission ·
 Laravel Excel · DomPDF · PHPUnit 12
 
 ## Documentation
@@ -23,6 +23,7 @@ Laravel Excel · DomPDF · PHPUnit 12
 | [docs/03-BUSINESS-RULES.md](docs/03-BUSINESS-RULES.md) | Status enums, delivery calculation, KPI formulas, lifecycles |
 | [docs/04-ROUTE-MAP.md](docs/04-ROUTE-MAP.md) | Route map, dashboard JSON contract, service/component inventory, roadmap |
 | [docs/05-DEMO-DATA.md](docs/05-DEMO-DATA.md) | What the seed reproduces and how |
+| [docs/06-USER-GUIDE.md](docs/06-USER-GUIDE.md) | **How to use the system**: signing in, changing language, the daily PO → delivery → problem flow, how delivery status is decided, reports, administration |
 
 ## Requirements
 
@@ -84,6 +85,43 @@ DB_CONNECTION=sqlite
 touch database/database.sqlite
 php artisan migrate:fresh --seed
 ```
+
+## Deploying to a real environment
+
+Everything under *Getting started* seeds demo data: roughly 1250 invented
+deliveries and seven accounts sharing one password. That is for developers. A
+real deployment uses a different path, and the demo seeders now **refuse** to
+run when `APP_ENV=production` rather than trusting anyone to remember.
+
+```bash
+php artisan migrate --force                          # never migrate:fresh
+php artisan db:seed --class=ProductionSeeder --force # roles, reference data, KPI settings
+php artisan mdp:create-admin                         # asks for a password, twice
+```
+
+`ProductionSeeder` installs only what the application cannot start without and
+creates no accounts, no suppliers and no transactions - that data is yours. It
+is idempotent, so re-run it after an upgrade to pick up new reference rows.
+
+`mdp:create-admin` reads the password from a hidden prompt, or from
+`MDP_ADMIN_PASSWORD` for an unattended install; it is never a command-line
+argument, where it would land in the shell history. Minimum 12 characters. There
+is no default administrator password anywhere in this repository.
+
+### Before the first sign-in
+
+| Requirement | Why it matters |
+|---|---|
+| **HTTPS** | In production the session cookie is `secure`. Over plain HTTP nobody can sign in at all, and the failure looks like a silent redirect loop. |
+| `APP_ENV=production`, `APP_DEBUG=false` | The application refuses to boot with debug on in production. |
+| **Queue worker** — `php artisan queue:work` under supervisor | Notifications implement `ShouldQueue`. Without a worker they are written and never delivered, with no error. |
+| **Scheduler** — `* * * * * php artisan schedule:run` | The overdue-problem digest runs daily at 07:00. |
+| **SMTP** | `PurchaseOrderAwaitingApproval` uses the `mail` channel. |
+| `php artisan storage:link` | Report and attachment downloads. |
+| **Database backups** | Purchase orders and deliveries are cancelled, never deleted; the audit trail is append-only. Both are only as durable as your backups. |
+
+Note that `migrate:fresh`, `migrate:refresh` and `db:wipe` are blocked by Laravel
+itself in production, `--force` included.
 
 ## Testing
 
@@ -177,11 +215,11 @@ Vue layer hard-codes a threshold.
 | 3 | Purchase Order module | **Complete** |
 | 4 | Delivery & receiving | **Complete** |
 | 5 | Dashboard | **Complete** |
-| 6 | Problem management | Planned |
-| 7 | Supplier performance | **Service layer complete**, UI pending |
-| 8 | Reporting | Planned |
-| 9 | Roles, policies, audit log | Planned |
-| 10 | Caching & query optimisation | Planned |
+| 6 | Problem management | **Complete** |
+| 7 | Supplier performance | **Complete** |
+| 8 | Reporting | **Complete** |
+| 9 | Roles, policies, audit log | **Complete** |
+| 10 | Caching, query optimisation, queue & notifications | **Complete** |
 
 The full roadmap with exit criteria is in
 [docs/04-ROUTE-MAP.md](docs/04-ROUTE-MAP.md#7-development-roadmap).

@@ -165,18 +165,25 @@ the seeder ever drift apart, that test fails.
 
 ## 6. Demo accounts
 
-Seeded by `UserSeeder`. The password comes from `MDP_DEMO_PASSWORD`
-(default `password123` — change it before any shared deployment).
+Seeded by `UserSeeder`. The password comes from `MDP_DEMO_PASSWORD` and
+defaults to `password123`.
+
+These accounts are for development only, and cannot reach a production
+database: every demo seeder — this one included — throws when
+`APP_ENV=production`, `--force` included. A real deployment seeds with
+`ProductionSeeder`, which creates no accounts at all, and gets its first
+administrator from `php artisan mdp:create-admin`, which has no default
+password. See the deployment section of the README.
 
 | Email | Role |
 |---|---|
-| superadmin@torica.test | SUPER_ADMIN |
-| admin@torica.test | ADMIN |
-| purchasing@torica.test | PURCHASING |
-| warehouse@torica.test | WAREHOUSE |
-| logistic@torica.test | LOGISTIC |
-| management@torica.test | MANAGEMENT |
-| viewer@torica.test | VIEWER |
+| superadmin@yusufazharzaini.test | SUPER_ADMIN |
+| admin@yusufazharzaini.test | ADMIN |
+| purchasing@yusufazharzaini.test | PURCHASING |
+| warehouse@yusufazharzaini.test | WAREHOUSE |
+| logistic@yusufazharzaini.test | LOGISTIC |
+| management@yusufazharzaini.test | MANAGEMENT |
+| viewer@yusufazharzaini.test | VIEWER |
 
 ## 7. Re-seeding
 

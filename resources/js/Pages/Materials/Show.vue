@@ -3,6 +3,9 @@ import { Head, Link } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import StatusBadge from '@/Components/StatusBadge.vue';
 import type { BadgeVariant } from '@/Types';
+import { useTranslate } from '@/Composables/useTranslate';
+
+const { t } = useTranslate();
 
 interface MaterialRecord {
     id: number;
@@ -50,18 +53,16 @@ const details: Array<{ label: string; value: string }> = [
                     v-if="can.update"
                     :href="route('materials.edit', record.ulid)"
                     class="rounded-lg border border-line px-3.5 py-2 text-sm font-semibold text-ink-muted transition hover:border-info hover:text-info"
-                >
-                    Ubah material
-                </Link>
+                >{{ t('material.edit') }}</Link>
             </div>
 
             <section class="card p-5">
                 <div class="flex flex-wrap items-center justify-between gap-3">
-                    <h2 class="text-sm font-semibold tracking-wide text-ink uppercase">Detail Material</h2>
+                    <h2 class="text-sm font-semibold tracking-wide text-ink uppercase">{{ t('material.detail') }}</h2>
                     <div class="flex items-center gap-2">
                         <StatusBadge
                             v-if="record.is_critical"
-                            label="Critical"
+                            :label="t('material.critical')"
                             variant="danger"
                         />
                         <StatusBadge :label="record.status_label" :variant="record.status_variant" />

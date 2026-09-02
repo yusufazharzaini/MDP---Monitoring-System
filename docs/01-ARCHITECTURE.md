@@ -15,7 +15,7 @@ No metric is hard-coded in the frontend.
 |---|---|
 | Backend | Laravel 13.x, PHP 8.4 |
 | Database | MySQL 8 (production), SQLite in-memory (test suite) |
-| Auth | Session auth for Inertia, Laravel Sanctum for token/API clients |
+| Auth | Session auth for Inertia; no token/API surface is installed |
 | Authorization | spatie/laravel-permission + Laravel Policies |
 | Frontend | Vue 3 (`<script setup lang="ts">`), Inertia.js 3, Pinia, Tailwind CSS 4 |
 | Charts | Apache ECharts 6 |
@@ -85,6 +85,43 @@ app/
 18. Corrective Action  19. Supplier Performance  20. Supplier Evaluation
 21. KPI Settings  22. Critical Material  23. Notification  24. Report
 25. User Management  26. Role & Permission  27. Audit Log  28. System Settings
+
+## 5b. Language
+
+The interface is offered in English (default), Indonesian, Japanese and Chinese
+(Simplified). Two things are translated, and one deliberately is not.
+
+**Translated — interface labels.** `lang/<locale>/ui.php`. The whole file for
+the active locale is handed to the browser through Inertia's shared props, so
+one language crosses the wire rather than four, and `useTranslate()` reads it. No
+i18n library sits behind that: Laravel's lang files already resolve validation
+messages and notifications server-side, and a second dictionary in JavaScript
+would be a second place for a translation to go stale.
+
+**Translated — the enumerated vocabulary.** `lang/<locale>/enums.php`, resolved
+by `HasEnumMetadata::label()`. One lookup point covers all 19 enums and 86
+cases, so a status badge arrives at the browser already in the reader's
+language. A missing key falls back to title-cased English rather than rendering
+`enums.ProblemSeverity.HIGH` on a dashboard.
+
+**Not translated — anything a person typed.** Supplier names, material codes,
+purchase order numbers, problem descriptions and corrective actions are the
+record this system is audited against. Machine-translating them would mean two
+operators reading two different versions of one row, and a corrective action
+whose wording no longer matches what was written. `LocaleTest` asserts this
+directly.
+
+| Concern | Where it is decided |
+|---|---|
+| Which language a request renders in | `SetLocale` middleware: account choice, then session, then `APP_LOCALE`. Registered before Inertia so shared props are built in the right language. |
+| Where the choice is stored | `users.locale`, nullable — null means "follow the application default". The session covers the login screen, where there is no account yet. |
+| Changing it | `POST /locale`, deliberately outside the auth group: somebody who cannot read the login screen must be able to change it before signing in. |
+| Printed documents | Pinned to `config('locales.documents')`. DomPDF renders with DejaVu Sans, which carries **no CJK glyphs** - a Japanese PDF would come out as empty boxes rather than as an error. Both PDF and the printable HTML use it, so a filed report is the same document whoever exported it. Excel is unaffected; PhpSpreadsheet writes UTF-8. |
+
+Adding a language means a row in `config/locales.php` and a directory under
+`lang/`. `LocaleTest` fails if that directory is missing any key English
+defines, or leaves one blank, so a half-finished translation cannot ship
+quietly.
 
 ## 6. Documented assumptions
 

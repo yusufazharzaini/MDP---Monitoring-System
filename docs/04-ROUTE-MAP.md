@@ -13,6 +13,9 @@ business rules.
 
 | Method | URI | Name | Permission |
 |---|---|---|---|
+| GET | `/login` | `login` | guest — the only unauthenticated screen |
+| POST | `/login` | — | guest — throttled per email + IP |
+| POST | `/logout` | `logout` | authenticated |
 | GET | `/` | `dashboard` | `dashboard.view` |
 | GET | `/dashboard/data` | `dashboard.data` | `dashboard.view` — JSON, used by the filter bar and refresh button |
 | GET | `/workspace` | `home` | authenticated — permission-filtered module launcher |
@@ -34,9 +37,6 @@ business rules.
 | POST | `/purchase-orders/{po}/submit` | `purchase-orders.submit` | `po.update` |
 | POST | `/purchase-orders/{po}/approve` | `purchase-orders.approve` | `po.approve` |
 | POST | `/purchase-orders/{po}/cancel` | `purchase-orders.cancel` | `po.cancel` |
-| GET | `/purchase-orders/import` | `purchase-orders.import.form` | `po.create` |
-| POST | `/purchase-orders/import/preview` | `purchase-orders.import.preview` | `po.create` |
-| POST | `/purchase-orders/import/confirm` | `purchase-orders.import.confirm` | `po.create` |
 | resource | `/deliveries` | `deliveries.*` | `delivery.*` |
 | POST | `/deliveries/{delivery}/cancel` | `deliveries.cancel` | `delivery.cancel` |
 | GET | `/problems` | `problems.index` | `problem.view` |
@@ -74,8 +74,6 @@ business rules.
 | POST | `/notifications/{id}/read` | `notifications.read` | authenticated |
 | POST | `/notifications/read-all` | `notifications.read-all` | authenticated |
 | GET | `/audit-logs` | `audit-logs.index` | `audit.view` |
-| GET | `/settings` | `settings.index` | `setting.view` |
-| PUT | `/settings` | `settings.update` | `setting.update` |
 | resource | `/kpi-settings` | `kpi-settings.*` | `setting.*` |
 
 ## 2. Dashboard JSON contract (§32)
@@ -148,7 +146,14 @@ so the UI never maps status→colour by hand.
 
 ### Planned
 
-`PurchaseOrderImportService`.
+`PurchaseOrderImportService`, and with it the three
+`purchase-orders.import.*` routes. No import controller exists yet.
+
+A settings **screen** (`settings.index` / `settings.update`) is also not built.
+The values themselves are live and editable - `kpi_settings` and
+`system_settings` are read through `Services\Setting` and are seeded - but today
+they are changed in the database, not through the UI. `kpi-settings.*` is a real
+resource; `/settings` is not.
 
 ## 4.0 Purchase order lifecycle (Phase 3)
 

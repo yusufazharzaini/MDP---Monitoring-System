@@ -8,6 +8,7 @@ use App\Enums\RecordStatus;
 use App\Models\Department;
 use App\Models\Plant;
 use App\Models\User;
+use Database\Seeders\Support\RefusesToRunInProduction;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -17,21 +18,25 @@ use Illuminate\Support\Facades\Hash;
  */
 class UserSeeder extends Seeder
 {
+    use RefusesToRunInProduction;
+
     /**
      * @var array<int, array{name: string, email: string, role: string, department: string, position: string}>
      */
     private const USERS = [
-        ['name' => 'Super Administrator', 'email' => 'superadmin@torica.test', 'role' => 'SUPER_ADMIN', 'department' => 'MGT', 'position' => 'System Owner'],
-        ['name' => 'Application Admin', 'email' => 'admin@torica.test', 'role' => 'ADMIN', 'department' => 'MGT', 'position' => 'IT Administrator'],
-        ['name' => 'Purchasing Staff', 'email' => 'purchasing@torica.test', 'role' => 'PURCHASING', 'department' => 'PUR', 'position' => 'Purchasing Officer'],
-        ['name' => 'Warehouse Staff', 'email' => 'warehouse@torica.test', 'role' => 'WAREHOUSE', 'department' => 'WHS', 'position' => 'Warehouse Officer'],
-        ['name' => 'Logistic Staff', 'email' => 'logistic@torica.test', 'role' => 'LOGISTIC', 'department' => 'LOG', 'position' => 'Logistic Officer'],
-        ['name' => 'Plant Manager', 'email' => 'management@torica.test', 'role' => 'MANAGEMENT', 'department' => 'MGT', 'position' => 'Plant Manager'],
-        ['name' => 'Read Only User', 'email' => 'viewer@torica.test', 'role' => 'VIEWER', 'department' => 'PRD', 'position' => 'Production Planner'],
+        ['name' => 'Super Administrator', 'email' => 'superadmin@yusufazharzaini.test', 'role' => 'SUPER_ADMIN', 'department' => 'MGT', 'position' => 'System Owner'],
+        ['name' => 'Application Admin', 'email' => 'admin@yusufazharzaini.test', 'role' => 'ADMIN', 'department' => 'MGT', 'position' => 'IT Administrator'],
+        ['name' => 'Purchasing Staff', 'email' => 'purchasing@yusufazharzaini.test', 'role' => 'PURCHASING', 'department' => 'PUR', 'position' => 'Purchasing Officer'],
+        ['name' => 'Warehouse Staff', 'email' => 'warehouse@yusufazharzaini.test', 'role' => 'WAREHOUSE', 'department' => 'WHS', 'position' => 'Warehouse Officer'],
+        ['name' => 'Logistic Staff', 'email' => 'logistic@yusufazharzaini.test', 'role' => 'LOGISTIC', 'department' => 'LOG', 'position' => 'Logistic Officer'],
+        ['name' => 'Plant Manager', 'email' => 'management@yusufazharzaini.test', 'role' => 'MANAGEMENT', 'department' => 'MGT', 'position' => 'Plant Manager'],
+        ['name' => 'Read Only User', 'email' => 'viewer@yusufazharzaini.test', 'role' => 'VIEWER', 'department' => 'PRD', 'position' => 'Production Planner'],
     ];
 
     public function run(): void
     {
+        $this->guardAgainstProduction();
+
         $password = Hash::make((string) env('MDP_DEMO_PASSWORD', 'password123'));
         $departments = Department::query()->pluck('id', 'code');
         $plantId = Plant::query()->orderBy('id')->value('id');

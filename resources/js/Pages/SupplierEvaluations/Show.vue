@@ -6,6 +6,9 @@ import ConfirmDialog from '@/Components/ConfirmDialog.vue';
 import StatusBadge from '@/Components/StatusBadge.vue';
 import TextareaInput from '@/Components/Form/TextareaInput.vue';
 import type { EvaluationRecord } from '@/Types';
+import { useTranslate } from '@/Composables/useTranslate';
+
+const { t } = useTranslate();
 
 const props = defineProps<{
     record: EvaluationRecord;
@@ -71,33 +74,25 @@ const isApproved = computed(() => props.record.status === 'APPROVED');
                         v-if="record.supplier_ulid"
                         :href="route('supplier-performance.show', record.supplier_ulid)"
                         class="rounded-lg border border-line px-3.5 py-2 text-sm font-semibold text-ink-muted transition hover:border-info hover:text-info"
-                    >
-                        Lihat scorecard
-                    </Link>
+                    >{{ t('evaluation.view_scorecard') }}</Link>
                     <button
                         v-if="can.regenerate"
                         type="button"
                         class="rounded-lg border border-line px-3.5 py-2 text-sm font-semibold text-ink-muted transition hover:border-info hover:text-info"
                         @click="regenerate"
-                    >
-                        Hitung ulang
-                    </button>
+                    >{{ t('evaluation.recalculate') }}</button>
                     <button
                         v-if="can.approve"
                         type="button"
                         class="rounded-lg bg-brand px-3.5 py-2 text-sm font-semibold text-white transition hover:bg-brand-soft"
                         @click="approving = true"
-                    >
-                        Setujui
-                    </button>
+                    >{{ t('common.approve') }}</button>
                     <button
                         v-if="can.reopen"
                         type="button"
                         class="rounded-lg border border-line px-3.5 py-2 text-sm font-semibold text-ink-muted transition hover:border-critical hover:text-critical"
                         @click="reopening = true"
-                    >
-                        Buka kembali
-                    </button>
+                    >{{ t('evaluation.reopen') }}</button>
                 </div>
             </div>
 
@@ -121,9 +116,7 @@ const isApproved = computed(() => props.record.status === 'APPROVED');
             <section class="card p-5">
                 <div class="flex flex-wrap items-start justify-between gap-4">
                     <div>
-                        <p class="text-[0.65rem] font-semibold tracking-wider text-ink-subtle uppercase">
-                            Total skor
-                        </p>
+                        <p class="text-[0.65rem] font-semibold tracking-wider text-ink-subtle uppercase">{{ t('evaluation.total_score') }}</p>
                         <p class="mt-1 flex items-baseline gap-3">
                             <span class="text-4xl font-semibold text-ink tabular-nums">
                                 {{ score.format(record.total_score) }}
@@ -135,42 +128,36 @@ const isApproved = computed(() => props.record.status === 'APPROVED');
 
                     <dl class="grid gap-4 sm:grid-cols-2">
                         <div>
-                            <dt class="text-[0.65rem] font-semibold tracking-wider text-ink-subtle uppercase">
-                                Dihitung oleh
-                            </dt>
+                            <dt class="text-[0.65rem] font-semibold tracking-wider text-ink-subtle uppercase">{{ t('evaluation.calculated_by') }}</dt>
                             <dd class="mt-0.5 text-sm text-ink">{{ record.created_by ?? '—' }}</dd>
                         </div>
                         <div>
-                            <dt class="text-[0.65rem] font-semibold tracking-wider text-ink-subtle uppercase">
-                                Disetujui oleh
-                            </dt>
+                            <dt class="text-[0.65rem] font-semibold tracking-wider text-ink-subtle uppercase">{{ t('common.approved_by') }}</dt>
                             <dd class="mt-0.5 text-sm text-ink">{{ record.approved_by ?? '—' }}</dd>
                         </div>
                     </dl>
                 </div>
 
                 <div v-if="record.remarks" class="mt-4 border-t border-line pt-4">
-                    <p class="text-[0.65rem] font-semibold tracking-wider text-ink-subtle uppercase">Catatan</p>
+                    <p class="text-[0.65rem] font-semibold tracking-wider text-ink-subtle uppercase">{{ t('common.notes') }}</p>
                     <p class="mt-0.5 text-sm leading-relaxed text-ink-muted">{{ record.remarks }}</p>
                 </div>
             </section>
 
             <section class="card">
                 <header class="border-b border-line px-5 py-4">
-                    <h2 class="text-sm font-semibold tracking-wide text-ink uppercase">Rincian Kriteria</h2>
-                    <p class="mt-0.5 text-xs text-ink-muted">
-                        Kontribusi setiap kriteria terhadap total, dihitung di backend.
-                    </p>
+                    <h2 class="text-sm font-semibold tracking-wide text-ink uppercase">{{ t('evaluation.criteria_detail') }}</h2>
+                    <p class="mt-0.5 text-xs text-ink-muted">{{ t('evaluation.contribution_hint') }}</p>
                 </header>
 
                 <div class="overflow-x-auto">
                     <table class="w-full min-w-[34rem] text-sm">
                         <thead>
                             <tr class="border-b border-line text-[0.65rem] tracking-wider text-ink-subtle uppercase">
-                                <th scope="col" class="px-5 py-3 text-left font-semibold">Kriteria</th>
-                                <th scope="col" class="px-5 py-3 text-right font-semibold">Bobot</th>
-                                <th scope="col" class="px-5 py-3 text-right font-semibold">Skor</th>
-                                <th scope="col" class="px-5 py-3 text-right font-semibold">Kontribusi</th>
+                                <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('evaluation.criteria') }}</th>
+                                <th scope="col" class="px-5 py-3 text-right font-semibold">{{ t('evaluation.weight') }}</th>
+                                <th scope="col" class="px-5 py-3 text-right font-semibold">{{ t('evaluation.score') }}</th>
+                                <th scope="col" class="px-5 py-3 text-right font-semibold">{{ t('evaluation.contribution') }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -194,7 +181,7 @@ const isApproved = computed(() => props.record.status === 'APPROVED');
 
         <ConfirmDialog
             :open="approving"
-            title="Setujui evaluasi"
+            :title="t('evaluation.approve_action')"
             :message="`Skor periode ${record.period} akan dibekukan. Koreksi data setelah ini tidak lagi mengubahnya.`"
             confirm-label="Setujui"
             tone="brand"
@@ -204,7 +191,7 @@ const isApproved = computed(() => props.record.status === 'APPROVED');
 
         <ConfirmDialog
             :open="reopening"
-            title="Buka kembali evaluasi"
+            :title="t('evaluation.reopen_action')"
             :message="`Evaluasi ${record.period} kembali menjadi draft dan dapat dihitung ulang. Sebutkan alasannya untuk jejak audit.`"
             confirm-label="Buka kembali"
             :processing="reopenForm.processing"
@@ -214,7 +201,7 @@ const isApproved = computed(() => props.record.status === 'APPROVED');
             <TextareaInput
                 id="reopen_reason"
                 v-model="reopenForm.reason"
-                label="Alasan"
+                :label="t('common.reason')"
                 required
                 :error="reopenForm.errors.reason"
             />

@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
 import type { Paginated } from '@/Types';
+import { useTranslate } from '@/Composables/useTranslate';
+
+const { t } = useTranslate();
 
 defineProps<{ meta: Paginated<unknown> }>();
 
@@ -31,11 +34,9 @@ function label(raw: string): string {
     <nav
         v-if="meta.last_page > 1 || meta.total > 0"
         class="flex flex-wrap items-center justify-between gap-3 border-t border-line px-5 py-3"
-        aria-label="Navigasi halaman"
+        :aria-label="t('common.pagination_nav')"
     >
-        <p class="text-xs text-ink-muted">
-            Menampilkan
-            <span class="font-medium text-ink">{{ number.format(meta.from ?? 0) }}</span>
+        <p class="text-xs text-ink-muted">{{ t('common.showing') }}<span class="font-medium text-ink">{{ number.format(meta.from ?? 0) }}</span>
             –
             <span class="font-medium text-ink">{{ number.format(meta.to ?? 0) }}</span>
             dari

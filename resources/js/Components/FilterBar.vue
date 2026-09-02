@@ -2,6 +2,9 @@
 import AppIcon from '@/Components/AppIcon.vue';
 import type { DashboardFilterOptions, SelectOption } from '@/Types';
 import { useDashboardFilterStore, type IdFilterKey } from '@/Stores/dashboardFilter';
+import { useTranslate } from '@/Composables/useTranslate';
+
+const { t } = useTranslate();
 
 defineProps<{
     options: DashboardFilterOptions;
@@ -34,10 +37,10 @@ function optionsFor(options: DashboardFilterOptions, key: keyof DashboardFilterO
 
 <template>
     <!-- One row above the panels: every filter in the same place, nothing hidden in a drawer. -->
-    <section class="card p-4" aria-label="Filter dashboard">
+    <section class="card p-4" :aria-label="t('filter.dashboard')">
         <div class="flex flex-wrap items-end gap-3">
             <div class="min-w-[9rem] flex-1 sm:max-w-[11rem]">
-                <label for="filter-period" class="field-label">Periode</label>
+                <label for="filter-period" class="field-label">{{ t('common.period') }}</label>
                 <input
                     id="filter-period"
                     v-model="filters.period"
@@ -73,9 +76,7 @@ function optionsFor(options: DashboardFilterOptions, key: keyof DashboardFilterO
                 class="inline-flex h-[2.35rem] items-center gap-2 rounded-lg border border-line px-3 text-xs font-semibold text-ink-muted transition hover:border-critical hover:text-critical"
                 @click="$emit('reset')"
             >
-                <AppIcon name="close" :size="13" />
-                Reset filter
-            </button>
+                <AppIcon name="close" :size="13" />{{ t('filter.reset') }}</button>
 
             <p
                 v-if="loading"

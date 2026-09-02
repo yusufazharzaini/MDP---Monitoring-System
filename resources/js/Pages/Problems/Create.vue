@@ -3,6 +3,9 @@ import { useForm } from '@inertiajs/vue3';
 import ResourceForm from '@/Components/MasterData/ResourceForm.vue';
 import Fields, { type FormData } from './Fields.vue';
 import type { ProblemDeliveryContext, ProblemFormOptions } from '@/Types';
+import { useTranslate } from '@/Composables/useTranslate';
+
+const { t } = useTranslate();
 
 const props = defineProps<{
     delivery: ProblemDeliveryContext;
@@ -36,7 +39,7 @@ function submit(): void {
 
 <template>
     <ResourceForm
-        title="Laporkan Problem"
+        :title="t('problem.report_title')"
         :subtitle="`Delivery ${delivery.delivery_number} · ${delivery.supplier_name ?? ''}`"
         current="problems"
         :back-href="route('deliveries.show', delivery.ulid)"

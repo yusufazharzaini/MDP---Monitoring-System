@@ -7,6 +7,9 @@ import EmptyState from '@/Components/EmptyState.vue';
 import Pagination from '@/Components/Pagination.vue';
 import StatusBadge from '@/Components/StatusBadge.vue';
 import type { BadgeVariant, Paginated, SelectOption } from '@/Types';
+import { useTranslate } from '@/Composables/useTranslate';
+
+const { t } = useTranslate();
 
 interface Row {
     id: number;
@@ -57,11 +60,11 @@ watch([search, status, supplierId, plantId], () => {
 </script>
 
 <template>
-    <Head title="Delivery" />
+    <Head :title="t('entity.delivery')" />
 
     <AppLayout
         current="deliveries"
-        title="Delivery"
+        :title="t('entity.delivery')"
         subtitle="Penerimaan material dari supplier ke plant"
     >
         <section class="card">
@@ -72,8 +75,8 @@ watch([search, status, supplierId, plantId], () => {
                             v-model="search"
                             type="search"
                             class="field-input pl-9"
-                            placeholder="Cari no. delivery atau surat jalan…"
-                            aria-label="Cari delivery"
+                            :placeholder="t('delivery.search_placeholder')"
+                            :aria-label="t('delivery.search')"
                         />
                         <AppIcon
                             name="filter"
@@ -82,22 +85,22 @@ watch([search, status, supplierId, plantId], () => {
                         />
                     </div>
 
-                    <select v-model="status" class="field-input w-auto min-w-[9rem]" aria-label="Filter status">
-                        <option value="">Semua status</option>
+                    <select v-model="status" class="field-input w-auto min-w-[9rem]" :aria-label="t('filter.status')">
+                        <option value="">{{ t('filter.all_status') }}</option>
                         <option v-for="option in options.statuses" :key="option.value" :value="option.value">
                             {{ option.label }}
                         </option>
                     </select>
 
-                    <select v-model="supplierId" class="field-input w-auto min-w-[11rem]" aria-label="Filter supplier">
-                        <option value="">Semua supplier</option>
+                    <select v-model="supplierId" class="field-input w-auto min-w-[11rem]" :aria-label="t('filter.supplier')">
+                        <option value="">{{ t('filter.all_suppliers') }}</option>
                         <option v-for="option in options.suppliers" :key="option.value" :value="option.value">
                             {{ option.label }}
                         </option>
                     </select>
 
-                    <select v-model="plantId" class="field-input w-auto min-w-[10rem]" aria-label="Filter plant">
-                        <option value="">Semua plant</option>
+                    <select v-model="plantId" class="field-input w-auto min-w-[10rem]" :aria-label="t('filter.plant')">
+                        <option value="">{{ t('filter.all_plants') }}</option>
                         <option v-for="option in options.plants" :key="option.value" :value="option.value">
                             {{ option.label }}
                         </option>
@@ -109,14 +112,12 @@ watch([search, status, supplierId, plantId], () => {
                     :href="route('purchase-orders.index', { status: 'APPROVED' })"
                     class="inline-flex items-center gap-2 rounded-lg bg-brand px-3.5 py-2 text-sm font-semibold text-white transition hover:bg-brand-soft"
                 >
-                    <AppIcon name="delivery" :size="15" />
-                    Terima barang
-                </Link>
+                    <AppIcon name="delivery" :size="15" />{{ t('action.receive_goods') }}</Link>
             </header>
 
             <EmptyState
                 v-if="records.data.length === 0"
-                title="Belum ada delivery"
+                :title="t('delivery.none')"
                 message="Penerimaan dicatat dari halaman purchase order yang sudah disetujui."
             />
 
@@ -124,14 +125,14 @@ watch([search, status, supplierId, plantId], () => {
                 <table class="w-full min-w-[56rem] text-sm">
                     <thead>
                         <tr class="border-b border-line text-[0.65rem] tracking-wider text-ink-subtle uppercase">
-                            <th scope="col" class="px-5 py-3 text-left font-semibold">No Delivery</th>
-                            <th scope="col" class="px-5 py-3 text-left font-semibold">Tanggal</th>
-                            <th scope="col" class="px-5 py-3 text-left font-semibold">No PO</th>
-                            <th scope="col" class="px-5 py-3 text-left font-semibold">Supplier</th>
-                            <th scope="col" class="px-5 py-3 text-left font-semibold">Plant</th>
-                            <th scope="col" class="px-5 py-3 text-right font-semibold">Baris</th>
-                            <th scope="col" class="px-5 py-3 text-left font-semibold">Status</th>
-                            <th scope="col" class="px-5 py-3 text-right font-semibold">Aksi</th>
+                            <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('delivery.number') }}</th>
+                            <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('common.date') }}</th>
+                            <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('po.number') }}</th>
+                            <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('entity.supplier') }}</th>
+                            <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('entity.plant') }}</th>
+                            <th scope="col" class="px-5 py-3 text-right font-semibold">{{ t('delivery.lines') }}</th>
+                            <th scope="col" class="px-5 py-3 text-left font-semibold">{{ t('common.status') }}</th>
+                            <th scope="col" class="px-5 py-3 text-right font-semibold">{{ t('common.actions') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -165,9 +166,7 @@ watch([search, status, supplierId, plantId], () => {
                                 <Link
                                     :href="route('deliveries.show', row.ulid)"
                                     class="rounded-md px-2 py-1 text-xs font-semibold text-ink-muted transition hover:text-info"
-                                >
-                                    Detail
-                                </Link>
+                                >{{ t('common.details') }}</Link>
                             </td>
                         </tr>
                     </tbody>

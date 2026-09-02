@@ -42,7 +42,7 @@ final class SchemaIntegrityTest extends TestCase
             'deliveries', 'delivery_items',
             'problem_categories', 'delivery_problems', 'problem_attachments', 'corrective_actions',
             'kpi_settings', 'supplier_evaluations', 'supplier_evaluation_items',
-            'notifications', 'audit_logs', 'system_settings',
+            'users', 'notifications', 'audit_logs', 'system_settings',
             'roles', 'permissions', 'model_has_roles', 'model_has_permissions', 'role_has_permissions',
         ]);
     }

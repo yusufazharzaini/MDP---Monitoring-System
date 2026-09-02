@@ -5,6 +5,9 @@ import EmptyState from '@/Components/EmptyState.vue';
 import Pagination from '@/Components/Pagination.vue';
 import StatusBadge from '@/Components/StatusBadge.vue';
 import type { NotificationRow, Paginated } from '@/Types';
+import { useTranslate } from '@/Composables/useTranslate';
+
+const { t } = useTranslate();
 
 defineProps<{
     records: Paginated<NotificationRow>;
@@ -35,28 +38,25 @@ function open(notification: NotificationRow): void {
 </script>
 
 <template>
-    <Head title="Notifikasi" />
+    <Head :title="t('notification.title')" />
 
-    <AppLayout current="notifications" title="Notifikasi" subtitle="Yang perlu perhatian Anda">
+    <AppLayout current="notifications" :title="t('notification.title')" subtitle="Yang perlu perhatian Anda">
         <section class="card">
             <header class="flex flex-wrap items-center justify-between gap-3 border-b border-line px-5 py-4">
                 <p class="text-sm text-ink-muted">
-                    <span class="font-semibold text-ink">{{ unread }}</span> belum dibaca
-                </p>
+                    <span class="font-semibold text-ink">{{ unread }}</span>{{ t('notification.unread') }}</p>
 
                 <button
                     v-if="unread > 0"
                     type="button"
                     class="rounded-lg border border-line px-3.5 py-2 text-sm font-semibold text-ink-muted transition hover:border-info hover:text-info"
                     @click="markAllRead"
-                >
-                    Tandai semua sudah dibaca
-                </button>
+                >{{ t('notification.mark_all_read') }}</button>
             </header>
 
             <EmptyState
                 v-if="records.data.length === 0"
-                title="Tidak ada notifikasi"
+                :title="t('notification.none')"
                 message="Pemberitahuan tentang purchase order yang menunggu persetujuan dan problem yang melewati target akan muncul di sini."
             />
 
@@ -89,17 +89,13 @@ function open(notification: NotificationRow): void {
                             type="button"
                             class="rounded-md border border-line px-2 py-1 text-xs font-semibold text-ink-muted transition hover:border-info hover:text-info"
                             @click="open(row)"
-                        >
-                            Buka
-                        </button>
+                        >{{ t('notification.open') }}</button>
                         <button
                             v-if="!row.read"
                             type="button"
                             class="rounded-md px-2 py-1 text-xs font-semibold text-ink-subtle transition hover:text-ink"
                             @click="markRead(row)"
-                        >
-                            Tandai dibaca
-                        </button>
+                        >{{ t('notification.mark_read') }}</button>
                     </div>
                 </li>
             </ul>

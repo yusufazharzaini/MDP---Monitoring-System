@@ -4,6 +4,9 @@ import FormField from '@/Components/Form/FormField.vue';
 import SelectInput from '@/Components/Form/SelectInput.vue';
 import TextInput from '@/Components/Form/TextInput.vue';
 import type { SelectOption } from '@/Types';
+import { useTranslate } from '@/Composables/useTranslate';
+
+const { t } = useTranslate();
 
 export interface FormData {
     name: string;
@@ -35,13 +38,13 @@ defineProps<{
 </script>
 
 <template>
-    <TextInput id="name" v-model="form.name" label="Nama" required autofocus :error="form.errors.name" />
-    <TextInput id="email" v-model="form.email" type="email" label="Email" required :error="form.errors.email" />
+    <TextInput id="name" v-model="form.name" :label="t('common.name')" required autofocus :error="form.errors.name" />
+    <TextInput id="email" v-model="form.email" type="email" :label="t('common.email')" required :error="form.errors.email" />
     <TextInput
         id="password"
         v-model="form.password"
         type="password"
-        label="Kata Sandi"
+        :label="t('user.password')"
         :required="!isEdit"
         :error="form.errors.password"
         :hint="isEdit ? 'Kosongkan bila tidak ingin mengubah kata sandi.' : 'Minimal 8 karakter, mengandung huruf dan angka.'"
@@ -50,34 +53,34 @@ defineProps<{
         id="password_confirmation"
         v-model="form.password_confirmation"
         type="password"
-        label="Konfirmasi Kata Sandi"
+        :label="t('user.password_confirm')"
         :required="!isEdit"
     />
-    <TextInput id="employee_code" v-model="form.employee_code" label="Nomor Induk" :error="form.errors.employee_code" />
-    <TextInput id="position" v-model="form.position" label="Jabatan" :error="form.errors.position" />
+    <TextInput id="employee_code" v-model="form.employee_code" :label="t('user.employee_code')" :error="form.errors.employee_code" />
+    <TextInput id="position" v-model="form.position" :label="t('common.position')" :error="form.errors.position" />
     <SelectInput
         id="department_id"
         v-model="form.department_id"
-        label="Departemen"
+        :label="t('common.department')"
         numeric
-        placeholder="Tidak ditentukan"
+        :placeholder="t('common.unspecified')"
         :options="options.departments"
         :error="form.errors.department_id"
     />
     <SelectInput
         id="plant_id"
         v-model="form.plant_id"
-        label="Plant"
+        :label="t('entity.plant')"
         numeric
-        placeholder="Tidak ditentukan"
+        :placeholder="t('common.unspecified')"
         :options="options.plants"
         :error="form.errors.plant_id"
     />
-    <TextInput id="phone" v-model="form.phone" label="Telepon" :error="form.errors.phone" />
+    <TextInput id="phone" v-model="form.phone" :label="t('common.phone')" :error="form.errors.phone" />
     <SelectInput
         id="status"
         v-model="form.status"
-        label="Status"
+        :label="t('common.status')"
         required
         :options="options.statuses"
         :error="form.errors.status"
@@ -85,7 +88,7 @@ defineProps<{
     />
 
     <div class="sm:col-span-2">
-        <FormField id="roles" label="Peran" required :error="form.errors.roles">
+        <FormField id="roles" :label="t('common.role')" required :error="form.errors.roles">
             <div class="mt-1 grid gap-2 sm:grid-cols-3">
                 <label
                     v-for="role in options.roles"

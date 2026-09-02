@@ -38,9 +38,28 @@ trait HasEnumMetadata
     }
 
     /**
-     * Title-case fallback used by enums without a bespoke label map.
+     * The label an operator reads, in the language they chose.
+     *
+     * Every case resolves through lang/<locale>/enums.php under its own enum
+     * name, so all 19 enums become translatable from this one point. A missing
+     * key falls back to defaultLabel() rather than rendering the raw key, which
+     * keeps a half-finished translation legible instead of showing
+     * "enums.ProblemSeverity.HIGH" on a dashboard.
      */
     public function label(): string
+    {
+        $key = 'enums.'.class_basename(static::class).'.'.$this->value;
+        $translated = __($key);
+
+        return is_string($translated) && $translated !== $key
+            ? $translated
+            : $this->defaultLabel();
+    }
+
+    /**
+     * Title-case fallback used when no translation exists for the case.
+     */
+    public function defaultLabel(): string
     {
         return ucwords(strtolower(str_replace('_', ' ', $this->value)));
     }

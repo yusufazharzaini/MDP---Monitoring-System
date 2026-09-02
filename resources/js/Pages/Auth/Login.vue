@@ -3,6 +3,9 @@ import { Head, useForm } from '@inertiajs/vue3';
 import AuthLayout from '@/Layouts/AuthLayout.vue';
 import InputError from '@/Components/InputError.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
+import { useTranslate } from '@/Composables/useTranslate';
+
+const { t } = useTranslate();
 
 const form = useForm({
     email: '',
@@ -18,12 +21,12 @@ function submit(): void {
 </script>
 
 <template>
-    <Head title="Login" />
+    <Head :title="t('auth.sign_in')" />
 
-    <AuthLayout title="Masuk ke sistem" subtitle="Gunakan akun perusahaan Anda untuk melanjutkan.">
+    <AuthLayout :title="t('auth.sign_in_title')" :subtitle="t('auth.sign_in_subtitle')">
         <form class="space-y-5" @submit.prevent="submit">
             <div>
-                <label for="email" class="field-label">Email</label>
+                <label for="email" class="field-label">{{ t('auth.email') }}</label>
                 <input
                     id="email"
                     v-model="form.email"
@@ -32,13 +35,13 @@ function submit(): void {
                     autocomplete="username"
                     required
                     autofocus
-                    placeholder="nama@torica.test"
+                    :placeholder="t('auth.email_placeholder')"
                 />
                 <InputError :message="form.errors.email" />
             </div>
 
             <div>
-                <label for="password" class="field-label">Password</label>
+                <label for="password" class="field-label">{{ t('auth.password') }}</label>
                 <input
                     id="password"
                     v-model="form.password"
@@ -56,10 +59,10 @@ function submit(): void {
                     type="checkbox"
                     class="size-4 rounded border-line bg-canvas text-brand"
                 />
-                Ingat saya di perangkat ini
+                {{ t('auth.remember_me') }}
             </label>
 
-            <PrimaryButton type="submit" :loading="form.processing">Masuk</PrimaryButton>
+            <PrimaryButton type="submit" :loading="form.processing">{{ t('auth.sign_in') }}</PrimaryButton>
         </form>
     </AuthLayout>
 </template>

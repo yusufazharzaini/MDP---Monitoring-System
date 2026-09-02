@@ -17,7 +17,7 @@ enum TimelinessStatus: string
     case ON_TIME = 'ON_TIME';
     case LATE = 'LATE';
 
-    public function label(): string
+    public function defaultLabel(): string
     {
         return match ($this) {
             self::PENDING => 'Pending',
