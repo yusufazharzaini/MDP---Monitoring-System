@@ -2,9 +2,14 @@
 
 How to use the Material Delivery Performance Monitoring System day to day.
 
+> 🇮🇩 Versi Bahasa Indonesia: [06-USER-GUIDE.id.md](06-USER-GUIDE.id.md)
+
 This guide is written for the people who work in the system - purchasing,
 warehouse, logistics and management - rather than for developers. For how it is
 built, see [docs/01-ARCHITECTURE.md](01-ARCHITECTURE.md).
+
+Menu and button names in this edition are the ones shown when the interface
+language is set to **English**.
 
 ---
 
