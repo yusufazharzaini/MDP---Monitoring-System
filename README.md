@@ -24,6 +24,7 @@ Laravel Excel · DomPDF · PHPUnit 12
 | [docs/04-ROUTE-MAP.md](docs/04-ROUTE-MAP.md) | Route map, dashboard JSON contract, service/component inventory, roadmap |
 | [docs/05-DEMO-DATA.md](docs/05-DEMO-DATA.md) | What the seed reproduces and how |
 | [docs/06-USER-GUIDE.md](docs/06-USER-GUIDE.md) | **How to use the system**: signing in, changing language, the daily PO → delivery → problem flow, how delivery status is decided, reports, administration |
+| [docs/06-USER-GUIDE.id.md](docs/06-USER-GUIDE.id.md) | **Panduan Pengguna** — the same guide in Bahasa Indonesia, naming the Indonesian interface labels |
 
 ## Requirements
 
